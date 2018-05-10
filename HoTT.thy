@@ -3,32 +3,42 @@ imports Pure
 begin
 
 section \<open>Setup\<close>
-
-(* ML files, routines and setup should probably go here *)
+text \<open>
+For ML files, routines and setup.
+\<close>
 
 section \<open>Basic definitions\<close>
-
 text \<open>
 A single meta-level type \<open>Term\<close> suffices to implement the object-level types and terms.
-
 For now we do not implement universes, but simply follow the informal notation in the HoTT book.
-\<close>
-(* Actually unsure if a single meta-type suffices... *)
+\<close> (* Actually unsure if a single meta-type suffices... *)
 
 typedecl Term
 
 subsection \<open>Judgements\<close>
-
 consts
   is_a_type :: "Term \<Rightarrow> prop"           ("(_ : U)")  (* Add precedences when I figure them out! *)
   is_of_type :: "Term \<Rightarrow> Term \<Rightarrow> prop"  ("(_ : _)")
 
 subsection \<open>Basic axioms\<close>
+subsubsection \<open>Definitional equality\<close>
+text\<open>
+We take the meta-equality \<equiv>, defined by the Pure framework for any of its terms,
+and use it additionally for definitional/judgmental equality of types and terms in our theory.
 
-axiomatization
-where
-  inhabited_implies_type: "\<And>x A. x : A \<Longrightarrow> A : U" and
-  equal_types: "\<And>A B x. A \<equiv> B \<Longrightarrow> x : A \<Longrightarrow> x : B"
+Note that the Pure framework already provides axioms and results for the various properties of \<equiv>,
+which we make use of and extend where necessary.
+\<close>
+
+
+theorem DefEq_symmetry: "\<And>A B. A \<equiv> B \<Longrightarrow> B \<equiv> A"
+  by (rule Pure.symmetric)
+
+subsubsection \<open>Type-related properties\<close>
+
+axiomatization where
+  equal_types: "\<And>A B x. \<lbrakk>A \<equiv> B; x : A\<rbrakk> \<Longrightarrow> x : B" and
+  inhabited_implies_type: "\<And>x A. x : A \<Longrightarrow> A : U"
 
 subsection \<open>Basic types\<close>
 
@@ -41,7 +51,8 @@ Same for the nondependent product below.
 
 axiomatization
   Function :: "Term \<Rightarrow> Term \<Rightarrow> Term"  (infixr "\<rightarrow>" 10) and
-  lambda :: "(Term \<Rightarrow> Term) \<Rightarrow> Term"    (binder "\<^bold>\<lambda>" 10) and  (* precedence! *)
+  lambda :: "(Term \<Rightarrow> Term) \<Rightarrow> Term"  (binder "\<^bold>\<lambda>" 10) and
+    (* Is bold lambda already used by something else? Proof transformers in Pure maybe?... *)
   appl :: "Term \<Rightarrow> Term \<Rightarrow> Term"      ("(_`_)")
 where
   Function_form: "\<And>A B. \<lbrakk>A : U; B : U\<rbrakk> \<Longrightarrow> A\<rightarrow>B : U" and
@@ -62,8 +73,8 @@ where
   Product_comp: "\<And>A B C g a b. \<lbrakk>C : U; g : A\<rightarrow>B\<rightarrow>C; a : A; b : B\<rbrakk> \<Longrightarrow> rec_Product(A,B,C,g)`(a,b) \<equiv> (g`a)`b"
 
 \<comment> \<open>Projection onto first component\<close>
-definition proj1 :: "Term \<Rightarrow> Term \<Rightarrow> Term" ("(proj1'(_,_'))") where
-  "proj1(A,B) \<equiv> rec_Product(A, B, A, \<^bold>\<lambda>x. \<^bold>\<lambda>y. x)"
+definition proj1 :: "Term \<Rightarrow> Term \<Rightarrow> Term" ("(proj1\<langle>_,_\<rangle>)") where
+  "proj1\<langle>A,B\<rangle> \<equiv> rec_Product(A, B, A, \<^bold>\<lambda>x. \<^bold>\<lambda>y. x)"
 
 subsubsection \<open>Empty type\<close>
 
