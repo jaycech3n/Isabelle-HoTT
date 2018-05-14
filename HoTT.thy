@@ -17,8 +17,8 @@ typedecl Term
 
 subsection \<open>Judgements\<close>
 consts
-  is_a_type :: "Term \<Rightarrow> prop"           ("(_ : U)")  (* Add precedences when I figure them out! *)
-  is_of_type :: "Term \<Rightarrow> Term \<Rightarrow> prop"  ("(_ : _)")
+  is_a_type :: "Term \<Rightarrow> prop"           ("(_ : U)" [0] 1000)
+  is_of_type :: "Term \<Rightarrow> Term \<Rightarrow> prop"  ("(3_ :/ _)" [0, 0] 1000)
 
 subsection \<open>Basic axioms\<close>
 subsubsection \<open>Definitional equality\<close>
@@ -30,15 +30,12 @@ Note that the Pure framework already provides axioms and results for the various
 which we make use of and extend where necessary.
 \<close>
 
-
-theorem DefEq_symmetry: "\<And>A B. A \<equiv> B \<Longrightarrow> B \<equiv> A"
-  by (rule Pure.symmetric)
-
 subsubsection \<open>Type-related properties\<close>
 
 axiomatization where
-  equal_types: "\<And>A B x. \<lbrakk>A \<equiv> B; x : A\<rbrakk> \<Longrightarrow> x : B" and
-  inhabited_implies_type: "\<And>x A. x : A \<Longrightarrow> A : U"
+  term_substitution: "\<And>(A::Term) (x::Term) y::Term. x \<equiv> y \<Longrightarrow> A(x) \<equiv> A(y)" and
+  equal_types: "\<And>(A::Term) (B::Term) x::Term. \<lbrakk>A \<equiv> B; x : A\<rbrakk> \<Longrightarrow> x : B" and
+  inhabited_implies_type: "\<And>(x::Term) A::Term. x : A \<Longrightarrow> A : U"
 
 subsection \<open>Basic types\<close>
 
@@ -47,16 +44,18 @@ subsubsection \<open>Nondependent function type\<close>
 Write this for now to test stuff, later I should make
 this an instance of the dependent function. 
 Same for the nondependent product below.
+
+Note that the syntax \<^bold>\<lambda> (bold lambda) clashes with the proof term syntax!
+(See \<section>2.5.2, The Isabelle/Isar Implementation.)
 *)
 
 axiomatization
   Function :: "Term \<Rightarrow> Term \<Rightarrow> Term"  (infixr "\<rightarrow>" 10) and
-  lambda :: "(Term \<Rightarrow> Term) \<Rightarrow> Term"  (binder "\<^bold>\<lambda>" 10) and
-    (* Is bold lambda already used by something else? Proof transformers in Pure maybe?... *)
-  appl :: "Term \<Rightarrow> Term \<Rightarrow> Term"      ("(_`_)")
+  lambda :: "Term \<Rightarrow> Term \<Rightarrow> Term \<Rightarrow> Term"  ("(3\<^bold>\<lambda>_:_./ _)" [1000, 0, 0] 10) and
+  appl :: "Term \<Rightarrow> Term \<Rightarrow> Term"      ("(3_`/_)" [10, 10] 10)
 where
-  Function_form: "\<And>A B. \<lbrakk>A : U; B : U\<rbrakk> \<Longrightarrow> A\<rightarrow>B : U" and
-  Function_intro: "\<And>A B b. (\<And>x. x : A \<Longrightarrow> b(x) : B) \<Longrightarrow> \<^bold>\<lambda>x. b(x) : A\<rightarrow>B" and
+  Function_form: "\<And>(A::Term) B::Term. \<lbrakk>A : U; B : U\<rbrakk> \<Longrightarrow> A\<rightarrow>B : U" and
+  Function_intro: "\<And>(A::Term) (B::Term) b::Term. (\<And>x. x : A \<Longrightarrow> b(x) : B) \<Longrightarrow> \<^bold>\<lambda>x:A. b(x) : A\<rightarrow>B" and
   Function_elim: "\<And>A B f a. \<lbrakk>f : A\<rightarrow>B; a : A\<rbrakk> \<Longrightarrow> f`a : B"
   (* beta and eta reductions should go here *)
 
