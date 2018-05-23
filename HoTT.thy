@@ -1,63 +1,66 @@
 theory HoTT
-imports Pure
+  imports Pure
 begin
 
 section \<open>Setup\<close>
-text \<open>
-For ML files, routines and setup.
-\<close>
+
+text "For ML files, routines and setup."
 
 section \<open>Basic definitions\<close>
-text \<open>
-A single meta-level type \<open>Term\<close> suffices to implement the object-level types and terms.
-For now we do not implement universes, but simply follow the informal notation in the HoTT book.
-\<close> (* Actually unsure if a single meta-type suffices... *)
+
+text "A single meta-level type \<open>Term\<close> suffices to implement the object-level types and terms.
+We do not implement universes, but simply follow the informal notation in the HoTT book."
 
 typedecl Term
 
-subsection \<open>Judgements\<close>
+subsection \<open>Judgments\<close>
+
 consts
   is_a_type :: "Term \<Rightarrow> prop"           ("(_ : U)" [0] 1000)
-  is_of_type :: "Term \<Rightarrow> Term \<Rightarrow> prop"  ("(3_ :/ _)" [0, 0] 1000)
+  is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(3_ :/ _)" [0, 0] 1000)
 
 subsection \<open>Basic axioms\<close>
-subsubsection \<open>Definitional equality\<close>
-text\<open>
-We take the meta-equality \<equiv>, defined by the Pure framework for any of its terms,
-and use it additionally for definitional/judgmental equality of types and terms in our theory.
 
-Note that the Pure framework already provides axioms and results for the various properties of \<equiv>,
-which we make use of and extend where necessary.
-\<close>
+subsubsection \<open>Definitional equality\<close>
+
+text "We take the meta-equality \<equiv>, defined by the Pure framework for any of its terms, and use it additionally for definitional/judgmental equality of types and terms in our theory.
+
+Note that the Pure framework already provides axioms and results for various properties of \<equiv>, which we make use of and extend where necessary."
 
 subsubsection \<open>Type-related properties\<close>
 
 axiomatization where
-  term_substitution: "\<And>(A::Term) (x::Term) y::Term. x \<equiv> y \<Longrightarrow> A(x) \<equiv> A(y)" and
-  equal_types: "\<And>(A::Term) (B::Term) x::Term. \<lbrakk>A \<equiv> B; x : A\<rbrakk> \<Longrightarrow> x : B" and
-  inhabited_implies_type: "\<And>(x::Term) A::Term. x : A \<Longrightarrow> A : U"
+  equal_types: "\<And>(A::Term) (B::Term) (x::Term). \<lbrakk>A \<equiv> B; x : A\<rbrakk> \<Longrightarrow> x : B" and
+  inhabited_implies_type: "\<And>(x::Term) (A::Term). x : A \<Longrightarrow> A : U"
 
 subsection \<open>Basic types\<close>
 
-subsubsection \<open>Nondependent function type\<close>
-(*
-Write this for now to test stuff, later I should make
-this an instance of the dependent function. 
-Same for the nondependent product below.
+subsubsection \<open>Dependent product type\<close>
 
-Note that the syntax \<^bold>\<lambda> (bold lambda) clashes with the proof term syntax!
-(See \<section>2.5.2, The Isabelle/Isar Implementation.)
-*)
+consts
+  Prod :: "[Term, (Term \<Rightarrow> Term)] \<Rightarrow> Term"
+syntax
+  "_Prod" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3\<Prod>_:_./ _)" 10)
+translations
+  "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod A (\<lambda>x. B)"
+(* The above syntax translation binds the x in B *)
 
 axiomatization
-  Function :: "Term \<Rightarrow> Term \<Rightarrow> Term"  (infixr "\<rightarrow>" 10) and
-  lambda :: "Term \<Rightarrow> Term \<Rightarrow> Term \<Rightarrow> Term"  ("(3\<^bold>\<lambda>_:_./ _)" [1000, 0, 0] 10) and
-  appl :: "Term \<Rightarrow> Term \<Rightarrow> Term"      ("(3_`/_)" [10, 10] 10)
+  lambda :: "(Term \<Rightarrow> Term) \<Rightarrow> Term"  (binder "\<^bold>\<lambda>" 10) and
+  appl :: "[Term, Term] \<Rightarrow> Term"      ("(3_`/_)" [10, 10] 60)
 where
-  Function_form: "\<And>(A::Term) B::Term. \<lbrakk>A : U; B : U\<rbrakk> \<Longrightarrow> A\<rightarrow>B : U" and
-  Function_intro: "\<And>(A::Term) (B::Term) b::Term. (\<And>x. x : A \<Longrightarrow> b(x) : B) \<Longrightarrow> \<^bold>\<lambda>x:A. b(x) : A\<rightarrow>B" and
-  Function_elim: "\<And>A B f a. \<lbrakk>f : A\<rightarrow>B; a : A\<rbrakk> \<Longrightarrow> f`a : B"
-  (* beta and eta reductions should go here *)
+  Prod_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; \<And>(x::Term). x : A \<Longrightarrow> B(x) : U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) : U" and
+  Prod_intro: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term). \<lbrakk>A : U; \<And>(x::Term). x : A \<Longrightarrow> b(x) : B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b(x) : \<Prod>x:A. B(x)" and
+  Prod_elim: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term) (a::Term). \<lbrakk>f : \<Prod>x:A. B(x); a : A\<rbrakk> \<Longrightarrow> f`a : B(a)" and
+  Prod_comp: "\<And>(b::Term \<Rightarrow> Term) (a::Term). (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)" and
+  Prod_uniq: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term). \<lbrakk>f : \<Prod>x:A. B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. (f`x) \<equiv> f"
+
+text "Observe that the metatype \<open>Term \<Rightarrow> Term\<close> is used to represent type families, for example \<open>Prod\<close> takes a type \<open>A\<close> and a type family \<open>B\<close> and constructs a dependent function type from them."
+
+text "Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation)."
+
+abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarrow>" 30)
+where "A\<rightarrow>B \<equiv> \<Prod>_:A. B"
 
 subsubsection \<open>Nondependent product type\<close>
 
@@ -72,8 +75,10 @@ where
   Product_comp: "\<And>A B C g a b. \<lbrakk>C : U; g : A\<rightarrow>B\<rightarrow>C; a : A; b : B\<rbrakk> \<Longrightarrow> rec_Product(A,B,C,g)`(a,b) \<equiv> (g`a)`b"
 
 \<comment> \<open>Projection onto first component\<close>
+(*
 definition proj1 :: "Term \<Rightarrow> Term \<Rightarrow> Term" ("(proj1\<langle>_,_\<rangle>)") where
-  "proj1\<langle>A,B\<rangle> \<equiv> rec_Product(A, B, A, \<^bold>\<lambda>x. \<^bold>\<lambda>y. x)"
+  "\<And>A B x y. proj1\<langle>A,B\<rangle> \<equiv> rec_Product(A, B, A, \<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. (\<lambda>x. x))"
+*)
 
 subsubsection \<open>Empty type\<close>
 
