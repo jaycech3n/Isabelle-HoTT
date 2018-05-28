@@ -19,23 +19,38 @@ consts
   is_a_type :: "Term \<Rightarrow> prop"           ("(_ : U)" [0] 1000)
   is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(3_ :/ _)" [0, 0] 1000)
 
-subsection \<open>Basic axioms\<close>
+subsection \<open>Type families\<close>
 
-subsubsection \<open>Definitional equality\<close>
+text "Type families are implemented as meta-level lambda terms of type \<open>Term \<Rightarrow> Term\<close> that further satisfy the following property."
 
-text "We take the meta-equality \<equiv>, defined by the Pure framework for any of its terms, and use it additionally for definitional/judgmental equality of types and terms in our theory.
+abbreviation is_type_family :: "[(Term \<Rightarrow> Term), Term] \<Rightarrow> prop"  ("(3_:/ _ \<rightarrow> U)")
+  where "P: A \<rightarrow> U \<equiv> (\<And>x::Term. x : A \<Longrightarrow> P(x) : U)"
 
-Note that the Pure framework already provides axioms and results for various properties of \<equiv>, which we make use of and extend where necessary."
+theorem constant_type_family: "\<lbrakk>B : U; A : U\<rbrakk> \<Longrightarrow> \<lambda>_. B: A \<rightarrow> U"
+  proof -
+    assume "B : U"
+    then show "\<lambda>_. B: A \<rightarrow> U" .
+  qed
 
-subsubsection \<open>Type-related properties\<close>
+subsection \<open>Definitional equality\<close>
 
-axiomatization where
-  equal_types: "\<And>(A::Term) (B::Term) (x::Term). \<lbrakk>A \<equiv> B; x : A\<rbrakk> \<Longrightarrow> x : B" and
-  inhabited_implies_type: "\<And>(x::Term) (A::Term). x : A \<Longrightarrow> A : U"
+text "We take the meta-equality \<open>\<equiv>\<close>, defined by the Pure framework for any of its terms, and use it additionally for definitional/judgmental equality of types and terms in our theory.
+
+Note that the Pure framework already provides axioms and results for various properties of \<open>\<equiv>\<close>, which we make use of and extend where necessary."
+
+theorem equal_types:
+  assumes "A \<equiv> B" and "A : U"
+  shows "B : U" using assms by simp
+
+theorem equal_type_element:
+  assumes "A \<equiv> B" and "x : A"
+  shows "x : B" using assms by simp
+
+lemmas type_equality [intro] = equal_types equal_types[rotated] equal_type_element equal_type_element[rotated]
 
 subsection \<open>Basic types\<close>
 
-subsubsection \<open>Dependent product type\<close>
+subsubsection \<open>Dependent function/product\<close>
 
 consts
   Prod :: "[Term, (Term \<Rightarrow> Term)] \<Rightarrow> Term"
@@ -43,36 +58,48 @@ syntax
   "_Prod" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3\<Prod>_:_./ _)" 10)
 translations
   "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod A (\<lambda>x. B)"
-(* The above syntax translation binds the x in B *)
+(* The above syntax translation binds the x in the expression B *)
+
+abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarrow>" 30)
+  where "A\<rightarrow>B \<equiv> \<Prod>_:A. B"
 
 axiomatization
   lambda :: "(Term \<Rightarrow> Term) \<Rightarrow> Term"  (binder "\<^bold>\<lambda>" 10) and
   appl :: "[Term, Term] \<Rightarrow> Term"      ("(3_`/_)" [10, 10] 60)
 where
-  Prod_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; \<And>(x::Term). x : A \<Longrightarrow> B(x) : U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) : U" and
-  Prod_intro: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term). \<lbrakk>A : U; \<And>(x::Term). x : A \<Longrightarrow> b(x) : B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b(x) : \<Prod>x:A. B(x)" and
-  Prod_elim: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term) (a::Term). \<lbrakk>f : \<Prod>x:A. B(x); a : A\<rbrakk> \<Longrightarrow> f`a : B(a)" and
-  Prod_comp: "\<And>(b::Term \<Rightarrow> Term) (a::Term). (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)" and
-  Prod_uniq: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term). \<lbrakk>f : \<Prod>x:A. B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. (f`x) \<equiv> f"
-
-text "Observe that the metatype \<open>Term \<Rightarrow> Term\<close> is used to represent type families, for example \<open>Prod\<close> takes a type \<open>A\<close> and a type family \<open>B\<close> and constructs a dependent function type from them."
+  Prod_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B : A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) : U" and
+  Prod_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term). \<lbrakk>A : U; B : A \<rightarrow> U; \<And>x::Term. x : A \<Longrightarrow> b(x) : B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b(x) : \<Prod>x:A. B(x)" and
+  Prod_elim [elim]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term) (a::Term). \<lbrakk>f : \<Prod>x:A. B(x); a : A\<rbrakk> \<Longrightarrow> f`a : B(a)" and
+  Prod_comp [simp]: "\<And>(b::Term \<Rightarrow> Term) (a::Term). (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)" and
+  Prod_uniq [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term). f : \<Prod>x:A. B(x) \<Longrightarrow> \<^bold>\<lambda>x. (f`x) \<equiv> f"
 
 text "Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation)."
 
-abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarrow>" 30)
-where "A\<rightarrow>B \<equiv> \<Prod>_:A. B"
+lemmas Prod_formation = Prod_form Prod_form[rotated]
 
-subsubsection \<open>Nondependent product type\<close>
+subsubsection \<open>Dependent pair/sum\<close>
+
+consts
+  Sum :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term"
+syntax
+  "_Sum" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3\<Sum>_:_./ _)" 10)
+translations
+  "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum A (\<lambda>x. B)"
+
+abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"   (infixr "\<times>" 50)
+  where "A\<times>B \<equiv> \<Sum>_:A. B"
 
 axiomatization
-  Product :: "Term \<Rightarrow> Term \<Rightarrow> Term"  ("(_\<times>/ _)") and
-  pair :: "Term \<Rightarrow> Term \<Rightarrow> Term"     ("(_,/ _)") and
-  rec_Product :: "Term \<Rightarrow> Term \<Rightarrow> Term \<Rightarrow> Term \<Rightarrow> Term"  ("(rec'_Product'(_,_,_,_'))")
+  pair :: "[Term, Term] \<Rightarrow> Term"     ("(1'(_,/ _'))") and
+  indSum :: "[Term \<Rightarrow> Term, Term \<Rightarrow> Term, Term] \<Rightarrow> Term"
 where
-  Product_form: "\<And>A B. \<lbrakk>A : U; B : U\<rbrakk> \<Longrightarrow> A\<times>B : U" and
-  Product_intro: "\<And>A B a b. \<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (a,b) : A\<times>B" and
-  Product_elim: "\<And>A B C g. \<lbrakk>A : U; B : U; C : U; g : A\<rightarrow>B\<rightarrow>C\<rbrakk> \<Longrightarrow> rec_Product(A,B,C,g) : (A\<times>B)\<rightarrow>C" and
-  Product_comp: "\<And>A B C g a b. \<lbrakk>C : U; g : A\<rightarrow>B\<rightarrow>C; a : A; b : B\<rbrakk> \<Longrightarrow> rec_Product(A,B,C,g)`(a,b) \<equiv> (g`a)`b"
+  Sum_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x) : U" and
+  Sum_intro: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (a::Term) (b::Term). \<lbrakk>A : U; B: A \<rightarrow> U; a : A; b : B(a)\<rbrakk> \<Longrightarrow> (a, b) : \<Sum>x:A. B(x)" and
+  Sum_elim: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (C::Term \<Rightarrow> Term) (f::Term \<Rightarrow> Term) (p::Term). \<lbrakk>A : U; B: A \<rightarrow> U; C: \<Sum>x:A. B(x) \<rightarrow> U; \<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f((x,y)) : C((x,y)); p : \<Sum>x:A. B(x)\<rbrakk> \<Longrightarrow> (indSum C f p) : C(p)"
+  Sum_comp: ""
+
+text "A choice had to be made for the elimination rule: we formalize the function \<open>f\<close> taking \<open>a : A\<close> and \<open>b : B(x)\<close> and returning \<open>C((a,b))\<close> as a meta-lambda \<open>f::Term \<Rightarrow> Term\<close> instead of an object dependent function \<open>f : \<Prod>x:A. B(x)\<close>.
+However we should be able to later show the equivalence of the formalizations."
 
 \<comment> \<open>Projection onto first component\<close>
 (*
