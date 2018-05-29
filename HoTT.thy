@@ -54,24 +54,27 @@ subsubsection \<open>Dependent function/product\<close>
 
 consts
   Prod :: "[Term, (Term \<Rightarrow> Term)] \<Rightarrow> Term"
+  lambda :: "[Term, (Term \<Rightarrow> Term)] \<Rightarrow> Term"
 syntax
-  "_Prod" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3\<Prod>_:_./ _)" 10)
+  "_Prod" :: "[idt, Term, Term] \<Rightarrow> Term"     ("(3\<Prod>_:_./ _)" 10)
+  "__lambda" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3\<^bold>\<lambda>_:_./ _)" 10)
 translations
   "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod A (\<lambda>x. B)"
-(* The above syntax translation binds the x in the expression B *)
+  "\<^bold>\<lambda>x:A. b" \<rightleftharpoons> "CONST lambda A (\<lambda>x. b)"
+(* The above syntax translations bind the x in the expressions B, b. *)
 
 abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarrow>" 30)
   where "A\<rightarrow>B \<equiv> \<Prod>_:A. B"
 
 axiomatization
-  lambda :: "(Term \<Rightarrow> Term) \<Rightarrow> Term"  (binder "\<^bold>\<lambda>" 10) and
-  appl :: "[Term, Term] \<Rightarrow> Term"      ("(3_`/_)" [10, 10] 60)
+  appl :: "[Term, Term] \<Rightarrow> Term"  (infixl "`" 60)
 where
   Prod_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B : A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) : U" and
-  Prod_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term). \<lbrakk>A : U; B : A \<rightarrow> U; \<And>x::Term. x : A \<Longrightarrow> b(x) : B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b(x) : \<Prod>x:A. B(x)" and
+  Prod_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term). \<lbrakk>A : U; B : A \<rightarrow> U; \<And>x::Term. x : A \<Longrightarrow> b(x) : B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x:A. b(x) : \<Prod>x:A. B(x)" and
   Prod_elim [elim]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term) (a::Term). \<lbrakk>f : \<Prod>x:A. B(x); a : A\<rbrakk> \<Longrightarrow> f`a : B(a)" and
-  Prod_comp [simp]: "\<And>(b::Term \<Rightarrow> Term) (a::Term). (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)" and
-  Prod_uniq [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term). f : \<Prod>x:A. B(x) \<Longrightarrow> \<^bold>\<lambda>x. (f`x) \<equiv> f"
+  Prod_comp [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term) (a::Term). \<lbrakk>A : U; B : A \<rightarrow> U; \<And>x::Term. x : A \<Longrightarrow> b(x) : B(x); a : A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. b(x))`a \<equiv> b(a)" and
+  Prod_uniq [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term). f : \<Prod>x:A. B(x) \<Longrightarrow> \<^bold>\<lambda>x:A. (f`x) \<equiv> f"
+(* Thinking about the premises for the computation rule... they make simplification rather cumbersome, should I remove them? Would this potentially result in logical problems with being able to state untrue statements? (But probably not prove them?) *)
 
 text "Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation)."
 
@@ -90,16 +93,18 @@ abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"   (infixr "\<times>" 50)
   where "A\<times>B \<equiv> \<Sum>_:A. B"
 
 axiomatization
-  pair :: "[Term, Term] \<Rightarrow> Term"     ("(1'(_,/ _'))") and
+  pair :: "[Term, Term] \<Rightarrow> Term"  ("(1'(_,/ _'))") and
   indSum :: "[Term \<Rightarrow> Term, Term \<Rightarrow> Term, Term] \<Rightarrow> Term"
 where
   Sum_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x) : U" and
-  Sum_intro: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (a::Term) (b::Term). \<lbrakk>A : U; B: A \<rightarrow> U; a : A; b : B(a)\<rbrakk> \<Longrightarrow> (a, b) : \<Sum>x:A. B(x)" and
-  Sum_elim: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (C::Term \<Rightarrow> Term) (f::Term \<Rightarrow> Term) (p::Term). \<lbrakk>A : U; B: A \<rightarrow> U; C: \<Sum>x:A. B(x) \<rightarrow> U; \<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f((x,y)) : C((x,y)); p : \<Sum>x:A. B(x)\<rbrakk> \<Longrightarrow> (indSum C f p) : C(p)"
-  Sum_comp: ""
+  Sum_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (a::Term) (b::Term). \<lbrakk>A : U; B: A \<rightarrow> U; a : A; b : B(a)\<rbrakk> \<Longrightarrow> (a, b) : \<Sum>x:A. B(x)" and
+  Sum_elim [elim]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (C::Term \<Rightarrow> Term) (f::Term \<Rightarrow> Term) (p::Term). \<lbrakk>A : U; B: A \<rightarrow> U; C: \<Sum>x:A. B(x) \<rightarrow> U; \<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f((x,y)) : C((x,y)); p : \<Sum>x:A. B(x)\<rbrakk> \<Longrightarrow> (indSum C f p) : C(p)" and
+  Sum_comp [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (C::Term \<Rightarrow> Term) (f::Term \<Rightarrow> Term) (a::Term) (b::Term). \<lbrakk>A : U; B: A \<rightarrow> U; C: \<Sum>x:A. B(x) \<rightarrow> U; \<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f((x,y)) : C((x,y)); a : A; b : B(a)\<rbrakk> \<Longrightarrow> (indSum C f (a,b)) \<equiv> f((a,b))"
 
-text "A choice had to be made for the elimination rule: we formalize the function \<open>f\<close> taking \<open>a : A\<close> and \<open>b : B(x)\<close> and returning \<open>C((a,b))\<close> as a meta-lambda \<open>f::Term \<Rightarrow> Term\<close> instead of an object dependent function \<open>f : \<Prod>x:A. B(x)\<close>.
+text "A choice had to be made for the elimination rule: we formalize the function \<open>f\<close> taking \<open>a : A\<close> and \<open>b : B(x)\<close> and returning \<open>C((a,b))\<close> as a meta level \<open>f::Term \<Rightarrow> Term\<close> instead of an object logic dependent function \<open>f : \<Prod>x:A. B(x)\<close>.
 However we should be able to later show the equivalence of the formalizations."
+
+
 
 \<comment> \<open>Projection onto first component\<close>
 (*
