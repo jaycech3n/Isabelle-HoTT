@@ -26,11 +26,16 @@ text "Type families are implemented as meta-level lambda terms of type \<open>Te
 abbreviation is_type_family :: "[(Term \<Rightarrow> Term), Term] \<Rightarrow> prop"  ("(3_:/ _ \<rightarrow> U)")
   where "P: A \<rightarrow> U \<equiv> (\<And>x::Term. x : A \<Longrightarrow> P(x) : U)"
 
-theorem constant_type_family: "\<lbrakk>B : U; A : U\<rbrakk> \<Longrightarrow> \<lambda>_. B: A \<rightarrow> U"
+\<comment> \<open>
+I originally wrote the following, but I'm not sure it's useful.
+\<open>theorem constant_type_family': "B : U \<Longrightarrow> \<lambda>_. B: A \<rightarrow> U"
   proof -
     assume "B : U"
     then show "\<lambda>_. B: A \<rightarrow> U" .
   qed
+
+lemmas constant_type_family = constant_type_family' constant_type_family'[rotated]\<close>
+\<close>
 
 subsection \<open>Definitional equality\<close>
 
@@ -70,14 +75,20 @@ axiomatization
   appl :: "[Term, Term] \<Rightarrow> Term"  (infixl "`" 60)
 where
   Prod_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B : A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) : U" and
-  Prod_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term). (\<And>x::Term. x : A \<Longrightarrow> b(x) : B(x)) \<Longrightarrow> \<^bold>\<lambda>x:A. b(x) : \<Prod>x:A. B(x)" and
-  Prod_elim [elim]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term) (a::Term). \<lbrakk>f : \<Prod>x:A. B(x); a : A\<rbrakk> \<Longrightarrow> f`a : B(a)" and
-  Prod_comp [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term) (a::Term). \<lbrakk>\<And>x::Term. x : A \<Longrightarrow> b(x) : B(x); a : A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. b(x))`a \<equiv> b(a)" and
-  Prod_uniq [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term). f : \<Prod>x:A. B(x) \<Longrightarrow> \<^bold>\<lambda>x:A. (f`x) \<equiv> f"
 
-text "Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation)."
+  Prod_intro [intro]: "\<And>(A::Term) (b::Term \<Rightarrow> Term) (B::Term \<Rightarrow> Term).
+    (\<And>x::Term. x : A \<Longrightarrow> b(x) : B(x)) \<Longrightarrow> \<^bold>\<lambda>x:A. b(x) : \<Prod>x:A. B(x)" and
+
+  Prod_elim [elim]: "\<And>(f::Term) (A::Term) (B::Term \<Rightarrow> Term) (a::Term).
+    \<lbrakk>f : \<Prod>x:A. B(x); a : A\<rbrakk> \<Longrightarrow> f`a : B(a)" and
+
+  Prod_comp [simp]: "\<And>(a::Term) (A::Term) (b::Term \<Rightarrow> Term). a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. b(x))`a \<equiv> b(a)" and
+
+  Prod_uniq [simp]: "\<And>(A::Term) (f::Term). \<^bold>\<lambda>x:A. (f`x) \<equiv> f"
 
 lemmas Prod_formation = Prod_form Prod_form[rotated]
+
+text "Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation)."
 
 subsubsection \<open>Dependent pair/sum\<close>
 
@@ -96,14 +107,20 @@ axiomatization
   indSum :: "[Term \<Rightarrow> Term, Term \<Rightarrow> Term, Term] \<Rightarrow> Term"
 where
   Sum_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x) : U" and
-  Sum_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (a::Term) (b::Term). \<lbrakk>A : U; B: A \<rightarrow> U; a : A; b : B(a)\<rbrakk> \<Longrightarrow> (a, b) : \<Sum>x:A. B(x)" and
-  Sum_elim [elim]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (C::Term \<Rightarrow> Term) (f::Term \<Rightarrow> Term) (p::Term). \<lbrakk>A : U; B: A \<rightarrow> U; C: \<Sum>x:A. B(x) \<rightarrow> U; \<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f((x,y)) : C((x,y)); p : \<Sum>x:A. B(x)\<rbrakk> \<Longrightarrow> (indSum C f p) : C(p)" and
-  Sum_comp [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (C::Term \<Rightarrow> Term) (f::Term \<Rightarrow> Term) (a::Term) (b::Term). \<lbrakk>A : U; B: A \<rightarrow> U; C: \<Sum>x:A. B(x) \<rightarrow> U; \<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f((x,y)) : C((x,y)); a : A; b : B(a)\<rbrakk> \<Longrightarrow> (indSum C f (a,b)) \<equiv> f((a,b))"
+
+  Sum_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (a::Term) (b::Term).
+    \<lbrakk>a : A; b : B(a)\<rbrakk> \<Longrightarrow> (a, b) : \<Sum>x:A. B(x)" and
+
+  Sum_elim [elim]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (C::Term \<Rightarrow> Term) (f::Term \<Rightarrow> Term) (p::Term).
+    \<lbrakk>C: \<Sum>x:A. B(x) \<rightarrow> U; \<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f((x,y)) : C((x,y)); p : \<Sum>x:A. B(x)\<rbrakk> \<Longrightarrow> (indSum C f p) : C(p)" and
+
+  Sum_comp [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (C::Term \<Rightarrow> Term) (f::Term \<Rightarrow> Term) (a::Term) (b::Term).
+    (indSum C f (a,b)) \<equiv> f((a,b))"
+
+lemmas Sum_formation = Sum_form Sum_form[rotated]
 
 text "A choice had to be made for the elimination rule: we formalize the function \<open>f\<close> taking \<open>a : A\<close> and \<open>b : B(x)\<close> and returning \<open>C((a,b))\<close> as a meta level \<open>f::Term \<Rightarrow> Term\<close> instead of an object logic dependent function \<open>f : \<Prod>x:A. B(x)\<close>.
 However we should be able to later show the equivalence of the formalizations."
-
-
 
 \<comment> \<open>Projection onto first component\<close>
 (*
@@ -125,7 +142,7 @@ subsubsection \<open>Natural numbers\<close>
 axiomatization
   Nat :: Term and
   zero :: Term ("0") and
-  succ :: "Term \<Rightarrow> Term" and  (* how to enforce \<open>succ : Nat\<rightarrow>Nat\<close>? *)
+  succ :: "Term \<Rightarrow> Term" and (* how to enforce \<open>succ : Nat\<rightarrow>Nat\<close>? *)
   ind_Nat :: "Term \<Rightarrow> Term \<Rightarrow> Term \<Rightarrow> Term \<Rightarrow> Term"
 where
   Nat_form: "Nat : U" and

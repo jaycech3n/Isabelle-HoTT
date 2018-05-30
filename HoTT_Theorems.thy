@@ -37,22 +37,17 @@ qed
 
 subsection \<open>Function application\<close>
 
-proposition "\<lbrakk>A : U; a : A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. x)`a \<equiv> a" by simp
+proposition "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. x)`a \<equiv> a" by simp
 
 text "Two arguments:"
 
 lemma
-  assumes "a:A" and "b:B"
+  assumes "a : A" and "b : B"
   shows "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x)`a`b \<equiv> a"
 proof -
-  have "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x)`a \<equiv> \<^bold>\<lambda>y:B. a" 
-    proof (rule Prod_comp[of A _ "\<lambda>_. B\<rightarrow>A"])
-      fix x
-      assume "x:A"
-      then show "\<^bold>\<lambda>y:B. x : B \<rightarrow> A" ..
-    qed (rule assms)
+  have "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x)`a \<equiv> \<^bold>\<lambda>y:B. a" using assms(1) by (rule Prod_comp[of a A "\<lambda>x. \<^bold>\<lambda>y:B. x"])
   then have "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x)`a`b \<equiv> (\<^bold>\<lambda>y:B. a)`b" by simp
-  also have "(\<^bold>\<lambda>y:B. a)`b \<equiv> a" using assms by (simp add: Prod_comp[of B _ "\<lambda>_. A"])
+  also have "(\<^bold>\<lambda>y:B. a)`b \<equiv> a" using assms by simp
   finally show "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x)`a`b \<equiv> a" .
 qed
 
