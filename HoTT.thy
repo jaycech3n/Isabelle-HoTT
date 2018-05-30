@@ -70,11 +70,10 @@ axiomatization
   appl :: "[Term, Term] \<Rightarrow> Term"  (infixl "`" 60)
 where
   Prod_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B : A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) : U" and
-  Prod_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term). \<lbrakk>A : U; B : A \<rightarrow> U; \<And>x::Term. x : A \<Longrightarrow> b(x) : B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x:A. b(x) : \<Prod>x:A. B(x)" and
+  Prod_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term). (\<And>x::Term. x : A \<Longrightarrow> b(x) : B(x)) \<Longrightarrow> \<^bold>\<lambda>x:A. b(x) : \<Prod>x:A. B(x)" and
   Prod_elim [elim]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term) (a::Term). \<lbrakk>f : \<Prod>x:A. B(x); a : A\<rbrakk> \<Longrightarrow> f`a : B(a)" and
-  Prod_comp [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term) (a::Term). \<lbrakk>A : U; B : A \<rightarrow> U; \<And>x::Term. x : A \<Longrightarrow> b(x) : B(x); a : A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. b(x))`a \<equiv> b(a)" and
+  Prod_comp [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term) (a::Term). \<lbrakk>\<And>x::Term. x : A \<Longrightarrow> b(x) : B(x); a : A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. b(x))`a \<equiv> b(a)" and
   Prod_uniq [simp]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term). f : \<Prod>x:A. B(x) \<Longrightarrow> \<^bold>\<lambda>x:A. (f`x) \<equiv> f"
-(* Thinking about the premises for the computation rule... they make simplification rather cumbersome, should I remove them? Would this potentially result in logical problems with being able to state untrue statements? (But probably not prove them?) *)
 
 text "Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation)."
 
