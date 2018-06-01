@@ -21,34 +21,65 @@ text "Declaring \<open>Prod_intro\<close> with the \<open>intro\<close> attribut
 lemma "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
 
 proposition "A \<equiv> B \<Longrightarrow> \<^bold>\<lambda>x:A. x : B\<rightarrow>A"
-proof -
-  assume assm: "A \<equiv> B"
-  have id: "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
-  from assm have "A\<rightarrow>A \<equiv> B\<rightarrow>A" by simp
-  with id show "\<^bold>\<lambda>x:A. x : B\<rightarrow>A" ..
-qed
+  proof -
+    assume assm: "A \<equiv> B"
+    have id: "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
+    from assm have "A\<rightarrow>A \<equiv> B\<rightarrow>A" by simp
+    with id show "\<^bold>\<lambda>x:A. x : B\<rightarrow>A" ..
+  qed
 
 proposition "\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x : A\<rightarrow>B\<rightarrow>A"
-proof
-  fix a
-  assume "a : A"
-  then show "\<^bold>\<lambda>y:B. a : B \<rightarrow> A" .. 
-qed
+  proof
+    fix a
+    assume "a : A"
+    then show "\<^bold>\<lambda>y:B. a : B \<rightarrow> A" .. 
+  qed
 
 subsection \<open>Function application\<close>
 
 proposition "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. x)`a \<equiv> a" by simp
 
-text "Two arguments:"
+text "Currying:"
+
+lemma "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. f x y)`a \<equiv> \<^bold>\<lambda>y:B. f a y" by simp
+
+lemma "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. \<^bold>\<lambda>z:C. f x y z)`a`b`c \<equiv> f a b c" by simp
+
+proposition wellformed_currying:
+  fixes
+    A::Term and
+    B::"Term \<Rightarrow> Term" and
+    C::"Term \<Rightarrow> Term \<Rightarrow> Term"
+  assumes
+    "A : U" and
+    "B: A \<rightarrow> U" and
+    "\<And>x::Term. C(x): B(x) \<rightarrow> U"
+  shows "\<Prod>x:A. \<Prod>y:B(x). C x y : U"
+proof (rule Prod_formation)
+  show "\<And>x::Term. x : A \<Longrightarrow> \<Prod>y:B(x). C x y : U"
+    proof (rule Prod_formation)
+      fix x y::Term
+      assume "x : A"
+      show "y : B x \<Longrightarrow> C x y : U" by (rule assms(3))
+    qed (rule assms(2))
+qed (rule assms(1))
 
 lemma
-  assumes "a : A" and "b : B"
-  shows "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x)`a`b \<equiv> a"
-proof -
-  have "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x)`a \<equiv> \<^bold>\<lambda>y:B. a" using assms(1) by (rule Prod_comp[of a A "\<lambda>x. \<^bold>\<lambda>y:B. x"])
-  then have "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x)`a`b \<equiv> (\<^bold>\<lambda>y:B. a)`b" by simp
-  also have "(\<^bold>\<lambda>y:B. a)`b \<equiv> a" using assms by simp
-  finally show "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x)`a`b \<equiv> a" .
+  fixes
+    a b A::Term and
+    B::"Term \<Rightarrow> Term" and
+    f C::"[Term, Term] \<Rightarrow> Term"
+  assumes "\<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f x y : C x y"
+  shows "\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). f x y : \<Prod>x:A. \<Prod>y:B(x). C x y"
+proof
+  fix x::Term
+  assume *: "x : A"
+  show "\<^bold>\<lambda>y:B(x). f x y : \<Prod>y:B(x). C x y"
+    proof
+      fix y::Term
+      assume **: "y : B(x)"
+      show "f x y : C x y" by (rule assms[OF * **])
+    qed
 qed
 
 text "Note that the propositions and proofs above often say nothing about the well-formedness of the types, or the well-typedness of the lambdas involved; one has to be very explicit and prove such things separately!
