@@ -16,7 +16,7 @@ section \<open>Functions\<close>
 
 subsection \<open>Typing functions\<close>
 
-text "Declaring \<open>Prod_intro\<close> with the \<open>intro\<close> attribute (in HoTT.thy) enables \<open>standard\<close> to prove the following."
+text "Declaring \<open>Prod_intro\<close> with the \<open>intro\<close> attribute (in HoTT.thy) enables \<open>standard\<close> to prove the following."                                                   
 
 lemma "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
 
@@ -41,9 +41,9 @@ proposition "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. x)`a \<equiv> a" by 
 
 text "Currying:"
 
-lemma "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. f x y)`a \<equiv> \<^bold>\<lambda>y:B. f a y" by simp
+lemma "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). f x y)`a \<equiv> \<^bold>\<lambda>y:B(a). f a y" by simp
 
-lemma "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. \<^bold>\<lambda>z:C. f x y z)`a`b`c \<equiv> f a b c" by simp
+lemma "\<lbrakk>a : A; b : B(a); c : C(a)(b)\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). \<^bold>\<lambda>z:C(x)(y). f x y z)`a`b`c \<equiv> f a b c" by simp
 
 proposition wellformed_currying:
   fixes
@@ -56,29 +56,53 @@ proposition wellformed_currying:
     "\<And>x::Term. C(x): B(x) \<rightarrow> U"
   shows "\<Prod>x:A. \<Prod>y:B(x). C x y : U"
 proof (rule Prod_formation)
-  show "\<And>x::Term. x : A \<Longrightarrow> \<Prod>y:B(x). C x y : U"
+  fix x::Term
+  assume *: "x : A"
+  show "\<Prod>y:B(x). C x y : U"
     proof (rule Prod_formation)
-      fix x y::Term
-      assume "x : A"
-      show "y : B x \<Longrightarrow> C x y : U" by (rule assms(3))
-    qed (rule assms(2))
-qed (rule assms(1))
+      show "B(x) : U" using * by (rule assms)
+    qed (rule assms)
+qed (rule assms)
+
+proposition triply_curried:
+  fixes
+    A::Term and
+    B::"Term \<Rightarrow> Term" and
+    C::"[Term, Term] \<Rightarrow> Term" and
+    D::"[Term, Term, Term] \<Rightarrow> Term"
+  assumes
+    "A : U" and
+    "B: A \<rightarrow> U" and
+    "\<And>x y::Term. y : B(x) \<Longrightarrow> C(x)(y) : U" and
+    "\<And>x y z::Term. z : C(x)(y) \<Longrightarrow> D(x)(y)(z) : U"
+  shows "\<Prod>x:A. \<Prod>y:B(x). \<Prod>z:C(x)(y). D(x)(y)(z) : U"
+proof (rule Prod_formation)
+  fix x::Term assume 1: "x : A"
+  show "\<Prod>y:B(x). \<Prod>z:C(x)(y). D(x)(y)(z) : U"
+    proof (rule Prod_formation)
+      show "B(x) : U" using 1 by (rule assms)
+      
+      fix y::Term assume 2: "y : B(x)"  
+      show "\<Prod>z:C(x)(y). D(x)(y)(z) : U"
+        proof (rule Prod_formation)
+          show "C x y : U" using 2 by (rule assms)
+          show "\<And>z::Term. z : C(x)(y) \<Longrightarrow> D(x)(y)(z) : U" by (rule assms)
+        qed
+    qed
+qed (rule assms)
 
 lemma
   fixes
     a b A::Term and
     B::"Term \<Rightarrow> Term" and
     f C::"[Term, Term] \<Rightarrow> Term"
-  assumes "\<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f x y : C x y"
+  assumes "\<And>x y::Term. f x y : C x y"
   shows "\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). f x y : \<Prod>x:A. \<Prod>y:B(x). C x y"
 proof
   fix x::Term
-  assume *: "x : A"
   show "\<^bold>\<lambda>y:B(x). f x y : \<Prod>y:B(x). C x y"
     proof
-      fix y::Term
-      assume **: "y : B(x)"
-      show "f x y : C x y" by (rule assms[OF * **])
+      show "\<And>y. f x y : C x y" by (rule assms)
     qed
 qed
 
