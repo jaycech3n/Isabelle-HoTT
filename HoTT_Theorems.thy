@@ -41,6 +41,8 @@ proposition "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. x)`a \<equiv> a" by 
 
 text "Currying:"
 
+lemma "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. y)`a`b \<equiv> b" by simp
+
 lemma "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). f x y)`a \<equiv> \<^bold>\<lambda>y:B(a). f a y" by simp
 
 lemma "\<lbrakk>a : A; b : B(a); c : C(a)(b)\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). \<^bold>\<lambda>z:C(x)(y). f x y z)`a`b`c \<equiv> f a b c" by simp
