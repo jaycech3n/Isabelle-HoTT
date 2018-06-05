@@ -141,6 +141,7 @@ consts Ui::Term
 definition Id where "Id \<equiv> \<^bold>\<lambda>A:Ui. \<^bold>\<lambda>x:A. x"
 (* Have to think about universes... *)
 
+(*
 section \<open>Nats\<close>
 
 text "Here's a dumb proof that 2 is a natural number."
@@ -156,5 +157,6 @@ text "We can of course iterate the above for as many applications of \<open>succ
 The next thing to do is to implement induction to automate such proofs.
 
 When we get more stuff working, I'd like to aim for formalizing the encode-decode method to be able to prove the only naturals are 0 and those obtained from it by \<open>succ\<close>."
+*)
 
 end

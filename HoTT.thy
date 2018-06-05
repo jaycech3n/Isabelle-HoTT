@@ -11,19 +11,13 @@ We do not implement universes, but simply follow the informal notation in the Ho
 
 typedecl Term
 
-subsection \<open>Judgments\<close>
+section \<open>Judgments\<close>
 
 consts
   is_a_type :: "Term \<Rightarrow> prop"           ("(_ : U)" [0] 1000)
   is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(3_ :/ _)" [0, 0] 1000)
 
-subsection \<open>Type families\<close>
-text "Type families are implemented using meta-level lambda expressions \<open>P::Term \<Rightarrow> Term\<close> that further satisfy the following property."
-
-abbreviation is_type_family :: "[Term \<Rightarrow> Term, Term] \<Rightarrow> prop"  ("(3_:/ _ \<rightarrow> U)")
-  where "P: A \<rightarrow> U \<equiv> (\<And>x::Term. x : A \<Longrightarrow> P(x) : U)"
-
-subsection \<open>Definitional equality\<close>
+section \<open>Definitional equality\<close>
 text "We take the meta-equality \<open>\<equiv>\<close>, defined by the Pure framework for any of its terms, and use it additionally for definitional/judgmental equality of types and terms in our theory.
 
 Note that the Pure framework already provides axioms and results for various properties of \<open>\<equiv>\<close>, which we make use of and extend where necessary."
@@ -38,9 +32,15 @@ theorem equal_type_element:
 
 lemmas type_equality [intro] = equal_types equal_types[rotated] equal_type_element equal_type_element[rotated]
 
-subsection \<open>Basic types\<close>
+section \<open>Type families\<close>
+text "Type families are implemented using meta-level lambda expressions \<open>P::Term \<Rightarrow> Term\<close> that further satisfy the following property."
 
-subsubsection \<open>Dependent function/product\<close>
+abbreviation is_type_family :: "[Term \<Rightarrow> Term, Term] \<Rightarrow> prop"  ("(3_:/ _ \<rightarrow> U)")
+  where "P: A \<rightarrow> U \<equiv> (\<And>x::Term. x : A \<Longrightarrow> P(x) : U)"
+
+section \<open>Types\<close>
+
+subsection \<open>Dependent function/product\<close>
 
 axiomatization
   Prod :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term" and
@@ -59,23 +59,23 @@ abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarro
 axiomatization
   appl :: "[Term, Term] \<Rightarrow> Term"  (infixl "`" 60)
 where
-  Prod_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B : A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) : U" and
-
-  Prod_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term).
-    (\<And>x::Term. x : A \<Longrightarrow> b(x) : B(x)) \<Longrightarrow> \<^bold>\<lambda>x:A. b(x) : \<Prod>x:A. B(x)" and
-
-  Prod_elim [elim]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term) (a::Term).
-    \<lbrakk>f : \<Prod>x:A. B(x); a : A\<rbrakk> \<Longrightarrow> f`a : B(a)" and
-
-  Prod_comp [simp]: "\<And>(A::Term) (b::Term \<Rightarrow> Term) (a::Term). a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. b(x))`a \<equiv> b(a)" and
-
+  Prod_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B : A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x) : U"
+and
+  Prod_intro [intro]:
+    "\<And>(A::Term) (B::Term \<Rightarrow> Term) (b::Term \<Rightarrow> Term). (\<And>x::Term. x : A \<Longrightarrow> b(x) : B(x)) \<Longrightarrow> \<^bold>\<lambda>x:A. b(x) : \<Prod>x:A. B(x)"
+and
+  Prod_elim [elim]:
+    "\<And>(A::Term) (B::Term \<Rightarrow> Term) (f::Term) (a::Term). \<lbrakk>f : \<Prod>x:A. B(x); a : A\<rbrakk> \<Longrightarrow> f`a : B(a)"
+and
+  Prod_comp [simp]: "\<And>(A::Term) (b::Term \<Rightarrow> Term) (a::Term). a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. b(x))`a \<equiv> b(a)"
+and
   Prod_uniq [simp]: "\<And>A f::Term. \<^bold>\<lambda>x:A. (f`x) \<equiv> f"
 
 lemmas Prod_formation = Prod_form Prod_form[rotated]
 
 text "Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation)."
 
-subsubsection \<open>Dependent pair/sum\<close>
+subsection \<open>Dependent pair/sum\<close>
 
 axiomatization
   Sum :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term"
@@ -91,14 +91,15 @@ axiomatization
   pair :: "[Term, Term] \<Rightarrow> Term"  ("(1'(_,/ _'))") and
   indSum :: "(Term \<Rightarrow> Term) \<Rightarrow> Term"
 where
-  Sum_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x) : U" and
-
-  Sum_intro [intro]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (a::Term) (b::Term).
-    \<lbrakk>a : A; b : B(a)\<rbrakk> \<Longrightarrow> (a, b) : \<Sum>x:A. B(x)" and
-
-  Sum_elim [elim]: "\<And>(A::Term) (B::Term \<Rightarrow> Term) (C::Term \<Rightarrow> Term) (f::Term) (p::Term).
-    \<lbrakk>C: \<Sum>x:A. B(x) \<rightarrow> U; f : \<Prod>x:A. \<Prod>y:B(x). C((x,y)); p : \<Sum>x:A. B(x)\<rbrakk> \<Longrightarrow> indSum(C)`f`p : C(p)" and
-
+  Sum_form: "\<And>(A::Term) (B::Term \<Rightarrow> Term). \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x) : U"
+and
+  Sum_intro [intro]:
+    "\<And>(A::Term) (B::Term \<Rightarrow> Term) (a::Term) (b::Term). \<lbrakk>a : A; b : B(a)\<rbrakk> \<Longrightarrow> (a, b) : \<Sum>x:A. B(x)"
+and
+  Sum_elim [elim]:
+    "\<And>(A::Term) (B::Term \<Rightarrow> Term) (C::Term \<Rightarrow> Term) (f::Term) (p::Term).
+      \<lbrakk>C: \<Sum>x:A. B(x) \<rightarrow> U; f : \<Prod>x:A. \<Prod>y:B(x). C((x,y)); p : \<Sum>x:A. B(x)\<rbrakk> \<Longrightarrow> indSum(C)`f`p : C(p)"
+and
   Sum_comp [simp]: "\<And>(C::Term \<Rightarrow> Term) (f::Term) (a::Term) (b::Term). indSum(C)`f`(a,b) \<equiv> f`a`b"
 
 lemmas Sum_formation = Sum_form Sum_form[rotated]
@@ -106,7 +107,7 @@ lemmas Sum_formation = Sum_form Sum_form[rotated]
 text "We choose to formulate the elimination rule by using the object-level function type and function application as much as possible.
 Hence only the type family \<open>C\<close> is left as a meta-level argument to the inductor indSum."
 
-text "Projection functions"
+subsubsection \<open>Projections\<close>
 
 consts
   fst :: "[Term, 'a] \<Rightarrow> Term"  ("(1fst[/_,/ _])")
@@ -139,7 +140,7 @@ lemma snd_nondep_comp: "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> snd[A,B
 \<comment> \<open>Simplification rules for projections\<close>
 lemmas fst_snd_simps [simp] = fst_dep_comp snd_dep_comp fst_nondep_comp snd_nondep_comp
 
-subsubsection \<open>Equality type\<close>
+subsection \<open>Equality type\<close>
 
 axiomatization
   Equal :: "[Term, Term, Term] \<Rightarrow> Term"
@@ -152,16 +153,30 @@ axiomatization
   refl :: "Term \<Rightarrow> Term" and
   indEqual :: "([Term, Term, Term] \<Rightarrow> Term) \<Rightarrow> Term"
 where
-  Equal_form: "\<And>A a b::Term. \<lbrakk>A : U; a : A; b : A\<rbrakk> \<Longrightarrow> a =\<^sub>A b : U" and
-  
+  Equal_form: "\<And>A a b::Term. \<lbrakk>A : U; a : A; b : A\<rbrakk> \<Longrightarrow> a =\<^sub>A b : U"
+and
   Equal_intro [intro]: "\<And>A x::Term. x : A \<Longrightarrow> refl(x) : x =\<^sub>A x"
+and
+  Equal_elim [elim]:
+    "\<And>(A::Term) (C::[Term, Term, Term] \<Rightarrow> Term) (f::Term) (a::Term) (b::Term) (p::Term). \<lbrakk>
+      \<And>x y p::Term. \<lbrakk>x : A; y : A; p : x =\<^sub>A y\<rbrakk> \<Longrightarrow> C(x)(y)(p) : U;
+      f : \<Prod>x:A. C(x)(x)(refl(x));
+      a : A;
+      b : A;
+      p : a =\<^sub>A b\<rbrakk> \<Longrightarrow> indEqual(C)`f`a`b`p : C(a)(b)(p)"
+and
+  Equal_comp [simp]:
+    "\<And>(C::[Term, Term, Term] \<Rightarrow> Term) (f::Term) (a::Term). indEqual(C)`f`a`a`refl(a) \<equiv> f`a"
 
-(* and
-  
-  Equal_elim [elim]: "\<And>(C::[Term, Term, Term] \<Rightarrow> Term) (f::Term) (x::Term) (y::Term) (p::Term).
-    \<lbrakk>\<rbrakk> \<Longrightarrow> (indEqual C)`f`x`y`p  : C(x)(y)(p)"
+subsubsection \<open>Properties of equality\<close>
 
-*)
+text "Inverse"
+
+definition inv :: "Term \<Rightarrow> Term"  ("(_\<^sup>-\<^sup>1)")
+  where "inv \<equiv> " (* Tra la la.. *)
+
+end
+
 (*
 subsubsection \<open>Empty type\<close>
 
@@ -186,5 +201,3 @@ where
   (* computation rules *)
 
 *)
-
-end
