@@ -21,19 +21,19 @@ text "Declaring \<open>Prod_intro\<close> with the \<open>intro\<close> attribut
 lemma "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
 
 proposition "A \<equiv> B \<Longrightarrow> \<^bold>\<lambda>x:A. x : B\<rightarrow>A"
-  proof -
-    assume assm: "A \<equiv> B"
-    have id: "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
-    from assm have "A\<rightarrow>A \<equiv> B\<rightarrow>A" by simp
-    with id show "\<^bold>\<lambda>x:A. x : B\<rightarrow>A" ..
-  qed
+proof -
+  assume assm: "A \<equiv> B"
+  have id: "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
+  from assm have "A\<rightarrow>A \<equiv> B\<rightarrow>A" by simp
+  with id show "\<^bold>\<lambda>x:A. x : B\<rightarrow>A" ..
+qed
 
 proposition "\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x : A\<rightarrow>B\<rightarrow>A"
-  proof
-    fix a
-    assume "a : A"
-    then show "\<^bold>\<lambda>y:B. a : B \<rightarrow> A" .. 
-  qed
+proof
+  fix a
+  assume "a : A"
+  then show "\<^bold>\<lambda>y:B. a : B \<rightarrow> A" .. 
+qed
 
 subsection \<open>Function application\<close>
 
@@ -61,9 +61,9 @@ proof (rule Prod_formation)
   fix x::Term
   assume *: "x : A"
   show "\<Prod>y:B(x). C x y : U"
-    proof (rule Prod_formation)
-      show "B(x) : U" using * by (rule assms)
-    qed (rule assms)
+  proof (rule Prod_formation)
+    show "B(x) : U" using * by (rule assms)
+  qed (rule assms)
 qed (rule assms)
 
 proposition triply_curried:
@@ -81,35 +81,58 @@ proposition triply_curried:
 proof (rule Prod_formation)
   fix x::Term assume 1: "x : A"
   show "\<Prod>y:B(x). \<Prod>z:C(x)(y). D(x)(y)(z) : U"
+  proof (rule Prod_formation)
+    show "B(x) : U" using 1 by (rule assms)
+    
+    fix y::Term assume 2: "y : B(x)"  
+    show "\<Prod>z:C(x)(y). D(x)(y)(z) : U"
     proof (rule Prod_formation)
-      show "B(x) : U" using 1 by (rule assms)
-      
-      fix y::Term assume 2: "y : B(x)"  
-      show "\<Prod>z:C(x)(y). D(x)(y)(z) : U"
-        proof (rule Prod_formation)
-          show "C x y : U" using 2 by (rule assms)
-          show "\<And>z::Term. z : C(x)(y) \<Longrightarrow> D(x)(y)(z) : U" by (rule assms)
-        qed
+      show "C x y : U" using 2 by (rule assms)
+      show "\<And>z::Term. z : C(x)(y) \<Longrightarrow> D(x)(y)(z) : U" by (rule assms)
     qed
+  qed
 qed (rule assms)
 
-lemma
+lemma curried_type:
   fixes
     a b A::Term and
     B::"Term \<Rightarrow> Term" and
     f C::"[Term, Term] \<Rightarrow> Term"
-  assumes "\<And>x y::Term. f x y : C x y"
+  assumes "\<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f x y : C x y"
   shows "\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). f x y : \<Prod>x:A. \<Prod>y:B(x). C x y"
 proof
   fix x::Term
+  assume *: "x : A"
   show "\<^bold>\<lambda>y:B(x). f x y : \<Prod>y:B(x). C x y"
-    proof
-      show "\<And>y. f x y : C x y" by (rule assms)
-    qed
+  proof
+    fix y::Term
+    assume **: "y : B(x)"
+    show "f x y : C x y" using * ** by (rule assms)
+  qed
 qed
 
 text "Note that the propositions and proofs above often say nothing about the well-formedness of the types, or the well-typedness of the lambdas involved; one has to be very explicit and prove such things separately!
 This is the result of the choices made regarding the premises of the type rules."
+
+text "The following shows that the dependent sum inductor has the type we expect it to have:"
+
+lemma
+  assumes "C: \<Sum>x:A. B(x) \<rightarrow> U"
+  shows "indSum(C) : \<Prod>f:(\<Prod>x:A. \<Prod>y:B(x). C((x,y))). \<Prod>p:(\<Sum>x:A. B(x)). C(p)"
+proof -
+  define F and P where
+    "F \<equiv> \<Prod>x:A. \<Prod>y:B(x). C((x,y))" and
+    "P \<equiv> \<Sum>x:A. B(x)"
+
+  have "\<^bold>\<lambda>f:F. \<^bold>\<lambda>p:P. indSum(C)`f`p : \<Prod>f:F. \<Prod>p:P. C(p)"
+  proof (rule curried_type)
+    fix f p::Term
+    assume "f : F" and "p : P"
+    with assms show "indSum(C)`f`p : C(p)" unfolding F_def P_def ..
+  qed
+  
+  then show "indSum(C) : \<Prod>f:F. \<Prod>p:P. C(p)" by simp
+qed
 
 text "Polymorphic identity function."
 
