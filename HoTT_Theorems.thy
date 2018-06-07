@@ -66,6 +66,7 @@ proof
   qed (rule assms)
 qed (rule assms)
 
+(**** GOOD CANDIDATE FOR AUTOMATION - EISBACH! ****)
 proposition triply_curried:
   fixes
     A::Term and

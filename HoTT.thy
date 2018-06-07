@@ -158,7 +158,7 @@ translations
   "a =[A] b" \<rightharpoonup> "CONST Equal A a b"
 
 axiomatization
-  refl :: "Term \<Rightarrow> Term" and
+  refl :: "Term \<Rightarrow> Term"  ("(refl'(_'))") and
   indEqual :: "[Term, [Term, Term, Term] \<Rightarrow> Term] \<Rightarrow> Term"  ("(indEqual[_])")
 where
   Equal_form: "\<And>A a b::Term. \<lbrakk>A : U; a : A; b : A\<rbrakk> \<Longrightarrow> a =\<^sub>A b : U"
@@ -191,11 +191,34 @@ lemma inv_comp: "\<And>A a::Term. a : A \<Longrightarrow> inv[A,a,a]`refl(a) \<e
 
 text "Transitivity/Path composition"
 
-definition compose' :: "Term \<Rightarrow> Term"  ("(1compose''[_])")
+\<comment> \<open>"Raw" composition function\<close>
+abbreviation compose' :: "Term \<Rightarrow> Term"  ("(1compose''[_])")
   where "compose'[A] \<equiv> indEqual[A](\<lambda>x y _. \<Prod>z:A. \<Prod>q: y =\<^sub>A z. x =\<^sub>A z)`(indEqual[A](\<lambda>x z _. x =\<^sub>A z)`(\<^bold>\<lambda>x:A. refl(x)))"
 
-lemma compose'_comp: "a : A \<Longrightarrow> compose'[A]`a`a`refl(a)`a`refl(a) \<equiv> refl(a)" unfolding compose'_def by simp
+\<comment> \<open>"Natural" composition function\<close>
+abbreviation compose :: "[Term, Term, Term, Term] \<Rightarrow> Term"  ("(1compose[_,/ _,/ _,/ _])")
+  where "compose[A,x,y,z] \<equiv> \<^bold>\<lambda>p:x =\<^sub>A y. \<^bold>\<lambda>q:y =\<^sub>A z. compose'[A]`x`y`p`z`q"
 
+(**** GOOD CANDIDATE FOR AUTOMATION ****)
+lemma compose_comp:
+  assumes "a : A"
+  shows "compose[A,a,a,a]`refl(a)`refl(a) \<equiv> refl(a)" using assms Equal_intro[OF assms] by simp
+
+text "The above proof is a good candidate for proof automation; in particular we would like the system to be able to automatically find the conditions of the \<open>using\<close> clause in the proof.
+This would likely involve something like:
+  1. Recognizing that there is a function application that can be simplified.
+  2. Noting that the obstruction to applying \<open>Prod_comp\<close> is the requirement that \<open>refl(a) : a =\<^sub>A a\<close>.
+  3. Obtaining such a condition, using the known fact \<open>a : A\<close> and the introduction rule \<open>Equal_intro\<close>."
+
+lemmas Equal_simps [simp] = inv_comp compose_comp
+
+subsubsection \<open>Pretty printing\<close>
+
+abbreviation inv_pretty :: "[Term, Term, Term, Term] \<Rightarrow> Term"  ("(1_\<^sup>-\<^sup>1\<^sub>_\<^sub>,\<^sub>_\<^sub>,\<^sub>_)" 500)
+  where "p\<^sup>-\<^sup>1\<^sub>A\<^sub>,\<^sub>x\<^sub>,\<^sub>y \<equiv> inv[A,x,y]`p"
+
+abbreviation compose_pretty :: "[Term, Term, Term, Term, Term, Term] \<Rightarrow> Term"  ("(1_ \<bullet>\<^sub>_\<^sub>,\<^sub>_\<^sub>,\<^sub>_\<^sub>,\<^sub>_/ _)")
+  where "p \<bullet>\<^sub>A\<^sub>,\<^sub>x\<^sub>,\<^sub>y\<^sub>,\<^sub>z q \<equiv> compose[A,x,y,z]`p`q"
 
 end
 
