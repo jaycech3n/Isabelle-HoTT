@@ -57,7 +57,7 @@ translations
   "%%x:A. b" \<rightharpoonup> "CONST lambda A (\<lambda>x. b)"
   (* The above syntax translations bind the x in the expressions B, b. *)
 
-abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarrow>" 80)
+abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarrow>" 40)
   where "A\<rightarrow>B \<equiv> \<Prod>_:A. B"
 
 axiomatization
