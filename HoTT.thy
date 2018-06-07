@@ -30,7 +30,7 @@ theorem equal_type_element:
   assumes "A \<equiv> B" and "x : A"
   shows "x : B" using assms by simp
 
-lemmas type_equality [intro] = equal_types equal_types[rotated] equal_type_element equal_type_element[rotated]
+lemmas type_equality [intro, simp] = equal_types equal_types[rotated] equal_type_element equal_type_element[rotated]
 
 section \<open>Type families\<close>
 text "Type families are implemented using meta-level lambda expressions \<open>P::Term \<Rightarrow> Term\<close> that further satisfy the following property."
@@ -46,14 +46,18 @@ axiomatization
   Prod :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term" and
   lambda :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term"
 syntax
-  "_PROD" :: "[idt, Term, Term] \<Rightarrow> Term"     ("(3\<Prod>_:_./ _)" 30)
-  "_LAMBDA" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3\<^bold>\<lambda>_:_./ _)" 30)
+  "_PROD" :: "[idt, Term, Term] \<Rightarrow> Term"          ("(3\<Prod>_:_./ _)" 30)
+  "_LAMBDA" :: "[idt, Term, Term] \<Rightarrow> Term"        ("(3\<^bold>\<lambda>_:_./ _)" 30)
+  "_PROD_ASCII" :: "[idt, Term, Term] \<Rightarrow> Term"    ("(3PROD _:_./ _)" 30)
+  "_LAMBDA_ASCII" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3%%_:_./ _)" 30)
 translations
   "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod A (\<lambda>x. B)"
   "\<^bold>\<lambda>x:A. b" \<rightleftharpoons> "CONST lambda A (\<lambda>x. b)"
-(* The above syntax translations bind the x in the expressions B, b. *)
+  "PROD x:A. B" \<rightharpoonup> "CONST Prod A (\<lambda>x. B)"
+  "%%x:A. b" \<rightharpoonup> "CONST lambda A (\<lambda>x. b)"
+  (* The above syntax translations bind the x in the expressions B, b. *)
 
-abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarrow>" 10)
+abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarrow>" 80)
   where "A\<rightarrow>B \<equiv> \<Prod>_:A. B"
 
 axiomatization
@@ -71,7 +75,7 @@ and
 and
   Prod_uniq [simp]: "\<And>A f::Term. \<^bold>\<lambda>x:A. (f`x) \<equiv> f"
 
-lemmas Prod_formation = Prod_form Prod_form[rotated]
+lemmas Prod_formation [intro] = Prod_form Prod_form[rotated]
 
 text "Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation)."
 
@@ -80,11 +84,13 @@ subsection \<open>Dependent pair/sum\<close>
 axiomatization
   Sum :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term"
 syntax
-  "_Sum" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3\<Sum>_:_./ _)" 20)
+  "_SUM" :: "[idt, Term, Term] \<Rightarrow> Term"        ("(3\<Sum>_:_./ _)" 20)
+  "_SUM_ASCII" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3SUM _:_./ _)" 20)
 translations
   "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum A (\<lambda>x. B)"
+  "SUM x:A. B" \<rightharpoonup> "CONST Sum A (\<lambda>x. B)"
 
-abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"   (infixr "\<times>" 50)
+abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
   where "A\<times>B \<equiv> \<Sum>_:A. B"
 
 axiomatization
@@ -102,7 +108,7 @@ and
 and
   Sum_comp [simp]: "\<And>(C::Term \<Rightarrow> Term) (f::Term) (a::Term) (b::Term). indSum(C)`f`(a,b) \<equiv> f`a`b"
 
-lemmas Sum_formation = Sum_form Sum_form[rotated]
+lemmas Sum_formation [intro] = Sum_form Sum_form[rotated]
 
 text "We choose to formulate the elimination rule by using the object-level function type and function application as much as possible.
 Hence only the type family \<open>C\<close> is left as a meta-level argument to the inductor indSum."
@@ -145,35 +151,51 @@ subsection \<open>Equality type\<close>
 axiomatization
   Equal :: "[Term, Term, Term] \<Rightarrow> Term"
 syntax
-  "_EQUAL" :: "[Term, Term, Term] \<Rightarrow> Term"  ("(3_ =\<^sub>_/ _)")
+  "_EQUAL" :: "[Term, Term, Term] \<Rightarrow> Term"        ("(3_ =\<^sub>_/ _)" [101, 101] 100)
+  "_EQUAL_ASCII" :: "[Term, Term, Term] \<Rightarrow> Term"  ("(3_ =[_]/ _)" [101, 101] 100)
 translations
   "a =\<^sub>A b" \<rightleftharpoons> "CONST Equal A a b"
+  "a =[A] b" \<rightharpoonup> "CONST Equal A a b"
 
 axiomatization
   refl :: "Term \<Rightarrow> Term" and
-  indEqual :: "([Term, Term, Term] \<Rightarrow> Term) \<Rightarrow> Term"
+  indEqual :: "[Term, [Term, Term, Term] \<Rightarrow> Term] \<Rightarrow> Term"  ("(indEqual[_])")
 where
   Equal_form: "\<And>A a b::Term. \<lbrakk>A : U; a : A; b : A\<rbrakk> \<Longrightarrow> a =\<^sub>A b : U"
+  (* Should I write a permuted version \<open>\<lbrakk>A : U; b : A; a : A\<rbrakk> \<Longrightarrow> \<dots>\<close>? *)
 and
   Equal_intro [intro]: "\<And>A x::Term. x : A \<Longrightarrow> refl(x) : x =\<^sub>A x"
 and
   Equal_elim [elim]:
-    "\<And>(A::Term) (C::[Term, Term, Term] \<Rightarrow> Term) (f::Term) (a::Term) (b::Term) (p::Term). \<lbrakk>
-      \<And>x y p::Term. \<lbrakk>x : A; y : A; p : x =\<^sub>A y\<rbrakk> \<Longrightarrow> C(x)(y)(p) : U;
-      f : \<Prod>x:A. C(x)(x)(refl(x));
-      a : A;
-      b : A;
-      p : a =\<^sub>A b\<rbrakk> \<Longrightarrow> indEqual(C)`f`a`b`p : C(a)(b)(p)"
+    "\<And>(A::Term) (C::[Term, Term, Term] \<Rightarrow> Term) (f::Term) (a::Term) (b::Term) (p::Term).
+      \<lbrakk> \<And>x y::Term. \<lbrakk>x : A; y : A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<rightarrow> U;
+        f : \<Prod>x:A. C(x)(x)(refl(x));
+        a : A;
+        b : A;
+        p : a =\<^sub>A b \<rbrakk>
+    \<Longrightarrow> indEqual[A](C)`f`a`b`p : C(a)(b)(p)"
 and
   Equal_comp [simp]:
-    "\<And>(C::[Term, Term, Term] \<Rightarrow> Term) (f::Term) (a::Term). indEqual(C)`f`a`a`refl(a) \<equiv> f`a"
+    "\<And>(A::Term) (C::[Term, Term, Term] \<Rightarrow> Term) (f::Term) (a::Term). indEqual[A](C)`f`a`a`refl(a) \<equiv> f`a"
+
+lemmas Equal_formation [intro] = Equal_form Equal_form[rotated 1] Equal_form[rotated 2]
 
 subsubsection \<open>Properties of equality\<close>
 
-text "Inverse"
+text "Symmetry/Path inverse"
 
-definition inv :: "Term \<Rightarrow> Term"  ("(_\<^sup>-\<^sup>1)")
-  where "inv \<equiv> " (* Tra la la.. *)
+definition inv :: "[Term, Term, Term] \<Rightarrow> Term"  ("(1inv[_,/ _,/ _])")
+  where "inv[A,x,y] \<equiv> indEqual[A](\<lambda>x y _. y =\<^sub>A x)`(\<^bold>\<lambda>x:A. refl(x))`x`y"
+
+lemma inv_comp: "\<And>A a::Term. a : A \<Longrightarrow> inv[A,a,a]`refl(a) \<equiv> refl(a)" unfolding inv_def by simp
+
+text "Transitivity/Path composition"
+
+definition compose' :: "Term \<Rightarrow> Term"  ("(1compose''[_])")
+  where "compose'[A] \<equiv> indEqual[A](\<lambda>x y _. \<Prod>z:A. \<Prod>q: y =\<^sub>A z. x =\<^sub>A z)`(indEqual[A](\<lambda>x z _. x =\<^sub>A z)`(\<^bold>\<lambda>x:A. refl(x)))"
+
+lemma compose'_comp: "a : A \<Longrightarrow> compose'[A]`a`a`refl(a)`a`refl(a) \<equiv> refl(a)" unfolding compose'_def by simp
+
 
 end
 

@@ -57,11 +57,11 @@ proposition wellformed_currying:
     "B: A \<rightarrow> U" and
     "\<And>x::Term. C(x): B(x) \<rightarrow> U"
   shows "\<Prod>x:A. \<Prod>y:B(x). C x y : U"
-proof (rule Prod_formation)
+proof
   fix x::Term
   assume *: "x : A"
   show "\<Prod>y:B(x). C x y : U"
-  proof (rule Prod_formation)
+  proof
     show "B(x) : U" using * by (rule assms)
   qed (rule assms)
 qed (rule assms)
@@ -78,15 +78,15 @@ proposition triply_curried:
     "\<And>x y::Term. y : B(x) \<Longrightarrow> C(x)(y) : U" and
     "\<And>x y z::Term. z : C(x)(y) \<Longrightarrow> D(x)(y)(z) : U"
   shows "\<Prod>x:A. \<Prod>y:B(x). \<Prod>z:C(x)(y). D(x)(y)(z) : U"
-proof (rule Prod_formation)
+proof
   fix x::Term assume 1: "x : A"
   show "\<Prod>y:B(x). \<Prod>z:C(x)(y). D(x)(y)(z) : U"
-  proof (rule Prod_formation)
+  proof
     show "B(x) : U" using 1 by (rule assms)
     
     fix y::Term assume 2: "y : B(x)"  
     show "\<Prod>z:C(x)(y). D(x)(y)(z) : U"
-    proof (rule Prod_formation)
+    proof
       show "C x y : U" using 2 by (rule assms)
       show "\<And>z::Term. z : C(x)(y) \<Longrightarrow> D(x)(y)(z) : U" by (rule assms)
     qed
