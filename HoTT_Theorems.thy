@@ -6,13 +6,13 @@ text "A bunch of theorems and other statements for sanity-checking, as well as t
 
 Things that *should* be automated:
   \<bullet> Checking that \<open>A\<close> is a well-formed type, when writing things like \<open>x : A\<close> and \<open>A : U\<close>.
-  \<bullet> Checking that the argument to a (dependent/non-dependent) function matches the type? Also the arguments to a pair?
-"
+  \<bullet> Checking that the argument to a (dependent/non-dependent) function matches the type? Also the arguments to a pair?"
 
 \<comment> \<open>Turn on trace for unification and the simplifier, for debugging.\<close>
 declare[[unify_trace_simp, unify_trace_types, simp_trace, simp_trace_depth_limit=1]]
 
-section \<open>Functions\<close>
+
+section \<open>\<Prod> type\<close>
 
 subsection \<open>Typing functions\<close>
 
@@ -35,6 +35,7 @@ proof
   then show "\<^bold>\<lambda>y:B. a : B \<rightarrow> A" .. 
 qed
 
+
 subsection \<open>Function application\<close>
 
 proposition "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. x)`a \<equiv> a" by simp
@@ -47,7 +48,10 @@ lemma "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). f
 
 lemma "\<lbrakk>a : A; b : B(a); c : C(a)(b)\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). \<^bold>\<lambda>z:C(x)(y). f x y z)`a`b`c \<equiv> f a b c" by simp
 
-proposition wellformed_currying:
+
+subsection \<open>Currying functions\<close>
+
+proposition curried_function_formation:
   fixes
     A::Term and
     B::"Term \<Rightarrow> Term" and
@@ -67,7 +71,7 @@ proof
 qed (rule assms)
 
 (**** GOOD CANDIDATE FOR AUTOMATION - EISBACH! ****)
-proposition triply_curried:
+proposition higher_order_currying_formation:
   fixes
     A::Term and
     B::"Term \<Rightarrow> Term" and
@@ -94,7 +98,8 @@ proof
   qed
 qed (rule assms)
 
-lemma curried_type:
+(**** AND PROBABLY THIS TOO? ****)
+lemma curried_type_judgment:
   fixes
     a b A::Term and
     B::"Term \<Rightarrow> Term" and
@@ -115,6 +120,9 @@ qed
 text "Note that the propositions and proofs above often say nothing about the well-formedness of the types, or the well-typedness of the lambdas involved; one has to be very explicit and prove such things separately!
 This is the result of the choices made regarding the premises of the type rules."
 
+
+section \<open>\<Sum> type\<close>
+
 text "The following shows that the dependent sum inductor has the type we expect it to have:"
 
 lemma
@@ -126,7 +134,7 @@ proof -
     "P \<equiv> \<Sum>x:A. B(x)"
 
   have "\<^bold>\<lambda>f:F. \<^bold>\<lambda>p:P. indSum(C)`f`p : \<Prod>f:F. \<Prod>p:P. C(p)"
-  proof (rule curried_type)
+  proof (rule curried_type_judgment)
     fix f p::Term
     assume "f : F" and "p : P"
     with assms show "indSum(C)`f`p : C(p)" unfolding F_def P_def ..
@@ -135,15 +143,42 @@ proof -
   then show "indSum(C) : \<Prod>f:F. \<Prod>p:P. C(p)" by simp
 qed
 
+(**** AUTOMATION CANDIDATE ****)
+text "Propositional uniqueness principle for dependent sums:"
+
+text "We would like to eventually automate proving that 'a given type \<open>A\<close> is inhabited', i.e. search for an element \<open>a:A\<close>.
+
+A good starting point would be to automate the application of elimination rules."
+
+notepad begin
+
+fix A B assume "A : U" and "B: A \<rightarrow> U"
+
+define C where "C \<equiv> \<lambda>p. p =[\<Sum>x:A. B(x)] (fst[A,B]`p, snd[A,B]`p)"
+have *: "C: \<Sum>x:A. B(x) \<rightarrow> U"
+proof -
+  fix p assume "p : \<Sum>x:A. B(x)"
+  have "(fst[A,B]`p, snd[A,B]`p) : \<Sum>x:A. B(x)"
+
+define f where "f \<equiv> \<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). refl((x,y))"
+have "f`x`y : C((x,y))"
+sorry
+
+have "p : \<Sum>x:A. B(x) \<Longrightarrow> indSum(C)`f`p : C(p)" using * ** by (rule Sum_elim)
+
+end
+
+section \<open>Universes and polymorphism\<close>
+
 text "Polymorphic identity function."
 
 consts Ui::Term
 
 definition Id where "Id \<equiv> \<^bold>\<lambda>A:Ui. \<^bold>\<lambda>x:A. x"
-(* Have to think about universes... *)
+
 
 (*
-section \<open>Nats\<close>
+section \<open>Natural numbers\<close>
 
 text "Here's a dumb proof that 2 is a natural number."
 
