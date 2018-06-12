@@ -1,5 +1,6 @@
 theory HoTT_Theorems
   imports HoTT
+
 begin
 
 text "A bunch of theorems and other statements for sanity-checking, as well as things that should be automatically simplified.
@@ -9,8 +10,7 @@ Things that *should* be automated:
   \<bullet> Checking that the argument to a (dependent/non-dependent) function matches the type? Also the arguments to a pair?"
 
 \<comment> \<open>Turn on trace for unification and the simplifier, for debugging.\<close>
-declare[[unify_trace_simp, unify_trace_types, simp_trace, simp_trace_depth_limit=1]]
-
+declare[[unify_trace_simp, unify_trace_types, simp_trace, simp_trace_depth_limit=5]]
 
 section \<open>\<Prod> type\<close>
 
@@ -22,17 +22,18 @@ lemma "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
 
 proposition "A \<equiv> B \<Longrightarrow> \<^bold>\<lambda>x:A. x : B\<rightarrow>A"
 proof -
-  assume assm: "A \<equiv> B"
-  have id: "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
-  from assm have "A\<rightarrow>A \<equiv> B\<rightarrow>A" by simp
-  with id show "\<^bold>\<lambda>x:A. x : B\<rightarrow>A" ..
+  assume "A \<equiv> B"
+  then have *: "A\<rightarrow>A \<equiv> B\<rightarrow>A" by simp
+
+  have "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
+  with * show "\<^bold>\<lambda>x:A. x : B\<rightarrow>A" by simp
 qed
 
 proposition "\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x : A\<rightarrow>B\<rightarrow>A"
 proof
   fix a
   assume "a : A"
-  then show "\<^bold>\<lambda>y:B. a : B \<rightarrow> A" .. 
+  then show "\<^bold>\<lambda>y:B. a : B \<rightarrow> A" ..
 qed
 
 
@@ -42,7 +43,15 @@ proposition "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. x)`a \<equiv> a" by 
 
 text "Currying:"
 
-lemma "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. y)`a`b \<equiv> b" by simp
+term "lambda A (\<lambda>x. \<^bold>\<lambda>y:B(x). y)"
+
+thm Prod_comp[where ?B = "\<lambda>x. \<Prod>y:B(x). B(x)"]
+
+lemma "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). y)`a \<equiv> \<^bold>\<lambda>y:B(a). y"
+proof (rule Prod_comp[where ?B = "\<lambda>x. \<Prod>y:B(x). B(x)"])
+  show "\<And>x. a : A \<Longrightarrow> x : A \<Longrightarrow> \<^bold>\<lambda>y:B x. y : B x \<rightarrow> B x"
+
+lemma "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). y)`a`b \<equiv> b"  by simp
 
 lemma "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). f x y)`a \<equiv> \<^bold>\<lambda>y:B(a). f a y" by simp
 

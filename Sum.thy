@@ -1,5 +1,6 @@
 (*  Title:  HoTT/Sum.thy
     Author: Josh Chen
+    Date:   Jun 2018
 
 Dependent sum type.
 *)
@@ -10,9 +11,9 @@ theory Sum
 begin
 
 axiomatization
-  Sum :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term" and
+  Sum :: "[Term, Typefam] \<Rightarrow> Term" and
   pair :: "[Term, Term] \<Rightarrow> Term"  ("(1'(_,/ _'))") and
-  indSum :: "(Term \<Rightarrow> Term) \<Rightarrow> Term"
+  indSum :: "[Term, Typefam, Typefam, [Term, Term] \<Rightarrow> Term] \<Rightarrow> Term"  ("(1indSum[_,/ _])")
 
 syntax
   "_SUM" :: "[idt, Term, Term] \<Rightarrow> Term"        ("(3\<Sum>_:_./ _)" 20)
@@ -23,25 +24,29 @@ translations
   "SUM x:A. B" \<rightharpoonup> "CONST Sum A (\<lambda>x. B)"
 
 axiomatization where
-  Sum_form [intro]: "\<And>A B. \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x) : U"
+  Sum_form [intro]: "\<And>A B. \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Sum>x:A. B x : U"
 and
-  Sum_intro [intro]: "\<And>A B a b. \<lbrakk>a : A; b : B(a)\<rbrakk> \<Longrightarrow> (a, b) : \<Sum>x:A. B(x)"
+  Sum_intro [intro]: "\<And>A B a b. \<lbrakk>B: A \<rightarrow> U; a : A; b : B a\<rbrakk> \<Longrightarrow> (a,b) : \<Sum>x:A. B x"
 and
-  Sum_elim [elim]: "\<And>A B C f p.
-    \<lbrakk> C: \<Sum>x:A. B(x) \<rightarrow> U;
-      f : \<Prod>x:A. \<Prod>y:B(x). C((x,y));
-      p : \<Sum>x:A. B(x) \<rbrakk> \<Longrightarrow> indSum(C)`f`p : C(p)"
+  Sum_elim [elim]: "\<And>A B C f p. \<lbrakk>
+    C: \<Sum>x:A. B x \<rightarrow> U;
+    \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
+    p : \<Sum>x:A. B x
+    \<rbrakk> \<Longrightarrow> (indSum[A,B] C f)`p : C p"
 and
-  Sum_comp [simp]: "\<And>(C::Term \<Rightarrow> Term) (f::Term) (a::Term) (b::Term). indSum(C)`f`(a,b) \<equiv> f`a`b"
-
-text "We choose to formulate the elimination rule by using the object-level function type and function application as much as possible.
-Hence only the type family \<open>C\<close> is left as a meta-level argument to the inductor indSum."
+  Sum_comp [simp]: "\<And>A B C f a b. \<lbrakk>
+    C: \<Sum>x:A. B x \<rightarrow> U;
+    \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
+    a : A;
+    b : B a
+    \<rbrakk> \<Longrightarrow> (indSum[A,B] C f)`(a,b) \<equiv> f a b"
 
 \<comment> \<open>Nondependent pair\<close>
 abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
-  where "A\<times>B \<equiv> \<Sum>_:A. B"
+  where "A \<times> B \<equiv> \<Sum>_:A. B"
 
-subsubsection \<open>Projections\<close>
+
+section \<open>Projections\<close>
 
 consts
   fst :: "[Term, 'a] \<Rightarrow> Term"  ("(1fst[/_,/ _])")
@@ -49,30 +54,56 @@ consts
 
 overloading
   fst_dep \<equiv> fst
-  snd_dep \<equiv> snd
   fst_nondep \<equiv> fst
-  snd_nondep \<equiv> snd
 begin
-  definition fst_dep :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term" where
-    "fst_dep A B \<equiv> indSum(\<lambda>_. A)`(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). x)"
-  
-  definition snd_dep :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term" where
-    "snd_dep A B \<equiv> indSum(\<lambda>_. A)`(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). y)"
+  definition fst_dep :: "[Term, Typefam] \<Rightarrow> Term" where
+    "fst_dep A B \<equiv> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x)"
   
   definition fst_nondep :: "[Term, Term] \<Rightarrow> Term" where
-    "fst_nondep A B \<equiv> indSum(\<lambda>_. A)`(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x)"
-  
-  definition snd_nondep :: "[Term, Term] \<Rightarrow> Term" where
-    "snd_nondep A B \<equiv> indSum(\<lambda>_. A)`(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. y)"
+    "fst_nondep A B \<equiv> indSum[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x)"
 end
 
-text "Simplification rules for the projections:"
+overloading
+  snd_dep \<equiv> snd
+  snd_nondep \<equiv> snd
+begin
+  definition snd_dep :: "[Term, Typefam] \<Rightarrow> Term" where
+    "snd_dep A B \<equiv> indSum[A,B] (\<lambda>p. B(fst[A,B]`p)) (\<lambda>x y. y)"
+  
+  definition snd_nondep :: "[Term, Term] \<Rightarrow> Term" where
+    "snd_nondep A B \<equiv> indSum[A, \<lambda>_. B] (\<lambda>p. B((fst A B)`p)) (\<lambda>x y. y)"
+end
 
-lemma fst_dep_comp: "\<lbrakk>a : A; b : B(a)\<rbrakk> \<Longrightarrow> fst[A,B]`(a,b) \<equiv> a" unfolding fst_dep_def by simp
-lemma snd_dep_comp: "\<lbrakk>a : A; b : B(a)\<rbrakk> \<Longrightarrow> snd[A,B]`(a,b) \<equiv> b" unfolding snd_dep_def by simp
+text "Simplification rules:"
 
-lemma fst_nondep_comp: "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> fst[A,B]`(a,b) \<equiv> a" unfolding fst_nondep_def by simp
-lemma snd_nondep_comp: "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> snd[A,B]`(a,b) \<equiv> b" unfolding snd_nondep_def by simp
+lemma fst_dep_comp:
+  assumes "a : A" and "b : B(a)"
+  shows "fst[A,B]`(a,b) \<equiv> a"
+proof -
+  show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_dep_def using assms by simp
+qed
 
-lemmas fst_snd_simps [simp] = fst_dep_comp snd_dep_comp fst_nondep_comp snd_nondep_comp
+lemma snd_dep_comp: "\<lbrakk>a : A; b : B(a)\<rbrakk> \<Longrightarrow> snd[A,B]`(a,b) \<equiv> b"
+proof -
+  assume "a : A" and "b : B(a)"
+  then have "(a, b) : \<Sum>x:A. B(x)" ..
+  then show "snd[A,B]`(a,b) \<equiv> b" unfolding snd_dep_def by simp
+qed
+
+lemma fst_nondep_comp: "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> fst[A,B]`(a,b) \<equiv> a"
+proof -
+  assume "a : A" and "b : B"
+  then have "(a, b) : A \<times> B" ..
+  then show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_nondep_def by simp
+qed
+
+lemma snd_nondep_comp: "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> snd[A,B]`(a,b) \<equiv> b"
+proof -
+  assume "a : A" and "b : B"
+  then have "(a, b) : A \<times> B" ..
+  then show "snd[A,B]`(a,b) \<equiv> b" unfolding snd_nondep_def by simp
+qed
+
+lemmas proj_simps [simp] = fst_dep_comp snd_dep_comp fst_nondep_comp snd_nondep_comp
+
 end
