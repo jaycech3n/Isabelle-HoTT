@@ -6,7 +6,7 @@ Dependent sum type.
 *)
 
 theory Sum
-  imports HoTT_Base Prod
+  imports Prod
 
 begin
 
@@ -68,32 +68,47 @@ overloading
   snd_nondep \<equiv> snd
 begin
   definition snd_dep :: "[Term, Typefam] \<Rightarrow> Term" where
-    "snd_dep A B \<equiv> indSum[A,B] (\<lambda>p. B(fst[A,B]`p)) (\<lambda>x y. y)"
+    "snd_dep A B \<equiv> indSum[A,B] (\<lambda>p. B fst[A,B]`p) (\<lambda>x y. y)"
   
   definition snd_nondep :: "[Term, Term] \<Rightarrow> Term" where
-    "snd_nondep A B \<equiv> indSum[A, \<lambda>_. B] (\<lambda>p. B((fst A B)`p)) (\<lambda>x y. y)"
+    "snd_nondep A B \<equiv> indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y)"
 end
 
-text "Simplification rules:"
+text "Properties of projections:"
+
+lemma fst_dep_type:
+  assumes "p : \<Sum>x:A. B x"
+  shows "fst[A,B]`p : A"
+proof -
+  have "\<Sum>x:A. B x : U" using assms ..
+  then have "A : U" by (rule Sum_intro)
+  unfolding fst_dep_def using assms by (rule Sum_comp)
+  
 
 lemma fst_dep_comp:
-  assumes "a : A" and "b : B(a)"
+  assumes "a : A" and "b : B a"
   shows "fst[A,B]`(a,b) \<equiv> a"
 proof -
-  show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_dep_def using assms by simp
+  have "A : U" using assms(1) ..
+  then have "\<lambda>_. A: \<Sum>x:A. B x \<rightarrow> U" .
+  moreover have "\<And>x y. x : A \<Longrightarrow> (\<lambda>x y. x) x y : A" .
+  ultimately show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_dep_def using assms by (rule Sum_comp)
 qed
 
-lemma snd_dep_comp: "\<lbrakk>a : A; b : B(a)\<rbrakk> \<Longrightarrow> snd[A,B]`(a,b) \<equiv> b"
+lemma snd_dep_comp:
+  assumes "a : A" and "b : B a"
+  shows "snd[A,B]`(a,b) \<equiv> b"
 proof -
-  assume "a : A" and "b : B(a)"
-  then have "(a, b) : \<Sum>x:A. B(x)" ..
-  then show "snd[A,B]`(a,b) \<equiv> b" unfolding snd_dep_def by simp
+  have "\<lambda>p. B fst[A,B]`p: \<Sum>x:A. B x \<rightarrow> U"
+    
+  ultimately show "snd[A,B]`(a,b) \<equiv> b" unfolding snd_dep_def by (rule Sum_comp)
 qed
 
-lemma fst_nondep_comp: "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> fst[A,B]`(a,b) \<equiv> a"
+lemma fst_nondep_comp:
+  assumes "a : A" and "b : B"
+  shows "fst[A,B]`(a,b) \<equiv> a"
 proof -
-  assume "a : A" and "b : B"
-  then have "(a, b) : A \<times> B" ..
+  have "A : U" using assms(1) ..
   then show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_nondep_def by simp
 qed
 

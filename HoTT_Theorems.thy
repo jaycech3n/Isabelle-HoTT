@@ -34,6 +34,9 @@ proof
   fix a
   assume "a : A"
   then show "\<^bold>\<lambda>y:B. a : B \<rightarrow> A" ..
+
+  ML_val \<open>@{context} |> Variable.names_of\<close>
+
 qed
 
 
