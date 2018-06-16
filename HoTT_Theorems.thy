@@ -16,42 +16,39 @@ section \<open>\<Prod> type\<close>
 
 subsection \<open>Typing functions\<close>
 
-text "Declaring \<open>Prod_intro\<close> with the \<open>intro\<close> attribute (in HoTT.thy) enables \<open>standard\<close> to prove the following."                                                   
+text "Declaring \<open>Prod_intro\<close> with the \<open>intro\<close> attribute (in HoTT.thy) enables \<open>standard\<close> to prove the following."
 
-lemma "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
+proposition assumes "A : U" shows "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" using assms ..
 
-proposition "A \<equiv> B \<Longrightarrow> \<^bold>\<lambda>x:A. x : B\<rightarrow>A"
+proposition
+  assumes "A : U" and "A \<equiv> B"
+  shows "\<^bold>\<lambda>x:A. x : B\<rightarrow>A"
 proof -
-  assume "A \<equiv> B"
-  then have *: "A\<rightarrow>A \<equiv> B\<rightarrow>A" by simp
-
-  have "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" ..
-  with * show "\<^bold>\<lambda>x:A. x : B\<rightarrow>A" by simp
+  have "A\<rightarrow>A \<equiv> B\<rightarrow>A" using assms by simp
+  moreover have "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" using assms(1) ..
+  ultimately show "\<^bold>\<lambda>x:A. x : B\<rightarrow>A" by simp
 qed
 
-proposition "\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x : A\<rightarrow>B\<rightarrow>A"
+proposition
+  assumes "A : U" and "B : U"
+  shows "\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x : A\<rightarrow>B\<rightarrow>A"
 proof
-  fix a
-  assume "a : A"
-  then show "\<^bold>\<lambda>y:B. a : B \<rightarrow> A" ..
-
-  ML_val \<open>@{context} |> Variable.names_of\<close>
-
-qed
+  fix x
+  assume "x : A"
+  with assms(2) show "\<^bold>\<lambda>y:B. x : B\<rightarrow>A" ..
+qed (rule assms)
 
 
 subsection \<open>Function application\<close>
 
-proposition "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. x)`a \<equiv> a" by simp
+proposition assumes "a : A" shows "(\<^bold>\<lambda>x:A. x)`a \<equiv> a" using assms by simp
 
 text "Currying:"
 
-term "lambda A (\<lambda>x. \<^bold>\<lambda>y:B(x). y)"
-
-thm Prod_comp[where ?B = "\<lambda>x. \<Prod>y:B(x). B(x)"]
-
-lemma "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). y)`a \<equiv> \<^bold>\<lambda>y:B(a). y"
-proof (rule Prod_comp[where ?B = "\<lambda>x. \<Prod>y:B(x). B(x)"])
+lemma
+  assumes "a : A"
+  shows "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). y)`a \<equiv> \<^bold>\<lambda>y:B(a). y"
+proof
   show "\<And>x. a : A \<Longrightarrow> x : A \<Longrightarrow> \<^bold>\<lambda>y:B x. y : B x \<rightarrow> B x"
 
 lemma "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). y)`a`b \<equiv> b"  by simp
