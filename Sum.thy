@@ -13,7 +13,7 @@ begin
 axiomatization
   Sum :: "[Term, Typefam] \<Rightarrow> Term" and
   pair :: "[Term, Term] \<Rightarrow> Term"  ("(1'(_,/ _'))") and
-  indSum :: "[Term, Typefam, Typefam, [Term, Term] \<Rightarrow> Term] \<Rightarrow> Term"  ("(1indSum[_,/ _])")
+  indSum :: "[Term, Typefam, Typefam, [Term, Term] \<Rightarrow> Term, Term] \<Rightarrow> Term"  ("(1indSum[_,/ _])")
 
 syntax
   "_SUM" :: "[idt, Term, Term] \<Rightarrow> Term"        ("(3\<Sum>_:_./ _)" 20)
@@ -32,14 +32,14 @@ and
     C: \<Sum>x:A. B x \<rightarrow> U;
     \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
     p : \<Sum>x:A. B x
-    \<rbrakk> \<Longrightarrow> (indSum[A,B] C f)`p : C p"
+    \<rbrakk> \<Longrightarrow> indSum[A,B] C f p : C p"
 and
   Sum_comp [simp]: "\<And>A B C f a b. \<lbrakk>
     C: \<Sum>x:A. B x \<rightarrow> U;
     \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
     a : A;
     b : B a
-    \<rbrakk> \<Longrightarrow> (indSum[A,B] C f)`(a,b) \<equiv> f a b"
+    \<rbrakk> \<Longrightarrow> indSum[A,B] C f (a,b) \<equiv> f a b"
 
 \<comment> \<open>Nondependent pair\<close>
 abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
@@ -74,16 +74,7 @@ begin
     "snd_nondep A B \<equiv> indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y)"
 end
 
-text "Properties of projections:"
-
-lemma fst_dep_type:
-  assumes "p : \<Sum>x:A. B x"
-  shows "fst[A,B]`p : A"
-proof -
-  have "\<Sum>x:A. B x : U" using assms ..
-  then have "A : U" by (rule Sum_intro)
-  unfolding fst_dep_def using assms by (rule Sum_comp)
-  
+text "Properties of projections:"  
 
 lemma fst_dep_comp:
   assumes "a : A" and "b : B a"
@@ -101,7 +92,7 @@ lemma snd_dep_comp:
 proof -
   have "\<lambda>p. B fst[A,B]`p: \<Sum>x:A. B x \<rightarrow> U"
     
-  ultimately show "snd[A,B]`(a,b) \<equiv> b" unfolding snd_dep_def by (rule Sum_comp)
+  show "snd[A,B]`(a,b) \<equiv> b" unfolding fst_dep_def
 qed
 
 lemma fst_nondep_comp:
