@@ -57,10 +57,10 @@ overloading
   fst_nondep \<equiv> fst
 begin
   definition fst_dep :: "[Term, Typefam] \<Rightarrow> Term" where
-    "fst_dep A B \<equiv> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x)"
+    "fst_dep A B \<equiv> \<^bold>\<lambda>p: (\<Sum>x:A. B x). indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) p"
   
   definition fst_nondep :: "[Term, Term] \<Rightarrow> Term" where
-    "fst_nondep A B \<equiv> indSum[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x)"
+    "fst_nondep A B \<equiv> \<^bold>\<lambda>p: A \<times> B. indSum[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x) p"
 end
 
 overloading
@@ -68,23 +68,29 @@ overloading
   snd_nondep \<equiv> snd
 begin
   definition snd_dep :: "[Term, Typefam] \<Rightarrow> Term" where
-    "snd_dep A B \<equiv> indSum[A,B] (\<lambda>p. B fst[A,B]`p) (\<lambda>x y. y)"
+    "snd_dep A B \<equiv> \<^bold>\<lambda>p: (\<Sum>x:A. B x). indSum[A,B] (\<lambda>p. B fst[A,B]`p) (\<lambda>x y. y) p"
   
   definition snd_nondep :: "[Term, Term] \<Rightarrow> Term" where
-    "snd_nondep A B \<equiv> indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y)"
+    "snd_nondep A B \<equiv> \<^bold>\<lambda>p: A \<times> B. indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) p"
 end
 
 text "Properties of projections:"  
 
 lemma fst_dep_comp:
-  assumes "a : A" and "b : B a"
+  assumes "B: A \<rightarrow> U" and "a : A" and "b : B a"
   shows "fst[A,B]`(a,b) \<equiv> a"
-proof -
-  have "A : U" using assms(1) ..
+proof (unfold fst_dep_def)  (* GOOD AUTOMATION EXAMPLE *)
+  have "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A, B] (\<lambda>_. A) (\<lambda>x y. x) p : A" ..
+  moreover have "(a, b) : \<Sum>x:A. B x" using assms ..
+  then have "fst[A,B]`(a,b) \<equiv> indSum[A, B] (\<lambda>_. A) (\<lambda>x y. x) (a,b)" unfolding fst_dep_def by (simp add: Prod_comp)
+  have "A : U" using assms(2) ..
   then have "\<lambda>_. A: \<Sum>x:A. B x \<rightarrow> U" .
   moreover have "\<And>x y. x : A \<Longrightarrow> (\<lambda>x y. x) x y : A" .
-  ultimately show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_dep_def using assms by (rule Sum_comp)
+  moreover 
+  ultimately show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_dep_def using assms by simp
 qed
+
+thm Sum_comp
 
 lemma snd_dep_comp:
   assumes "a : A" and "b : B a"
