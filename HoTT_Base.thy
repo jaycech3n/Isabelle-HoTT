@@ -7,7 +7,6 @@ Basic setup and definitions of a homotopy type theory object logic without unive
 
 theory HoTT_Base
   imports Pure
-
 begin
 
 section \<open>Setup\<close>
@@ -34,7 +33,7 @@ consts
   is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_ :/ _)" [0, 0] 1000)
 
 axiomatization where
-  inhabited_implies_type [intro]: "\<And>a A. a : A \<Longrightarrow> A : U"
+  inhabited_implies_type [intro, elim]: "\<And>a A. a : A \<Longrightarrow> A : U"
 
 
 section \<open>Type families\<close>

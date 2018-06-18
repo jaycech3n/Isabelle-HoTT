@@ -7,7 +7,6 @@ Dependent product (function) type for the HoTT logic.
 
 theory Prod
   imports HoTT_Base
-
 begin
 
 axiomatization
@@ -37,7 +36,11 @@ translations
 section \<open>Type rules\<close>
 
 axiomatization where
-  Prod_form: "\<And>A B. \<lbrakk>A : U; B : A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B x : U"
+  Prod_form: "\<And>A B. \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B x : U"
+and
+  Prod_form_cond1: "\<And>A B. (\<Prod>x:A. B x : U) \<Longrightarrow> A : U"
+and
+  Prod_form_cond2: "\<And>A B. (\<Prod>x:A. B x : U) \<Longrightarrow> B: A \<rightarrow> U"
 and
   Prod_intro: "\<And>A B b. \<lbrakk>A : U; \<And>x. x : A \<Longrightarrow> b x : B x\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x:A. b x : \<Prod>x:A. B x"
 and
@@ -47,11 +50,16 @@ and
 and
   Prod_uniq: "\<And>A B f. f : \<Prod>x:A. B x \<Longrightarrow> \<^bold>\<lambda>x:A. (f`x) \<equiv> f"
 
-text "The type rules should be able to be used as introduction rules by the standard reasoner:"
+text "Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation)."
+
+text "In textbook presentations it is usual to present type formation as a forward implication, stating conditions sufficient for the formation of the type.
+It is however implicit that the premises of the rule are also necessary, so that for example the only way for one to have that \<open>\<Prod>x:A. B x : U\<close> is for \<open>A : U\<close> and \<open>B: A \<rightarrow> U\<close> in the first place.
+This is what the additional formation rules \<open>Prod_form_cond1\<close> and \<open>Prod_form_cond2\<close> express."
+
+text "The type rules should be able to be used as introduction and elimination rules by the standard reasoner:"
 
 lemmas Prod_rules [intro] = Prod_form Prod_intro Prod_elim Prod_comp Prod_uniq
-
-text "Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation)."
+lemmas Prod_form_conds [elim] = Prod_form_cond1 Prod_form_cond2
 
 text "Nondependent functions are a special case."
 
