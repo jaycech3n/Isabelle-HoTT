@@ -15,6 +15,9 @@ axiomatization
   pair :: "[Term, Term] \<Rightarrow> Term"  ("(1'(_,/ _'))") and
   indSum :: "[Term, Typefam, Typefam, [Term, Term] \<Rightarrow> Term, Term] \<Rightarrow> Term"  ("(1indSum[_,/ _])")
 
+
+section \<open>Syntax\<close>
+
 syntax
   "_SUM" :: "[idt, Term, Term] \<Rightarrow> Term"        ("(3\<Sum>_:_./ _)" 20)
   "_SUM_ASCII" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3SUM _:_./ _)" 20)
@@ -23,30 +26,35 @@ translations
   "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum A (\<lambda>x. B)"
   "SUM x:A. B" \<rightharpoonup> "CONST Sum A (\<lambda>x. B)"
 
+
+section \<open>Type rules\<close>
+
 axiomatization where
-  Sum_form [intro]: "\<And>A B. \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Sum>x:A. B x : U"
+  Sum_form: "\<And>A B. \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Sum>x:A. B x : U"
 and
-  Sum_intro [intro]: "\<And>A B a b. \<lbrakk>B: A \<rightarrow> U; a : A; b : B a\<rbrakk> \<Longrightarrow> (a,b) : \<Sum>x:A. B x"
+  Sum_intro: "\<And>A B a b. \<lbrakk>B: A \<rightarrow> U; a : A; b : B a\<rbrakk> \<Longrightarrow> (a,b) : \<Sum>x:A. B x"
 and
-  Sum_elim [elim]: "\<And>A B C f p. \<lbrakk>
+  Sum_elim: "\<And>A B C f p. \<lbrakk>
     C: \<Sum>x:A. B x \<rightarrow> U;
     \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
     p : \<Sum>x:A. B x
     \<rbrakk> \<Longrightarrow> indSum[A,B] C f p : C p"
 and
-  Sum_comp [simp]: "\<And>A B C f a b. \<lbrakk>
+  Sum_comp: "\<And>A B C f a b. \<lbrakk>
     C: \<Sum>x:A. B x \<rightarrow> U;
     \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
     a : A;
     b : B a
     \<rbrakk> \<Longrightarrow> indSum[A,B] C f (a,b) \<equiv> f a b"
 
+lemmas Sum_rules [intro] = Sum_form Sum_intro Sum_elim Sum_comp
+
 \<comment> \<open>Nondependent pair\<close>
 abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
   where "A \<times> B \<equiv> \<Sum>_:A. B"
 
 
-section \<open>Projections\<close>
+section \<open>Projection functions\<close>
 
 consts
   fst :: "[Term, 'a] \<Rightarrow> Term"  ("(1fst[/_,/ _])")
@@ -74,23 +82,28 @@ begin
     "snd_nondep A B \<equiv> \<^bold>\<lambda>p: A \<times> B. indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) p"
 end
 
-text "Properties of projections:"  
+text "Simplifying projections:"
 
-lemma fst_dep_comp:
+lemma fst_dep_comp:  (* Potential for automation *)
   assumes "B: A \<rightarrow> U" and "a : A" and "b : B a"
   shows "fst[A,B]`(a,b) \<equiv> a"
-proof (unfold fst_dep_def)  (* GOOD AUTOMATION EXAMPLE *)
-  have "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A, B] (\<lambda>_. A) (\<lambda>x y. x) p : A" ..
-  moreover have "(a, b) : \<Sum>x:A. B x" using assms ..
-  then have "fst[A,B]`(a,b) \<equiv> indSum[A, B] (\<lambda>_. A) (\<lambda>x y. x) (a,b)" unfolding fst_dep_def by (simp add: Prod_comp)
-  have "A : U" using assms(2) ..
-  then have "\<lambda>_. A: \<Sum>x:A. B x \<rightarrow> U" .
-  moreover have "\<And>x y. x : A \<Longrightarrow> (\<lambda>x y. x) x y : A" .
-  moreover 
-  ultimately show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_dep_def using assms by simp
-qed
+proof (unfold fst_dep_def)
+  \<comment> "Write about this proof: unfolding, how we set up the introduction rules (explain \<open>..\<close>), do a trace of the proof, explain the meaning of keywords, etc."
 
-thm Sum_comp
+  have *: "A : U" using assms(2) ..  (* I keep thinking this should not have to be done explicitly, but rather automated. *)
+  
+  then have "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) p : A" ..
+  
+  moreover have "(a,b) : \<Sum>x:A. B x" using assms ..
+  
+  ultimately have "(\<^bold>\<lambda>p: (\<Sum>x:A. B x). indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) p)`(a,b) \<equiv>
+    indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) (a,b)" ..
+  
+  also have "indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) (a,b) \<equiv> a"
+    by (rule Sum_comp) (rule *, assumption, (rule assms)+)
+  
+  finally show "(\<^bold>\<lambda>p: (\<Sum>x:A. B x). indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) p)`(a,b) \<equiv> a" .
+qed
 
 lemma snd_dep_comp:
   assumes "a : A" and "b : B a"
