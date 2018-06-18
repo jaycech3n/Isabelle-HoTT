@@ -86,7 +86,7 @@ begin
     "snd_nondep A B \<equiv> \<^bold>\<lambda>p: A \<times> B. indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) p"
 end
 
-text "Results about projections:"
+text "Typing judgments and computation rules for the dependent and non-dependent projection functions."
 
 lemma fst_dep_type:
   assumes "p : \<Sum>x:A. B x"
@@ -105,7 +105,7 @@ proof \<comment> \<open>The standard reasoner knows to backchain with the produc
     proof \<comment> \<open>...and with sum elimination here.\<close>
       show "A : U" using * ..
     qed
-  
+
   qed (rule *)
 
 qed (rule assms)
@@ -133,57 +133,89 @@ proof -
 qed
 
 
+text "In proving results about the second dependent projection function we often use the following two lemmas."
+
+lemma snd_dep_welltyped:
+  assumes "p : \<Sum>x:A. B x"
+  shows "B (fst[A,B]`p) : U"
+proof -
+  have "\<Sum>x:A. B x : U" using assms ..
+  then have *: "B: A \<rightarrow> U" ..
+
+  have "fst[A,B]`p : A" using assms by (rule fst_dep_type)
+  then show "B (fst[A,B]`p) : U" by (rule *)
+qed
+
+lemma snd_dep_const_type:
+  assumes "B: A \<rightarrow> U" and "x : A" and "y : B x"
+  shows "y : B (fst[A,B]`(x,y))"
+proof -
+  have "fst[A,B]`(x,y) \<equiv> x" using assms by (rule fst_dep_comp)
+  then show "y : B (fst[A,B]`(x,y))" using assms by simp
+qed
+
+
 lemma snd_dep_type:
   assumes "p : \<Sum>x:A. B x"
   shows "snd[A,B]`p : B (fst[A,B]`p)"
-oops
-\<comment> \<open>Do we need this for the following lemma?\<close>
+proof
+  have *: "\<Sum>x:A. B x : U" using assms ..
+
+  show "snd[A, B] : \<Prod>p:(\<Sum>x:A. B x). B (fst[A,B]`p)"
+
+  proof (unfold snd_dep_def, standard)
+    show "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A,B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) p : B (fst[A,B]`p)"
+
+    proof (standard, elim snd_dep_welltyped)
+      fix x y assume 1: "x : A" and 2: "y : B x"
+      show "y : B (fst[A,B]`(x,y))"
+
+      proof -
+        have "B: A \<rightarrow> U" using * ..
+        then show "y : B (fst[A,B]`(x,y))" using 1 2 by (rule snd_dep_const_type)
+      qed
+
+    qed
+
+  qed (rule *)
+
+qed (rule assms)
 
 
 lemma snd_dep_comp:
   assumes "B: A \<rightarrow> U" and "a : A" and "b : B a"
   shows "snd[A,B]`(a,b) \<equiv> b"
 proof -
-  \<comment> \<open>We use the following two lemmas:\<close>
-
-  have lemma1: "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> B (fst[A,B]`p) : U"
-  proof -
-      fix p assume "p : \<Sum>x:A. B x"
-      then have "fst[A,B]`p : A" by (rule fst_dep_type)
-      then show "B (fst[A,B]`p) : U" by (rule assms(1))
-  qed
-
-  have lemma2: "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> y : B (fst[A,B]`(x, y))"
-  proof -
-    fix x y assume "x : A" and "y : B x"
-    moreover with assms(1) have "fst[A,B]`(x,y) \<equiv> x" by (rule fst_dep_comp)
-    ultimately show "y : B (fst[A,B]`(x,y))" by simp
-  qed
-
-  \<comment> \<open>And now the proof.\<close>
-
   have "snd[A,B]`(a,b) \<equiv> indSum[A, B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) (a,b)"
   proof (unfold snd_dep_def, standard)
     show "(a,b) : \<Sum>x:A. B x" using assms ..
 
     fix p assume *: "p : \<Sum>x:A. B x"
     show "indSum[A,B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) p : B (fst[A,B]`p)"
-      by (standard, elim lemma1, elim lemma2) (assumption, rule *)
+    proof (standard, elim snd_dep_welltyped)
+      show "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> y : B (fst[A,B]`(x,y))" using assms
+        by (elim snd_dep_const_type)
+    qed (rule *)
   qed
 
   also have "indSum[A, B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) (a,b) \<equiv> b"
-    by (standard, elim lemma1, elim lemma2) (assumption, (rule assms)+)
+  proof (standard, elim snd_dep_welltyped)
+    show "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> y : B (fst[A,B]`(x,y))" using assms
+      by (elim snd_dep_const_type)
+  qed (rule assms)+
 
   finally show "snd[A,B]`(a,b) \<equiv> b" .
 qed
 
 
+text "For non-dependent projection functions:"
+
 lemma fst_nondep_comp:
   assumes "a : A" and "b : B"
   shows "fst[A,B]`(a,b) \<equiv> a"
-proof -
+proof (unfold fst_nondep_def)
   have "A : U" using assms(1) ..
-  then show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_nondep_def by simp
+  then show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_nondep_def 
 qed
 
 lemma snd_nondep_comp: "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> snd[A,B]`(a,b) \<equiv> b"
@@ -193,7 +225,6 @@ proof -
   then show "snd[A,B]`(a,b) \<equiv> b" unfolding snd_nondep_def by simp
 qed
 
-lemmas proj_simps [simp] = fst_dep_comp snd_dep_comp fst_nondep_comp snd_nondep_comp
 
 
 end
