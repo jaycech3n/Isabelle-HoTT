@@ -17,7 +17,7 @@ text "Set up type checking routines, proof methods etc."
 section \<open>Metalogical definitions\<close>
 
 text "A single meta-type \<open>Term\<close> suffices to implement the object-logic types and terms.
-We do not implement universes, and simply use \<open>a : U\<close> as a convenient shorthand to mean ``\<open>a\<close> is a type''."
+We do not implement universes, and simply use \<open>a : U\<close> as a convenient shorthand to mean ''\<open>a\<close> is a type''."
 
 typedecl Term
 
@@ -31,6 +31,8 @@ For judgmental equality we use the existing Pure equality \<open>\<equiv>\<close
 consts
   is_a_type :: "Term \<Rightarrow> prop"           ("(1_ :/ U)" [0] 1000)
   is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_ :/ _)" [0, 0] 1000)
+
+text "The following fact is used to make explicit the assumption of well-formed contexts."
 
 axiomatization where
   inhabited_implies_type [intro, elim]: "\<And>a A. a : A \<Longrightarrow> A : U"

@@ -1,6 +1,5 @@
 theory HoTT_Theorems
   imports HoTT
-
 begin
 
 text "A bunch of theorems and other statements for sanity-checking, as well as things that should be automatically simplified.

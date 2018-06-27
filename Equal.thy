@@ -7,7 +7,6 @@ Equality type.
 
 theory Equal
   imports HoTT_Base
-
 begin
 
 axiomatization

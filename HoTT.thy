@@ -4,12 +4,13 @@
 Load all the component modules for the HoTT logic.
 *)
 
-theory HoTT imports
+theory HoTT
+
+imports
   HoTT_Base
-  Prod Sum
+  HoTT_Methods
+  Prod
+  Sum
 
 begin
-
-\<comment> \<open>Maybe tactic setup can go in here?\<close>
-
 end
