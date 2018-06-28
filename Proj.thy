@@ -50,42 +50,35 @@ lemma fst_dep_type:
   assumes "p : \<Sum>x:A. B x"
   shows "fst[A,B]`p : A"
 
-proof \<comment> \<open>The standard reasoner knows to backchain with the product elimination rule here...\<close>
-  \<comment> \<open>Also write about this proof: compare the effect of letting the standard reasoner do simplifications, as opposed to using the minus switch and writing everything out explicitly from first principles.\<close>
-
-  have *: "\<Sum>x:A. B x : U" using assms ..
-  
+proof
   show "fst[A,B]: (\<Sum>x:A. B x) \<rightarrow> A"
-
-  proof (unfold fst_dep_def, standard) \<comment> \<open>...and with the product introduction rule here...\<close>
+  proof (unfold fst_dep_def, standard)
     show "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) p : A"
-    
-    proof \<comment> \<open>...and with sum elimination here.\<close>
-      show "A : U" using * ..
+    proof
+      show "A : U" by (wellformed jdgmt: assms)
     qed
-
-  qed (rule *)
-
+  qed (wellformed jdgmt: assms)
 qed (rule assms)
 
 
-lemma fst_dep_comp:  (* Potential for automation *)
+lemma fst_dep_comp:
   assumes "B: A \<rightarrow> U" and "a : A" and "b : B a"
   shows "fst[A,B]`(a,b) \<equiv> a"
 
 proof -
-  \<comment> "Write about this proof: unfolding, how we set up the introduction rules (explain \<open>..\<close>), do a trace of the proof, explain the meaning of keywords, etc."
-
-  have *: "A : U" using assms(2) .. (* I keep thinking this should not have to be done explicitly, but rather automated. *)
-
   have "fst[A,B]`(a,b) \<equiv> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) (a,b)"
   proof (unfold fst_dep_def, standard)
-    show "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) p : A" using * ..
     show "(a,b) : \<Sum>x:A. B x" using assms ..
+    show "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) p : A"
+    proof
+      show "A : U" by (wellformed jdgmt: assms(2))
+    qed
   qed
   
   also have "indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) (a,b) \<equiv> a"
-    by (rule Sum_comp) (rule *, assumption, (rule assms)+)
+  proof
+    show "A : U" by (wellformed jdgmt: assms(2))
+  qed (assumption, (rule assms)+)
   
   finally show "fst[A,B]`(a,b) \<equiv> a" .
 qed
@@ -93,20 +86,17 @@ qed
 
 text "In proving results about the second dependent projection function we often use the following two lemmas."
 
-lemma snd_dep_welltyped:
+lemma lemma1:
   assumes "p : \<Sum>x:A. B x"
   shows "B (fst[A,B]`p) : U"
 
 proof -
-  have "\<Sum>x:A. B x : U" using assms ..
-  then have *: "B: A \<rightarrow> U" ..
-
+  have *: "B: A \<rightarrow> U" by (wellformed jdgmt: assms)
   have "fst[A,B]`p : A" using assms by (rule fst_dep_type)
   then show "B (fst[A,B]`p) : U" by (rule *)
 qed
 
-
-lemma snd_dep_const_type:
+lemma lemma2:
   assumes "B: A \<rightarrow> U" and "x : A" and "y : B x"
   shows "y : B (fst[A,B]`(x,y))"
 
@@ -121,24 +111,17 @@ lemma snd_dep_type:
   shows "snd[A,B]`p : B (fst[A,B]`p)"
 
 proof
-  have *: "\<Sum>x:A. B x : U" using assms ..
-
   show "snd[A, B] : \<Prod>p:(\<Sum>x:A. B x). B (fst[A,B]`p)"
-
   proof (unfold snd_dep_def, standard)
     show "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A,B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) p : B (fst[A,B]`p)"
-
-    proof (standard, elim snd_dep_welltyped)
-      fix x y assume 1: "x : A" and 2: "y : B x"
-      show "y : B (fst[A,B]`(x,y))"
-      proof -
-        have "B: A \<rightarrow> U" using * ..
-        then show "y : B (fst[A,B]`(x,y))" using 1 2 by (rule snd_dep_const_type)
-      qed
+    proof (standard, elim lemma1)
+      fix p assume *: "p : \<Sum>x:A. B x"
+      have **: "B: A \<rightarrow> U" by (wellformed jdgmt: *)
+      fix x y assume "x : A" and "y : B x"
+      note ** this
+      then show "y : B (fst[A,B]`(x,y))" by (rule lemma2)
     qed
-
-  qed (rule *)
-
+  qed (wellformed jdgmt: assms)
 qed (rule assms)
 
 
