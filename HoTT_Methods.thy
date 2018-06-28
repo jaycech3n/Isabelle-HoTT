@@ -25,7 +25,6 @@ method wellformed uses jdgmt = (
       wellformed jdgmt: HoTT_Base.inhabited_implies_type[OF jdgmt]
       \<close> \<bar>
     "A : U" for A \<Rightarrow> \<open>
-      print_term A,
       match (A) in
         "\<Prod>x:?A. ?B x" \<Rightarrow> \<open>
           rule Prod.Prod_form_cond1[OF jdgmt] |
@@ -40,15 +39,16 @@ method wellformed uses jdgmt = (
           catch \<open>wellformed jdgmt: Sum.Sum_form_cond2[OF jdgmt]\<close> \<open>fail\<close>
           \<close>
       \<close> \<bar>
-    "PROP ?P \<Longrightarrow> PROP ?Q" \<Rightarrow> \<open>
-      (* Could probably direct the search here a bit more too. *)
+    "PROP ?P \<Longrightarrow> PROP Q" for Q \<Rightarrow> \<open>
       catch \<open>rule Prod.Prod_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
       catch \<open>rule Prod.Prod_form_cond2[OF jdgmt]\<close> \<open>fail\<close> |
       catch \<open>rule Sum.Sum_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
       catch \<open>rule Sum.Sum_form_cond2[OF jdgmt]\<close> \<open>fail\<close> |
       catch \<open>wellformed jdgmt: Prod.Prod_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
-      catch \<open>wellformed jdgmt: Prod.Prod_form_cond2[OF jdgmt]\<close> \<open>fail\<close>
-    \<close>
+      catch \<open>wellformed jdgmt: Prod.Prod_form_cond2[OF jdgmt]\<close> \<open>fail\<close> |
+      catch \<open>wellformed jdgmt: Sum.Sum_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
+      catch \<open>wellformed jdgmt: Sum.Sum_form_cond2[OF jdgmt]\<close> \<open>fail\<close>
+      \<close>
   )
 
 notepad  \<comment> \<open>Examples using \<open>wellformed\<close>\<close>
@@ -64,7 +64,7 @@ assume 1: "f : \<Prod>x:A. \<Prod>y: B x. C x y"
   have "B: A \<rightarrow> U" by (wellformed jdgmt: 1)
   have "\<And>x. x : A \<Longrightarrow> C x: B x \<rightarrow> U" by (wellformed jdgmt: 1)
 
-assume 2: "\<Sum>x:A. \<Prod>y: B x. \<Sum>z: C x y. D x y z : U"
+assume 2: "g : \<Sum>x:A. \<Prod>y: B x. \<Sum>z: C x y. D x y z"
   have a: "A : U" by (wellformed jdgmt: 2)
   have b: "B: A \<rightarrow> U" by (wellformed jdgmt: 2)
   have c: "\<And>x. x : A \<Longrightarrow> C x : B x \<rightarrow> U" by (wellformed jdgmt: 2)
