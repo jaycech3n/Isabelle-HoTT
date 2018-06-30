@@ -18,7 +18,7 @@ axiomatization
 section \<open>Syntax\<close>
 
 syntax
-  "_EQUAL" :: "[Term, Term, Term] \<Rightarrow> Term"        ("(3_ =\<^sub>_/ _)" [101, 101] 100)
+  "_EQUAL" :: "[Term, Term, Term] \<Rightarrow> Term"        ("(3_ =\<^sub>_/ _)" [101, 0, 101] 100)
   "_EQUAL_ASCII" :: "[Term, Term, Term] \<Rightarrow> Term"  ("(3_ =[_]/ _)" [101, 0, 101] 100)
 translations
   "a =[A] b" \<rightleftharpoons> "CONST Equal A a b"
