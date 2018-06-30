@@ -11,6 +11,7 @@ theory HoTT_Methods
     "HOL-Eisbach.Eisbach"
     "HOL-Eisbach.Eisbach_Tools"
     HoTT_Base
+    Equal
     Prod
     Sum
 begin
@@ -27,16 +28,25 @@ method wellformed uses jdgmt = (
     "A : U" for A \<Rightarrow> \<open>
       match (A) in
         "\<Prod>x:?A. ?B x" \<Rightarrow> \<open>
-          rule Prod.Prod_form_cond1[OF jdgmt] |
+          print_term "\<Pi>",
+          (rule Prod.Prod_form_cond1[OF jdgmt] |
           rule Prod.Prod_form_cond2[OF jdgmt] |
           catch \<open>wellformed jdgmt: Prod.Prod_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
-          catch \<open>wellformed jdgmt: Prod.Prod_form_cond2[OF jdgmt]\<close> \<open>fail\<close>
+          catch \<open>wellformed jdgmt: Prod.Prod_form_cond2[OF jdgmt]\<close> \<open>fail\<close>)
           \<close> \<bar>
         "\<Sum>x:?A. ?B x" \<Rightarrow> \<open>
           rule Sum.Sum_form_cond1[OF jdgmt] |
           rule Sum.Sum_form_cond2[OF jdgmt] |
           catch \<open>wellformed jdgmt: Sum.Sum_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
           catch \<open>wellformed jdgmt: Sum.Sum_form_cond2[OF jdgmt]\<close> \<open>fail\<close>
+          \<close> \<bar>
+        "?a =[?A] ?b" \<Rightarrow> \<open>
+          rule Equal.Equal_form_cond1[OF jdgmt] |
+          rule Equal.Equal_form_cond2[OF jdgmt] |
+          rule Equal.Equal_form_cond3[OF jdgmt] |
+          catch \<open>wellformed jdgmt: Equal.Equal_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
+          catch \<open>wellformed jdgmt: Equal.Equal_form_cond2[OF jdgmt]\<close> \<open>fail\<close> |
+          catch \<open>wellformed jdgmt: Equal.Equal_form_cond3[OF jdgmt]\<close> \<open>fail\<close>
           \<close>
       \<close> \<bar>
     "PROP ?P \<Longrightarrow> PROP Q" for Q \<Rightarrow> \<open>
