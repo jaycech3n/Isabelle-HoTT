@@ -60,6 +60,7 @@ text "The type rules should be able to be used as introduction and elimination r
 
 lemmas Prod_rules [intro] = Prod_form Prod_intro Prod_elim Prod_comp Prod_uniq
 lemmas Prod_form_conds [elim] = Prod_form_cond1 Prod_form_cond2
+lemmas Prod_simps [simp] = Prod_comp Prod_uniq
 
 text "Nondependent functions are a special case."
 

@@ -12,10 +12,11 @@ theory EqualProps
     Prod
 begin
 
+
 section \<open>Symmetry / Path inverse\<close>
 
 definition inv :: "[Term, Term, Term] \<Rightarrow> Term"  ("(1inv[_,/ _,/ _])")
-  where "inv[A,x,y] \<equiv> \<^bold>\<lambda>p: (x =\<^sub>A y). indEqual[A] (\<lambda>x y _. y =\<^sub>A x) (\<lambda>x. refl(x)) x y p"
+  where "inv[A,x,y] \<equiv> \<^bold>\<lambda>p:x =\<^sub>A y. indEqual[A] (\<lambda>x y _. y =\<^sub>A x) (\<lambda>x. refl(x)) x y p"
 
 lemma inv_type:
   assumes "p : x =\<^sub>A y"
@@ -57,21 +58,38 @@ proof -
   finally show "inv[A,a,a]`refl(a) \<equiv> refl(a)" .
 qed
 
+
 section \<open>Transitivity / Path composition\<close>
 
-\<comment> \<open>"Raw" composition function\<close>
-definition compose' :: "Term \<Rightarrow> Term"  ("(1compose''[_])")
-  where "compose'[A] \<equiv>
-    indEqual[A] (\<lambda>x y _. \<Prod>z:A. \<Prod>q: y =\<^sub>A z. x =\<^sub>A z) (indEqual[A](\<lambda>x z _. x =\<^sub>A z) (\<^bold>\<lambda>x:A. refl(x)))"
+text "``Raw'' composition function, of type \<open>\<Prod>x,y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)\<close>."
 
-\<comment> \<open>"Natural" composition function\<close>
+definition rcompose :: "Term \<Rightarrow> Term"  ("(1rcompose[_])")
+  where "rcompose[A] \<equiv> \<^bold>\<lambda>x:A. \<^bold>\<lambda>y:A. \<^bold>\<lambda>p:x =\<^sub>A y. indEqual[A]
+    (\<lambda>x y _. \<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)
+    (\<lambda>x. \<^bold>\<lambda>z:A. \<^bold>\<lambda>p:x =\<^sub>A z. indEqual[A](\<lambda>x z _. x =\<^sub>A z) (\<lambda>x. refl(x)) x z p)
+    x y p"
+
+text "``Natural'' composition function abbreviation, effectively equivalent to a function of type \<open>\<Prod>x,y,z:A. x =\<^sub>A y \<rightarrow> y =\<^sub>A z \<rightarrow> x =\<^sub>A z\<close>."
+
 abbreviation compose :: "[Term, Term, Term, Term] \<Rightarrow> Term"  ("(1compose[_,/ _,/ _,/ _])")
-  where "compose[A,x,y,z] \<equiv> \<^bold>\<lambda>p:x =\<^sub>A y. \<^bold>\<lambda>q:y =\<^sub>A z. compose'[A]`x`y`p`z`q"
+  where "compose[A,x,y,z] \<equiv> \<^bold>\<lambda>p:x =\<^sub>A y. \<^bold>\<lambda>q:y =\<^sub>A z. rcompose[A]`x`y`p`z`q"
 
-(**** GOOD CANDIDATE FOR AUTOMATION ****)
+
 lemma compose_comp:
   assumes "a : A"
-  shows "compose[A,a,a,a]`refl(a)`refl(a) \<equiv> refl(a)" using assms Equal_intro[OF assms] unfolding compose'_def by simp
+  shows "compose[A,a,a,a]`refl(a)`refl(a) \<equiv> refl(a)"
+
+proof (unfold rcompose_def)
+  have "compose[A,a,a,a]`refl(a) \<equiv> \<^bold>\<lambda>q:a =\<^sub>A a. rcompose[A]`a`a`refl(a)`a`q"
+  proof standard+ (*TODO: Set up the Simplifier to handle this proof at some point.*)
+    fix p q assume "p : a =\<^sub>A a" and "q : a =\<^sub>A a"
+    then show "rcompose[A]`a`a`p`a`q : a =\<^sub>A a"
+    proof (unfold rcompose_def)
+      have "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:A. \<^bold>\<lambda>p:x =\<^sub>A y. (indEqual[A]
+        (\<lambda>x y _. \<Prod>z:A. y =[A] z \<rightarrow> x =[A] z)
+        (\<lambda>x. \<^bold>\<lambda>z:A. \<^bold>\<lambda>q:x =\<^sub>A z. (indEqual[A] (\<lambda>x z _. x =\<^sub>A z) refl x z q))
+        x y p))`a`a`p`a`q \<equiv> ..." (*Okay really need to set up the Simplifier...*)
+oops
 
 text "The above proof is a good candidate for proof automation; in particular we would like the system to be able to automatically find the conditions of the \<open>using\<close> clause in the proof.
 This would likely involve something like:
@@ -81,7 +99,7 @@ This would likely involve something like:
 
 lemmas Equal_simps [simp] = inv_comp compose_comp
 
-subsubsection \<open>Pretty printing\<close>
+section \<open>Pretty printing\<close>
 
 abbreviation inv_pretty :: "[Term, Term, Term, Term] \<Rightarrow> Term"  ("(1_\<^sup>-\<^sup>1[_, _, _])" 500)
   where "p\<^sup>-\<^sup>1[A,x,y] \<equiv> inv[A,x,y]`p"
