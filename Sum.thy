@@ -57,5 +57,12 @@ lemmas Sum_form_conds [elim] = Sum_form_cond1 Sum_form_cond2
 abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
   where "A \<times> B \<equiv> \<Sum>_:A. B"
 
+lemma
+  Pair_intro [intro]: "\<And>A B a b. \<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (a,b) : A \<times> B"
+proof
+  fix b B assume "b : B"
+  then show "B : U" ..
+qed
+
 
 end
