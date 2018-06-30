@@ -118,8 +118,7 @@ proof
       fix p assume *: "p : \<Sum>x:A. B x"
       have **: "B: A \<rightarrow> U" by (wellformed jdgmt: *)
       fix x y assume "x : A" and "y : B x"
-      note ** this
-      then show "y : B (fst[A,B]`(x,y))" by (rule lemma2)
+      with ** show "y : B (fst[A,B]`(x,y))" by (rule lemma2)
     qed
   qed (wellformed jdgmt: assms)
 qed (rule assms)
@@ -136,16 +135,16 @@ proof -
 
     fix p assume *: "p : \<Sum>x:A. B x"
     show "indSum[A,B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) p : B (fst[A,B]`p)"
-    proof (standard, elim snd_dep_welltyped)
-      show "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> y : B (fst[A,B]`(x,y))" using assms
-        by (elim snd_dep_const_type)
+    proof (standard, elim lemma1)
+      fix x y assume "x : A" and "y : B x"
+      with assms(1) show "y : B (fst[A,B]`(x,y))" by (rule lemma2)
     qed (rule *)
   qed
 
   also have "indSum[A, B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) (a,b) \<equiv> b"
-  proof (standard, elim snd_dep_welltyped)
-    show "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> y : B (fst[A,B]`(x,y))" using assms
-      by (elim snd_dep_const_type)
+  proof (standard, elim lemma1)
+    fix x y assume "x : A" and "y : B x"
+    with assms(1) show "y : B (fst[A,B]`(x,y))" by (rule lemma2)
   qed (rule assms)+
 
   finally show "snd[A,B]`(a,b) \<equiv> b" .
@@ -154,26 +153,83 @@ qed
 
 text "For non-dependent projection functions:"
 
-print_statement fst_dep_type
-print_statement fst_dep_type[where ?p = p and ?A = A and ?B = "\<lambda>_. B"]
+lemma fst_nondep_type:
+  assumes "p : A \<times> B"
+  shows "fst[A,B]`p : A"
 
+proof
+  show "fst[A,B] : A \<times> B \<rightarrow> A"
+  proof (unfold fst_nondep_def, standard)
+    fix q assume *: "q : A \<times> B"
+    show "indSum[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x) q : A"
+    proof
+      show "A : U" by (wellformed jdgmt: assms)
+    qed (assumption, rule *)
+  qed (wellformed jdgmt: assms)
+qed (rule assms)
 
-lemma fst_nondep_type: "p : A \<times> B \<Longrightarrow> fst[A,B]`p : A"
-by (rule fst_dep_type[where ?B = "\<lambda>_. B"])
-  
 
 lemma fst_nondep_comp:
   assumes "a : A" and "b : B"
   shows "fst[A,B]`(a,b) \<equiv> a"
-proof (unfold fst_nondep_def)
-  have "A : U" using assms(1) ..
-  then show "fst[A,B]`(a,b) \<equiv> a" unfolding fst_nondep_def 
-qed
 
-lemma snd_nondep_comp: "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> snd[A,B]`(a,b) \<equiv> b"
 proof -
-  assume "a : A" and "b : B"
-  then have "(a, b) : A \<times> B" ..
-  then show "snd[A,B]`(a,b) \<equiv> b" unfolding snd_nondep_def by simp
+  have "fst[A,B]`(a,b) \<equiv> indSum[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x) (a,b)"
+  proof (unfold fst_nondep_def, standard)
+    show "(a,b) : A \<times> B" using assms ..
+    show "\<And>p. p : A \<times> B \<Longrightarrow> indSum[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x) p : A"
+    proof
+      show "A : U" by (wellformed jdgmt: assms(1))
+    qed
+  qed
+
+  also have "indSum[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x) (a,b) \<equiv> a"
+  proof
+    show "A : U" by (wellformed jdgmt: assms(1))
+  qed (assumption, (rule assms)+)
+
+  finally show "fst[A,B]`(a,b) \<equiv> a" .
 qed
 
+
+lemma snd_nondep_type:
+  assumes "p : A \<times> B"
+  shows "snd[A,B]`p : B"
+
+proof
+  show "snd[A,B] : A \<times> B \<rightarrow> B"
+  proof (unfold snd_nondep_def, standard)
+    fix q assume *: "q : A \<times> B"
+    show "indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) q : B"
+    proof
+      have **: "\<lambda>_. B: A \<rightarrow> U" by (wellformed jdgmt: assms)
+      have "fst[A,B]`p : A" using assms by (rule fst_nondep_type)
+      then show "B : U" by (rule **)
+    qed (assumption, rule *)
+  qed (wellformed jdgmt: assms)
+qed (rule assms)
+
+
+lemma snd_nondep_comp:
+  assumes "a : A" and "b : B"
+  shows "snd[A,B]`(a,b) \<equiv> b"
+proof -
+  have "snd[A,B]`(a,b) \<equiv> indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) (a,b)"
+  proof (unfold snd_nondep_def, standard)
+    show "(a,b) : A \<times> B" using assms ..
+    show "\<And>p. p : A \<times> B \<Longrightarrow> indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) p : B"
+    proof
+      show "B : U" by (wellformed jdgmt: assms(2))
+    qed
+  qed
+
+  also have "indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) (a,b) \<equiv> b"
+  proof
+    show "B : U" by (wellformed jdgmt: assms(2))
+  qed (assumption, (rule assms)+)
+
+  finally show "snd[A,B]`(a,b) \<equiv> b" .
+qed
+
+
+end

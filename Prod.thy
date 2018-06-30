@@ -64,7 +64,7 @@ lemmas Prod_form_conds [elim] = Prod_form_cond1 Prod_form_cond2
 text "Nondependent functions are a special case."
 
 abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarrow>" 40)
-  where "A \<rightarrow> B \<equiv> \<Prod>_:A. B"
+  where "A \<rightarrow> B \<equiv> \<Prod>_:A. B"  
 
 
 end
