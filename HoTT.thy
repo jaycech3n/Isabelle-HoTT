@@ -7,10 +7,19 @@ Load all the component modules for the HoTT logic.
 theory HoTT
 
 imports
-  HoTT_Base
-  HoTT_Methods
-  Prod
-  Sum
+
+(* Basic theories *)
+HoTT_Base
+HoTT_Methods
+
+(* Types *)
+Equal
+Prod
+Sum
+
+(* Additional properties *)
+EqualProps
+Proj
 
 begin
 end

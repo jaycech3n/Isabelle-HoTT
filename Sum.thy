@@ -59,10 +59,10 @@ abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
 
 lemma
   Pair_intro [intro]: "\<And>A B a b. \<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (a,b) : A \<times> B"
-proof
-  fix b B assume "b : B"
-  then show "B : U" ..
-qed
+  proof
+    fix b B assume "b : B"
+    then show "B : U" ..
+  qed
 
 
 end

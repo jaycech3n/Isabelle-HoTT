@@ -9,11 +9,13 @@ theory HoTT_Base
   imports Pure
 begin
 
+
 section \<open>Setup\<close>
 
-text "Declare rules expressing necessary wellformedness conditions for type and inhabitation judgments."
+text "Declare rules expressing necessary wellformedness conditions for type and inhabitation judgments, to be used by proof methods later (see HoTT_Methods.thy)."
 
 named_theorems wellform
+
 
 section \<open>Metalogical definitions\<close>
 

@@ -22,18 +22,7 @@ definition inv :: "[Term, Term, Term] \<Rightarrow> Term"  ("(1inv[_,/ _,/ _])")
 lemma inv_type:
   assumes "p : x =\<^sub>A y"
   shows "inv[A,x,y]`p : y =\<^sub>A x"
-
-proof
-  show "inv[A,x,y] : (x =\<^sub>A y) \<rightarrow> (y =\<^sub>A x)"
-  proof (unfold inv_def, standard)
-    fix p assume asm: "p : x =\<^sub>A y"
-    show "indEqual[A] (\<lambda>x y _. y =[A] x) refl x y p : y =\<^sub>A x"
-    proof standard+
-      show "x : A" by (wellformed jdgmt: asm)
-      show "y : A" by (wellformed jdgmt: asm)
-    qed (assumption | rule | rule asm)+
-  qed (wellformed jdgmt: assms)
-qed (rule assms)
+  by (derive lems: assms unfolds: inv_def)
       
 
 lemma inv_comp:
@@ -42,19 +31,10 @@ lemma inv_comp:
 
 proof -
   have "inv[A,a,a]`refl(a) \<equiv> indEqual[A] (\<lambda>x y _. y =\<^sub>A x) (\<lambda>x. refl(x)) a a refl(a)"
-  proof (unfold inv_def, standard)
-    show "refl(a) : a =\<^sub>A a" using assms ..
-
-    fix p assume asm: "p : a =\<^sub>A a"
-    show "indEqual[A] (\<lambda>x y _. y =\<^sub>A x) refl a a p : a =\<^sub>A a"
-    proof standard+
-      show "a : A" by (wellformed jdgmt: asm)
-      then show "a : A" .  \<comment> \<open>The elimination rule requires that both arguments to \<open>indEqual\<close> be shown to have the correct type.\<close>
-    qed (assumption | rule | rule asm)+
-  qed
+    by (derive lems: assms unfolds: inv_def)
 
   also have "indEqual[A] (\<lambda>x y _. y =\<^sub>A x) (\<lambda>x. refl(x)) a a refl(a) \<equiv> refl(a)"
-    by (standard | assumption | rule assms)+
+    by (simple lems: assms)
 
   finally show "inv[A,a,a]`refl(a) \<equiv> refl(a)" .
 qed
@@ -79,13 +59,33 @@ abbreviation compose :: "[Term, Term, Term, Term] \<Rightarrow> Term"  ("(1compo
 lemma compose_type:
   assumes "p : x =\<^sub>A y" and "q : y =\<^sub>A z"
   shows "compose[A,x,y,z]`p`q : x =\<^sub>A z"
-
-sorry
+  by (derive lems: assms unfolds: rcompose_def)
 
 
 lemma compose_comp:
   assumes "a : A"
   shows "compose[A,a,a,a]`refl(a)`refl(a) \<equiv> refl(a)"
+
+proof (unfold rcompose_def)
+  show "(\<^bold>\<lambda>p:a =[A] a.
+        lambda (a =[A] a)
+         (op `
+           ((\<^bold>\<lambda>x:A.
+                \<^bold>\<lambda>y:A.
+                   lambda (x =[A] y)
+                    (indEqual[A]
+                      (\<lambda>x y _. \<Prod>z:A. y =[A] z \<rightarrow> x =[A] z)
+                      (\<lambda>x. \<^bold>\<lambda>z:A.
+ lambda (x =[A] z)
+  (indEqual[A] (\<lambda>x z _. x =[A] z) refl x z))
+                      x y)) `
+            a `
+            a `
+            p `
+            a))) `
+    refl(a) `
+    refl(a) \<equiv>
+    refl(a)"
 
 sorry \<comment> \<open>Long and tedious proof if the Simplifier is not set up.\<close>
 
