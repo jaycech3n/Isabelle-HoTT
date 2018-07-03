@@ -11,13 +11,14 @@ begin
 
 section \<open>Setup\<close>
 
-text "Set up type checking routines, proof methods etc."
+text "Declare rules expressing necessary wellformedness conditions for type and inhabitation judgments."
 
+named_theorems wellform
 
 section \<open>Metalogical definitions\<close>
 
 text "A single meta-type \<open>Term\<close> suffices to implement the object-logic types and terms.
-We do not implement universes, and simply use \<open>a : U\<close> as a convenient shorthand to mean ''\<open>a\<close> is a type''."
+We do not implement universes, and simply use \<open>a : U\<close> as a convenient shorthand to mean ``\<open>a\<close> is a type''."
 
 typedecl Term
 
@@ -35,7 +36,7 @@ consts
 text "The following fact is used to make explicit the assumption of well-formed contexts."
 
 axiomatization where
-  inhabited_implies_type [intro, elim]: "\<And>a A. a : A \<Longrightarrow> A : U"
+  inhabited_implies_type [intro, elim, wellform]: "\<And>a A. a : A \<Longrightarrow> A : U"
 
 
 section \<open>Type families\<close>
@@ -47,7 +48,7 @@ type_synonym Typefam = "Term \<Rightarrow> Term"
 abbreviation (input) is_type_family :: "[Typefam, Term] \<Rightarrow> prop"  ("(3_:/ _ \<rightarrow> U)")
   where "P: A \<rightarrow> U \<equiv> (\<And>x. x : A \<Longrightarrow> P x : U)"
 
-text "There is an obvious generalization to multivariate type families, but implementing such an abbreviation involves writing ML code, and is for the moment not really crucial."
+\<comment> \<open>There is an obvious generalization to multivariate type families, but implementing such an abbreviation would probably involve writing ML code, and is for the moment not really crucial.\<close>
 
 
 end

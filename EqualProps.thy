@@ -18,6 +18,7 @@ section \<open>Symmetry / Path inverse\<close>
 definition inv :: "[Term, Term, Term] \<Rightarrow> Term"  ("(1inv[_,/ _,/ _])")
   where "inv[A,x,y] \<equiv> \<^bold>\<lambda>p:x =\<^sub>A y. indEqual[A] (\<lambda>x y _. y =\<^sub>A x) (\<lambda>x. refl(x)) x y p"
 
+
 lemma inv_type:
   assumes "p : x =\<^sub>A y"
   shows "inv[A,x,y]`p : y =\<^sub>A x"
@@ -64,45 +65,32 @@ section \<open>Transitivity / Path composition\<close>
 text "``Raw'' composition function, of type \<open>\<Prod>x,y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)\<close>."
 
 definition rcompose :: "Term \<Rightarrow> Term"  ("(1rcompose[_])")
-  where "rcompose[A] \<equiv> \<^bold>\<lambda>x:A. \<^bold>\<lambda>y:A. \<^bold>\<lambda>p:x =\<^sub>A y. indEqual[A]
+  where "rcompose[A] \<equiv> \<^bold>\<lambda>x:A. \<^bold>\<lambda>y:A. \<^bold>\<lambda>p:(x =\<^sub>A y). indEqual[A]
     (\<lambda>x y _. \<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)
-    (\<lambda>x. \<^bold>\<lambda>z:A. \<^bold>\<lambda>p:x =\<^sub>A z. indEqual[A](\<lambda>x z _. x =\<^sub>A z) (\<lambda>x. refl(x)) x z p)
+    (\<lambda>x. \<^bold>\<lambda>z:A. \<^bold>\<lambda>p:(x =\<^sub>A z). indEqual[A](\<lambda>x z _. x =\<^sub>A z) (\<lambda>x. refl(x)) x z p)
     x y p"
 
 text "``Natural'' composition function abbreviation, effectively equivalent to a function of type \<open>\<Prod>x,y,z:A. x =\<^sub>A y \<rightarrow> y =\<^sub>A z \<rightarrow> x =\<^sub>A z\<close>."
 
 abbreviation compose :: "[Term, Term, Term, Term] \<Rightarrow> Term"  ("(1compose[_,/ _,/ _,/ _])")
-  where "compose[A,x,y,z] \<equiv> \<^bold>\<lambda>p:x =\<^sub>A y. \<^bold>\<lambda>q:y =\<^sub>A z. rcompose[A]`x`y`p`z`q"
+  where "compose[A,x,y,z] \<equiv> \<^bold>\<lambda>p:(x =\<^sub>A y). \<^bold>\<lambda>q:(y =\<^sub>A z). rcompose[A]`x`y`p`z`q"
+
+
+lemma compose_type:
+  assumes "p : x =\<^sub>A y" and "q : y =\<^sub>A z"
+  shows "compose[A,x,y,z]`p`q : x =\<^sub>A z"
+
+sorry
 
 
 lemma compose_comp:
   assumes "a : A"
   shows "compose[A,a,a,a]`refl(a)`refl(a) \<equiv> refl(a)"
 
-proof (unfold rcompose_def)
-  have "compose[A,a,a,a]`refl(a) \<equiv> \<^bold>\<lambda>q:a =\<^sub>A a. rcompose[A]`a`a`refl(a)`a`q"
-  proof standard+ (*TODO: Set up the Simplifier to handle this proof at some point.*)
-    fix p q assume "p : a =\<^sub>A a" and "q : a =\<^sub>A a"
-    then show "rcompose[A]`a`a`p`a`q : a =\<^sub>A a"
-    proof (unfold rcompose_def)
-      have "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:A. \<^bold>\<lambda>p:x =\<^sub>A y. (indEqual[A]
-        (\<lambda>x y _. \<Prod>z:A. y =[A] z \<rightarrow> x =[A] z)
-        (\<lambda>x. \<^bold>\<lambda>z:A. \<^bold>\<lambda>q:x =\<^sub>A z. (indEqual[A] (\<lambda>x z _. x =\<^sub>A z) refl x z q))
-        x y p))`a`a`p`a`q \<equiv> ..." (*Okay really need to set up the Simplifier...*)
-oops
+sorry \<comment> \<open>Long and tedious proof if the Simplifier is not set up.\<close>
 
-text "The above proof is a good candidate for proof automation; in particular we would like the system to be able to automatically find the conditions of the \<open>using\<close> clause in the proof.
-This would likely involve something like:
-  1. Recognizing that there is a function application that can be simplified.
-  2. Noting that the obstruction to applying \<open>Prod_comp\<close> is the requirement that \<open>refl(a) : a =\<^sub>A a\<close>.
-  3. Obtaining such a condition, using the known fact \<open>a : A\<close> and the introduction rule \<open>Equal_intro\<close>."
 
-lemmas Equal_simps [simp] = inv_comp compose_comp
+lemmas Equal_simps [intro] = inv_comp compose_comp
 
-section \<open>Pretty printing\<close>
 
-abbreviation inv_pretty :: "[Term, Term, Term, Term] \<Rightarrow> Term"  ("(1_\<^sup>-\<^sup>1[_, _, _])" 500)
-  where "p\<^sup>-\<^sup>1[A,x,y] \<equiv> inv[A,x,y]`p"
-
-abbreviation compose_pretty :: "[Term, Term, Term, Term, Term, Term] \<Rightarrow> Term"  ("(1_ \<bullet>[_, _, _, _]/ _)")
-  where "p \<bullet>[A,x,y,z] q \<equiv> compose[A,x,y,z]`p`q"
+end

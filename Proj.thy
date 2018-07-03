@@ -49,16 +49,7 @@ text "Typing judgments and computation rules for the dependent and non-dependent
 lemma fst_dep_type:
   assumes "p : \<Sum>x:A. B x"
   shows "fst[A,B]`p : A"
-
-proof
-  show "fst[A,B]: (\<Sum>x:A. B x) \<rightarrow> A"
-  proof (unfold fst_dep_def, standard)
-    show "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) p : A"
-    proof
-      show "A : U" by (wellformed jdgmt: assms)
-    qed
-  qed (wellformed jdgmt: assms)
-qed (rule assms)
+  by (derive lems: fst_dep_def assms)
 
 
 lemma fst_dep_comp:
@@ -67,18 +58,10 @@ lemma fst_dep_comp:
 
 proof -
   have "fst[A,B]`(a,b) \<equiv> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) (a,b)"
-  proof (unfold fst_dep_def, standard)
-    show "(a,b) : \<Sum>x:A. B x" using assms ..
-    show "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) p : A"
-    proof
-      show "A : U" by (wellformed jdgmt: assms(2))
-    qed
-  qed
+    by (derive lems: fst_dep_def assms)
   
   also have "indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) (a,b) \<equiv> a"
-  proof
-    show "A : U" by (wellformed jdgmt: assms(2))
-  qed (assumption, (rule assms)+)
+    by (derive lems: assms)
   
   finally show "fst[A,B]`(a,b) \<equiv> a" .
 qed
@@ -89,12 +72,8 @@ text "In proving results about the second dependent projection function we often
 lemma lemma1:
   assumes "p : \<Sum>x:A. B x"
   shows "B (fst[A,B]`p) : U"
+  by (derive lems: assms fst_dep_def)
 
-proof -
-  have *: "B: A \<rightarrow> U" by (wellformed jdgmt: assms)
-  have "fst[A,B]`p : A" using assms by (rule fst_dep_type)
-  then show "B (fst[A,B]`p) : U" by (rule *)
-qed
 
 lemma lemma2:
   assumes "B: A \<rightarrow> U" and "x : A" and "y : B x"
@@ -110,7 +89,7 @@ lemma snd_dep_type:
   assumes "p : \<Sum>x:A. B x"
   shows "snd[A,B]`p : B (fst[A,B]`p)"
 
-proof
+proof (derive lems: assms snd_dep_def)
   show "snd[A, B] : \<Prod>p:(\<Sum>x:A. B x). B (fst[A,B]`p)"
   proof (unfold snd_dep_def, standard)
     show "\<And>p. p : \<Sum>x:A. B x \<Longrightarrow> indSum[A,B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) p : B (fst[A,B]`p)"
@@ -216,7 +195,7 @@ lemma snd_nondep_comp:
 proof -
   have "snd[A,B]`(a,b) \<equiv> indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) (a,b)"
   proof (unfold snd_nondep_def, standard)
-    show "(a,b) : A \<times> B" using assms ..
+    show "(a,b) : A \<times> B" by (simple conds: assms)
     show "\<And>p. p : A \<times> B \<Longrightarrow> indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) p : B"
     proof
       show "B : U" by (wellformed jdgmt: assms(2))

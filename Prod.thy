@@ -59,8 +59,7 @@ This is what the additional formation rules \<open>Prod_form_cond1\<close> and \
 text "The type rules should be able to be used as introduction and elimination rules by the standard reasoner:"
 
 lemmas Prod_rules [intro] = Prod_form Prod_intro Prod_elim Prod_comp Prod_uniq
-lemmas Prod_form_conds [elim] = Prod_form_cond1 Prod_form_cond2
-lemmas Prod_simps [simp] = Prod_comp Prod_uniq
+lemmas Prod_form_conds [elim, wellform] = Prod_form_cond1 Prod_form_cond2
 
 text "Nondependent functions are a special case."
 

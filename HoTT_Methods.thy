@@ -3,7 +3,7 @@
     Date:   Jun 2018
 
 Method setup for the HoTT library.
-Relies on Eisbach, which for the moment lives in HOL/Eisbach.
+Relies heavily on Eisbach.
 *)
 
 theory HoTT_Methods
@@ -16,71 +16,100 @@ theory HoTT_Methods
     Sum
 begin
 
+section \<open>Method setup\<close>
 
-text "This method finds a proof of any valid typing judgment derivable from a given wellformed judgment."
+text "Prove type judgments \<open>A : U\<close> and inhabitation judgments \<open>a : A\<close> using rules declared [intro] and [elim], as well as additional provided lemmas."
+
+method simple uses lems = (assumption|standard|rule lems)+
+
+
+text "Find a proof of any valid typing judgment derivable from a given wellformed judgment."
 
 method wellformed uses jdgmt = (
-  match jdgmt in
-    "?a : ?A" \<Rightarrow> \<open>
-      rule HoTT_Base.inhabited_implies_type[OF jdgmt] |
-      wellformed jdgmt: HoTT_Base.inhabited_implies_type[OF jdgmt]
-      \<close> \<bar>
-    "A : U" for A \<Rightarrow> \<open>
-      match (A) in
-        "\<Prod>x:?A. ?B x" \<Rightarrow> \<open>
-          print_term "\<Pi>",
-          (rule Prod.Prod_form_cond1[OF jdgmt] |
-          rule Prod.Prod_form_cond2[OF jdgmt] |
-          catch \<open>wellformed jdgmt: Prod.Prod_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
-          catch \<open>wellformed jdgmt: Prod.Prod_form_cond2[OF jdgmt]\<close> \<open>fail\<close>)
-          \<close> \<bar>
-        "\<Sum>x:?A. ?B x" \<Rightarrow> \<open>
-          rule Sum.Sum_form_cond1[OF jdgmt] |
-          rule Sum.Sum_form_cond2[OF jdgmt] |
-          catch \<open>wellformed jdgmt: Sum.Sum_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
-          catch \<open>wellformed jdgmt: Sum.Sum_form_cond2[OF jdgmt]\<close> \<open>fail\<close>
-          \<close> \<bar>
-        "?a =[?A] ?b" \<Rightarrow> \<open>
-          rule Equal.Equal_form_cond1[OF jdgmt] |
-          rule Equal.Equal_form_cond2[OF jdgmt] |
-          rule Equal.Equal_form_cond3[OF jdgmt] |
-          catch \<open>wellformed jdgmt: Equal.Equal_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
-          catch \<open>wellformed jdgmt: Equal.Equal_form_cond2[OF jdgmt]\<close> \<open>fail\<close> |
-          catch \<open>wellformed jdgmt: Equal.Equal_form_cond3[OF jdgmt]\<close> \<open>fail\<close>
-          \<close>
-      \<close> \<bar>
-    "PROP ?P \<Longrightarrow> PROP Q" for Q \<Rightarrow> \<open>
-      catch \<open>rule Prod.Prod_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
-      catch \<open>rule Prod.Prod_form_cond2[OF jdgmt]\<close> \<open>fail\<close> |
-      catch \<open>rule Sum.Sum_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
-      catch \<open>rule Sum.Sum_form_cond2[OF jdgmt]\<close> \<open>fail\<close> |
-      catch \<open>wellformed jdgmt: Prod.Prod_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
-      catch \<open>wellformed jdgmt: Prod.Prod_form_cond2[OF jdgmt]\<close> \<open>fail\<close> |
-      catch \<open>wellformed jdgmt: Sum.Sum_form_cond1[OF jdgmt]\<close> \<open>fail\<close> |
-      catch \<open>wellformed jdgmt: Sum.Sum_form_cond2[OF jdgmt]\<close> \<open>fail\<close>
-      \<close>
+  match wellform in rl: "PROP ?P" \<Rightarrow> \<open>(
+    catch \<open>rule rl[OF jdgmt]\<close> \<open>fail\<close> |
+    catch \<open>wellformed jdgmt: rl[OF jdgmt]\<close> \<open>fail\<close>
+    )\<close>
   )
 
-notepad  \<comment> \<open>Examples using \<open>wellformed\<close>\<close>
-begin
 
-assume 0: "f : \<Sum>x:A. B x"
-  have "\<Sum>x:A. B x : U" by (wellformed jdgmt: 0)
-  have "A : U" by (wellformed jdgmt: 0)
-  have "B: A \<rightarrow> U" by (wellformed jdgmt: 0)
+text "Combine \<open>simple\<close> and \<open>wellformed\<close> to search for derivations."
 
-assume 1: "f : \<Prod>x:A. \<Prod>y: B x. C x y"
-  have "A : U" by (wellformed jdgmt: 1)
-  have "B: A \<rightarrow> U" by (wellformed jdgmt: 1)
-  have "\<And>x. x : A \<Longrightarrow> C x: B x \<rightarrow> U" by (wellformed jdgmt: 1)
+method derive uses lems = (
+  catch \<open>unfold lems\<close> \<open>fail\<close> |
+  catch \<open>simple lems: lems\<close> \<open>fail\<close> |
+  match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed jdgmt: lem\<close>
+  )+
 
-assume 2: "g : \<Sum>x:A. \<Prod>y: B x. \<Sum>z: C x y. D x y z"
-  have a: "A : U" by (wellformed jdgmt: 2)
-  have b: "B: A \<rightarrow> U" by (wellformed jdgmt: 2)
-  have c: "\<And>x. x : A \<Longrightarrow> C x : B x \<rightarrow> U" by (wellformed jdgmt: 2)
-  have d: "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> D x y : C x y \<rightarrow> U" by (wellformed jdgmt: 2)
 
-end
+section \<open>Examples\<close>
+
+lemma
+  assumes "A : U" "B: A \<rightarrow> U" "\<And>x. x : A \<Longrightarrow> C x: B x \<rightarrow> U"
+  shows "\<Sum>x:A. \<Prod>y:B x. \<Sum>z:C x y. \<Prod>w:A. x =\<^sub>A w : U"
+by (simple lems: assms)
+
+lemma
+  assumes "f : \<Sum>x:A. \<Prod>y: B x. \<Sum>z: C x y. D x y z"
+  shows
+    "A : U" and
+    "B: A \<rightarrow> U" and
+    "\<And>x. x : A \<Longrightarrow> C x: B x \<rightarrow> U" and
+    "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> D x y: C x y \<rightarrow> U"
+proof -
+  show "A : U" by (wellformed jdgmt: assms)
+  show "B: A \<rightarrow> U" by (wellformed jdgmt: assms)
+  show "\<And>x. x : A \<Longrightarrow> C x: B x \<rightarrow> U" by (wellformed jdgmt: assms)
+  show "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> D x y: C x y \<rightarrow> U" by (wellformed jdgmt: assms)
+qed
+
+
+section \<open>Experimental methods\<close>
+
+text "Playing around with ML, following CTT/CTT.thy by Larry Paulson."
+
+lemmas forms = Prod_form Sum_form Equal_form
+lemmas intros = Prod_intro Sum_intro Equal_intro
+lemmas elims = Prod_elim Sum_elim Equal_elim
+lemmas elements = intros elims
+
+ML \<open>
+(* Try solving \<open>a : A\<close> by assumption provided \<open>a\<close> is rigid *)
+fun test_assume_tac ctxt = let
+    fun is_rigid (Const(@{const_name is_of_type},_) $ a $ _) = not(is_Var (head_of a))
+      | is_rigid (Const(@{const_name is_a_type},_) $ a $ _ $ _) = not(is_Var (head_of a))
+      | is_rigid _ = false
+  in
+    SUBGOAL (fn (prem, i) =>
+      if is_rigid (Logic.strip_assums_concl prem)
+      then assume_tac ctxt i else no_tac)
+  end
+
+fun ASSUME ctxt tf i = test_assume_tac ctxt i ORELSE tf i
+
+(* Solve all subgoals \<open>A : U\<close> using formation rules. *)
+val form_net = Tactic.build_net @{thms forms};
+fun form_tac ctxt =
+  REPEAT_FIRST (ASSUME ctxt (filt_resolve_from_net_tac ctxt 1 form_net));
+
+(* Try to prove inhabitation judgments \<open>a : A\<close> (\<open>a\<close> flexible, \<open>A\<close> rigid) by introduction rules. *)
+fun intro_tac ctxt thms =
+  let val tac =
+    filt_resolve_from_net_tac ctxt 1
+      (Tactic.build_net (thms @ @{thms forms} @ @{thms intros}))
+  in  REPEAT_FIRST (ASSUME ctxt tac)  end
+
+(*Type checking: solve \<open>a : A\<close> (\<open>a\<close> rigid, \<open>A\<close> flexible) by formation, introduction and elimination rules. *)
+fun typecheck_tac ctxt thms =
+  let val tac =
+    filt_resolve_from_net_tac ctxt 3
+      (Tactic.build_net (thms @ @{thms forms} @ @{thms elements}))
+  in  REPEAT_FIRST (ASSUME ctxt tac)  end
+\<close>
+
+method_setup form = \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (form_tac ctxt))\<close>
+method_setup intro = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (intro_tac ctxt ths))\<close>
+method_setup typecheck = \<open>Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD (typecheck_tac ctxt ths))\<close>
 
 
 end
