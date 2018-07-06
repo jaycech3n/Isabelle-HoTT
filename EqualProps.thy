@@ -66,27 +66,6 @@ lemma compose_comp:
   assumes "a : A"
   shows "compose[A,a,a,a]`refl(a)`refl(a) \<equiv> refl(a)"
 
-proof (unfold rcompose_def)
-  show "(\<^bold>\<lambda>p:a =[A] a.
-        lambda (a =[A] a)
-         (op `
-           ((\<^bold>\<lambda>x:A.
-                \<^bold>\<lambda>y:A.
-                   lambda (x =[A] y)
-                    (indEqual[A]
-                      (\<lambda>x y _. \<Prod>z:A. y =[A] z \<rightarrow> x =[A] z)
-                      (\<lambda>x. \<^bold>\<lambda>z:A.
- lambda (x =[A] z)
-  (indEqual[A] (\<lambda>x z _. x =[A] z) refl x z))
-                      x y)) `
-            a `
-            a `
-            p `
-            a))) `
-    refl(a) `
-    refl(a) \<equiv>
-    refl(a)"
-
 sorry \<comment> \<open>Long and tedious proof if the Simplifier is not set up.\<close>
 
 

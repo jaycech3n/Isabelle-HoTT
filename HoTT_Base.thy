@@ -12,9 +12,13 @@ begin
 
 section \<open>Setup\<close>
 
-text "Declare rules expressing necessary wellformedness conditions for type and inhabitation judgments, to be used by proof methods later (see HoTT_Methods.thy)."
+text "Named theorems to be used by proof methods later (see HoTT_Methods.thy).
+
+\<open>wellform\<close> declares necessary wellformedness conditions for type and inhabitation judgments, while
+\<open>comp\<close> declares computation rules used when simplifying function application."
 
 named_theorems wellform
+named_theorems comp
 
 
 section \<open>Metalogical definitions\<close>
@@ -32,8 +36,8 @@ text "We formalize the judgments \<open>a : A\<close> and \<open>A : U\<close> s
 For judgmental equality we use the existing Pure equality \<open>\<equiv>\<close> and hence do not need to define a separate judgment for it."
 
 consts
-  is_a_type :: "Term \<Rightarrow> prop"           ("(1_ :/ U)" [0] 1000)
-  is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_ :/ _)" [0, 0] 1000)
+  is_a_type :: "Term \<Rightarrow> prop"           ("(1_ : U)" [0] 1000)
+  is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_ : _)" [0, 0] 1000)
 
 text "The following fact is used to make explicit the assumption of well-formed contexts."
 

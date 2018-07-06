@@ -53,7 +53,9 @@ and
     \<rbrakk> \<Longrightarrow> indEqual[A] C f a a refl(a) \<equiv> f a"
 
 lemmas Equal_rules [intro] = Equal_form Equal_intro Equal_elim Equal_comp
+lemmas Equal_elims [dest] = Equal_elim
 lemmas Equal_form_conds [elim, wellform] = Equal_form_cond1 Equal_form_cond2 Equal_form_cond3
+lemmas Equal_comps [comp] = Equal_comp
 
 
 end
