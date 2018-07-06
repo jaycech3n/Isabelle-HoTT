@@ -20,7 +20,7 @@ section \<open>Syntax\<close>
 
 syntax
   "_PROD" :: "[idt, Term, Term] \<Rightarrow> Term"          ("(3\<Prod>_:_./ _)" 30)
-  "_LAMBDA" :: "[idt, Term, Term] \<Rightarrow> Term"        ("(3\<^bold>\<lambda>_:_./ _)" 30)
+  "_LAMBDA" :: "[idt, Term, Term] \<Rightarrow> Term"        ("(1\<^bold>\<lambda>_:_./ _)" 30)
   "_PROD_ASCII" :: "[idt, Term, Term] \<Rightarrow> Term"    ("(3PROD _:_./ _)" 30)
   "_LAMBDA_ASCII" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3%%_:_./ _)" 30)
 
@@ -59,7 +59,6 @@ This is what the additional formation rules \<open>Prod_form_cond1\<close> and \
 text "The type rules should be able to be used as introduction and elimination rules by the standard reasoner:"
 
 lemmas Prod_rules [intro] = Prod_form Prod_intro Prod_elim Prod_comp Prod_uniq
-lemmas Prod_elims [elim] = Prod_elim
 lemmas Prod_form_conds [elim, wellform] = Prod_form_cond1 Prod_form_cond2
 lemmas Prod_comps [comp] = Prod_comp Prod_uniq
 

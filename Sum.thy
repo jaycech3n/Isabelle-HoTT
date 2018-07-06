@@ -51,7 +51,6 @@ and
     \<rbrakk> \<Longrightarrow> indSum[A,B] C f (a,b) \<equiv> f a b"
 
 lemmas Sum_rules [intro] = Sum_form Sum_intro Sum_elim Sum_comp
-lemmas Sum_elims [dest] = Sum_elim  \<comment> \<open>Declaring positively-presented dependent elimination rule as [dest] instead of [elim] arguably makes more sense.\<close>
 lemmas Sum_form_conds [elim, wellform] = Sum_form_cond1 Sum_form_cond2
 lemmas Sum_comps [comp] = Sum_comp
 
