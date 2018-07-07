@@ -9,6 +9,7 @@ theory Prod
   imports HoTT_Base
 begin
 
+
 axiomatization
   Prod :: "[Term, Typefam] \<Rightarrow> Term" and
   lambda :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term" and

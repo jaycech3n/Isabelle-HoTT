@@ -9,6 +9,7 @@ theory Equal
   imports HoTT_Base
 begin
 
+
 axiomatization
   Equal :: "[Term, Term, Term] \<Rightarrow> Term" and
   refl :: "Term \<Rightarrow> Term"  ("(refl'(_'))" 1000) and

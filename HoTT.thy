@@ -5,7 +5,6 @@ Load all the component modules for the HoTT logic.
 *)
 
 theory HoTT
-
 imports
 
 (* Basic theories *)

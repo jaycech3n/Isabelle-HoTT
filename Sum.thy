@@ -9,6 +9,7 @@ theory Sum
   imports HoTT_Base
 begin
 
+
 axiomatization
   Sum :: "[Term, Typefam] \<Rightarrow> Term" and
   pair :: "[Term, Term] \<Rightarrow> Term"  ("(1'(_,/ _'))") and
@@ -54,7 +55,7 @@ lemmas Sum_rules [intro] = Sum_form Sum_intro Sum_elim Sum_comp
 lemmas Sum_form_conds [elim, wellform] = Sum_form_cond1 Sum_form_cond2
 lemmas Sum_comps [comp] = Sum_comp
 
-\<comment> \<open>Nondependent pair\<close>
+text "Nondependent pair."
 abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
   where "A \<times> B \<equiv> \<Sum>_:A. B"
 

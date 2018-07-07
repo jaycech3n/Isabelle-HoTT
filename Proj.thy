@@ -12,6 +12,7 @@ theory Proj
     Sum
 begin
 
+
 consts
   fst :: "[Term, 'a] \<Rightarrow> Term"  ("(1fst[/_,/ _])")
   snd :: "[Term, 'a] \<Rightarrow> Term"  ("(1snd[/_,/ _])")
@@ -49,13 +50,17 @@ text "Typing judgments and computation rules for the dependent and non-dependent
 lemma fst_dep_type:
   assumes "p : \<Sum>x:A. B x"
   shows "fst[A,B]`p : A"
-  by (derive lems: assms unfolds: fst_dep_def)
+  unfolding fst_dep_def
+  by (derive lems: assms)
 
 
 lemma fst_dep_comp:
   assumes "B: A \<rightarrow> U" and "a : A" and "b : B a"
   shows "fst[A,B]`(a,b) \<equiv> a"
+  unfolding fst_dep_def
+  by (simplify lems: assms)
 
+\<comment> \<open> (* Old proof *)
 proof -
   have "fst[A,B]`(a,b) \<equiv> indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) (a,b)"
     by (derive lems: assms unfolds: fst_dep_def)
@@ -65,8 +70,9 @@ proof -
   
   finally show "fst[A,B]`(a,b) \<equiv> a" .
 qed
+\<close>
 
-
+\<comment> \<open> (* Old lemma *)
 text "In proving results about the second dependent projection function we often use the following lemma."
 
 lemma lem:
@@ -77,12 +83,16 @@ proof -
   have "fst[A,B]`(x,y) \<equiv> x" using assms by (rule fst_dep_comp)
   then show "y : B (fst[A,B]`(x,y))" using assms by simp
 qed
+\<close>
 
 
 lemma snd_dep_type:
   assumes "p : \<Sum>x:A. B x"
   shows "snd[A,B]`p : B (fst[A,B]`p)"
+  unfolding fst_dep_def snd_dep_def
+  by (simplify lems: assms)
 
+\<comment> \<open> (* Old proof *)
 proof (derive lems: assms unfolds: snd_dep_def)
   show "fst[A, B] : (\<Sum>x:A. B x) \<rightarrow> A" by (derive lems: assms unfolds: fst_dep_def)
   
@@ -90,12 +100,16 @@ proof (derive lems: assms unfolds: snd_dep_def)
   have "B: A \<rightarrow> U" by (wellformed jdgmt: assms)
   then show "y : B (fst[A, B]`(x,y))" using asm by (rule lem)
 qed (assumption | rule assms)+
+\<close>
 
 
 lemma snd_dep_comp:
   assumes "B: A \<rightarrow> U" and "a : A" and "b : B a"
   shows "snd[A,B]`(a,b) \<equiv> b"
+  unfolding snd_dep_def fst_dep_def
+  by (simplify lems: assms)
 
+\<comment> \<open> (* Old proof *)
 proof -
   have "snd[A,B]`(a,b) \<equiv> indSum[A, B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) (a,b)"
   proof (derive lems: assms unfolds: snd_dep_def)
@@ -115,6 +129,7 @@ proof -
 
   finally show "snd[A,B]`(a,b) \<equiv> b" .
 qed
+\<close>
 
 
 text "For non-dependent projection functions:"
@@ -122,13 +137,17 @@ text "For non-dependent projection functions:"
 lemma fst_nondep_type:
   assumes "p : A \<times> B"
   shows "fst[A,B]`p : A"
-  by (derive lems: assms unfolds: fst_nondep_def)
+  unfolding fst_nondep_def 
+  by (derive lems: assms)
 
 
 lemma fst_nondep_comp:
   assumes "a : A" and "b : B"
   shows "fst[A,B]`(a,b) \<equiv> a"
+  unfolding fst_nondep_def
+  by (simplify lems: assms)
 
+\<comment> \<open> (* Old proof *)
 proof -
   have "fst[A,B]`(a,b) \<equiv> indSum[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x) (a,b)"
     by (derive lems: assms unfolds: fst_nondep_def)
@@ -138,12 +157,16 @@ proof -
 
   finally show "fst[A,B]`(a,b) \<equiv> a" .
 qed
+\<close>
 
 
 lemma snd_nondep_type:
   assumes "p : A \<times> B"
   shows "snd[A,B]`p : B"
+  unfolding snd_nondep_def
+  by (derive lems: assms)
 
+\<comment> \<open> (* Old proof *)
 proof
   show "snd[A,B] : A \<times> B \<rightarrow> B"
   proof (derive unfolds: snd_nondep_def)
@@ -151,11 +174,16 @@ proof
     show "indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) q : B" by (derive lems: asm)
   qed (wellformed jdgmt: assms)+
 qed (rule assms)
+\<close>
 
 
 lemma snd_nondep_comp:
   assumes "a : A" and "b : B"
   shows "snd[A,B]`(a,b) \<equiv> b"
+  unfolding snd_nondep_def
+  by (simplify lems: assms)
+
+\<comment> \<open> (* Old proof *)
 proof -
   have "snd[A,B]`(a,b) \<equiv> indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) (a,b)"
     by (derive lems: assms unfolds: snd_nondep_def)
@@ -165,6 +193,7 @@ proof -
 
   finally show "snd[A,B]`(a,b) \<equiv> b" .
 qed
+\<close>
 
 
 end
