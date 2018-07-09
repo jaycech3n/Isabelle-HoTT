@@ -10,7 +10,7 @@ theory HoTT_Base
 begin
 
 
-section \<open>Setup\<close>
+section \<open>Named theorems\<close>
 
 text "Named theorems to be used by proof methods later (see HoTT_Methods.thy).
 
@@ -21,12 +21,33 @@ named_theorems wellform
 named_theorems comp
 
 
-section \<open>Metalogical definitions\<close>
+section \<open>Foundational definitions\<close>
 
 text "A single meta-type \<open>Term\<close> suffices to implement the object-logic types and terms.
 We do not implement universes, and simply use \<open>a : U\<close> as a convenient shorthand to mean ``\<open>a\<close> is a type''."
 
 typedecl Term
+
+
+section \<open>Universes\<close>
+
+ML \<open>
+(* Produces universe terms and judgments on-the-fly *)
+fun Ui_type_oracle (x: int) = 
+  let
+    val f = Sign.declare_const @{context} ((Binding.name ("U" ^ Int.toString x), @{typ Term}), NoSyn);
+    val (trm, thy) = f @{theory};
+  in
+    Theory.setup (fn thy => #2 (f thy));
+    Thm.cterm_of (Proof_Context.init_global thy) (trm)
+  end
+\<close>
+
+(*
+Sign.add_consts: (binding * typ * mixfix) list -> theory -> theory
+Thm.cterm_of: Proof.context -> term -> cterm
+Thm.add_oracle: binding * (’a -> cterm) -> theory -> (string * (’a -> thm)) * theory
+*)
 
 
 section \<open>Judgments\<close>

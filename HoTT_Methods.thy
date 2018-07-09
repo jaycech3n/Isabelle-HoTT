@@ -13,11 +13,6 @@ theory HoTT_Methods
 begin
 
 
-text "The methods \<open>simple\<close>, \<open>wellformed\<close>, \<open>derive\<close>, and \<open>simplify\<close> should together should suffice to automatically prove most HoTT theorems.
-We also provide a method
-"
-
-
 section \<open>Setup\<close>
 
 text "Import the \<open>subst\<close> method, used by \<open>simplify\<close>."
@@ -67,9 +62,10 @@ method derive uses lems unfolds = (
 
 subsection \<open>Simplification\<close>
 
-text "The methods \<open>rsimplify\<close> and \<open>simplify\<close> simplify lambda applications and attempt to solve definitional equations.
+text "The methods \<open>rsimplify\<close> and \<open>simplify\<close> attempt to solve definitional equations by simplifying lambda applications.
 
-\<open>rsimplify\<close> can also be used to search for lambda expressions inhabiting given types.
+\<open>simplify\<close> is allowed to use the Pure Simplifier and is hence unsuitable for simplifying lambda expressions using only the type rules.
+In this case use \<open>rsimplify\<close> instead.
 
 Since these methods use \<open>derive\<close>, it is often (but not always) the case that theorems provable with \<open>derive\<close> are also provable with them.
 (Whether this is the case depends on whether the call to \<open>subst (0) comp\<close> fails.)"
