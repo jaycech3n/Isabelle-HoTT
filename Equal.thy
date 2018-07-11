@@ -29,26 +29,26 @@ translations
 section \<open>Type rules\<close>
 
 axiomatization where
-  Equal_form: "\<And>A a b. \<lbrakk>a : A; b : A\<rbrakk> \<Longrightarrow> a =\<^sub>A b : U"
+  Equal_form: "\<And>i A a b. \<lbrakk>A : U(i); a : A; b : A\<rbrakk> \<Longrightarrow> a =\<^sub>A b : U(i)"
 and
-  Equal_form_cond1: "\<And>A a b. a =\<^sub>A b : U \<Longrightarrow> A : U"
+  Equal_form_cond1: "\<And>i A a b. a =\<^sub>A b : U(i) \<Longrightarrow> A : U(i)"
 and
-  Equal_form_cond2: "\<And>A a b. a =\<^sub>A b : U \<Longrightarrow> a : A"
+  Equal_form_cond2: "\<And>i A a b. a =\<^sub>A b : U(i) \<Longrightarrow> a : A"
 and
-  Equal_form_cond3: "\<And>A a b. a =\<^sub>A b : U \<Longrightarrow> b : A"
+  Equal_form_cond3: "\<And>i A a b. a =\<^sub>A b : U(i) \<Longrightarrow> b : A"
 and
   Equal_intro: "\<And>A a. a : A \<Longrightarrow> refl(a) : a =\<^sub>A a"
 and
-  Equal_elim: "\<And>A C f a b p. \<lbrakk>
-    \<And>x y.\<lbrakk>x : A; y : A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<rightarrow> U;
+  Equal_elim: "\<And>i A C f a b p. \<lbrakk>
+    \<And>x y. \<lbrakk>x : A; y : A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<longrightarrow> U(i);
     \<And>x. x : A \<Longrightarrow> f x : C x x refl(x);
     a : A;
     b : A;
     p : a =\<^sub>A b
     \<rbrakk> \<Longrightarrow> indEqual[A] C f a b p : C a b p"
 and
-  Equal_comp: "\<And>A C f a. \<lbrakk>
-    \<And>x y.\<lbrakk>x : A; y : A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<rightarrow> U;
+  Equal_comp: "\<And>i A C f a. \<lbrakk>
+    \<And>x y. \<lbrakk>x : A; y : A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<longrightarrow> U(i);
     \<And>x. x : A \<Longrightarrow> f x : C x x refl(x);
     a : A
     \<rbrakk> \<Longrightarrow> indEqual[A] C f a a refl(a) \<equiv> f a"

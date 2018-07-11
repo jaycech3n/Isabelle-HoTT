@@ -19,14 +19,15 @@ definition inv :: "[Term, Term, Term] \<Rightarrow> Term"  ("(1inv[_,/ _,/ _])")
   where "inv[A,x,y] \<equiv> \<^bold>\<lambda>p:x =\<^sub>A y. indEqual[A] (\<lambda>x y _. y =\<^sub>A x) (\<lambda>x. refl(x)) x y p"
 
 
-lemma inv_type: assumes "x : A" and "y : A" shows "inv[A,x,y] : x =\<^sub>A y \<rightarrow> y =\<^sub>A x"
+lemma inv_type:
+  assumes "A : U(i)" and "x : A" and "y : A" shows "inv[A,x,y] : x =\<^sub>A y \<rightarrow> y =\<^sub>A x"
   unfolding inv_def
   by (derive lems: assms)
 
-corollary assumes "p : x =\<^sub>A y" shows "inv[A,x,y]`p : y =\<^sub>A x"
+corollary assumes "x =\<^sub>A y : U(i)" and "p : x =\<^sub>A y" shows "inv[A,x,y]`p : y =\<^sub>A x"
   by (derive lems: inv_type assms)
 
-lemma inv_comp: assumes "a : A" shows "inv[A,a,a]`refl(a) \<equiv> refl(a)"
+lemma inv_comp: assumes "A : U(i)" and "a : A" shows "inv[A,a,a]`refl(a) \<equiv> refl(a)"
   unfolding inv_def by (simplify lems: assms)
 
 
@@ -48,11 +49,13 @@ abbreviation compose :: "[Term, Term, Term, Term] \<Rightarrow> Term"  ("(1compo
 
 
 lemma compose_type:
-assumes "x : A" and "y : A" and "z : A" shows "compose[A,x,y,z] : x =\<^sub>A y \<rightarrow> y =\<^sub>A z \<rightarrow> x =\<^sub>A z"
+  assumes "A : U(i)" and "x : A" and "y : A" and "z : A"
+  shows "compose[A,x,y,z] : x =\<^sub>A y \<rightarrow> y =\<^sub>A z \<rightarrow> x =\<^sub>A z"
   unfolding rcompose_def
   by (derive lems: assms)
 
-lemma compose_comp: assumes "a : A" shows "compose[A,a,a,a]`refl(a)`refl(a) \<equiv> refl(a)"
+lemma compose_comp:
+  assumes "A : U(i)" and "a : A" shows "compose[A,a,a,a]`refl(a)`refl(a) \<equiv> refl(a)"
   unfolding rcompose_def
   by (simplify lems: assms)
 

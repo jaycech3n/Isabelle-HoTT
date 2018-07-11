@@ -37,13 +37,13 @@ translations
 section \<open>Type rules\<close>
 
 axiomatization where
-  Prod_form: "\<And>A B. \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Prod>x:A. B x : U"
+  Prod_form: "\<And>i A B. \<lbrakk>A : U(i); B: A \<longrightarrow> U(i)\<rbrakk> \<Longrightarrow> \<Prod>x:A. B x : U(i)"
 and
-  Prod_form_cond1: "\<And>A B. (\<Prod>x:A. B x : U) \<Longrightarrow> A : U"
+  Prod_form_cond1: "\<And>i A B. (\<Prod>x:A. B x : U(i)) \<Longrightarrow> A : U(i)"
 and
-  Prod_form_cond2: "\<And>A B. (\<Prod>x:A. B x : U) \<Longrightarrow> B: A \<rightarrow> U"
+  Prod_form_cond2: "\<And>i A B. (\<Prod>x:A. B x : U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
 and
-  Prod_intro: "\<And>A B b. \<lbrakk>A : U; \<And>x. x : A \<Longrightarrow> b x : B x\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x:A. b x : \<Prod>x:A. B x"
+  Prod_intro: "\<And>i A B b. (\<And>x. x : A \<Longrightarrow> b x : B x) \<Longrightarrow> \<^bold>\<lambda>x:A. b x : \<Prod>x:A. B x"
 and
   Prod_elim: "\<And>A B f a. \<lbrakk>f : \<Prod>x:A. B x; a : A\<rbrakk> \<Longrightarrow> f`a : B a"
 and

@@ -30,21 +30,12 @@ named_theorems comp
 
 section \<open>Judgments\<close>
 
-text "Formalize the basic judgments.
+text "Formalize the context and typing judgments  \<open>a : A\<close>.
 
-For judgmental equality we use the existing Pure equality \<open>\<equiv>\<close> and hence do not need to define a separate judgment for it.
-
-The judgment \<open>is_a_type A\<close> expresses the statement ``A is an inhabitant of some universe type'', i.e. ``A is a type''."
+For judgmental equality we use the existing Pure equality \<open>\<equiv>\<close> and hence do not need to define a separate judgment for it."
 
 consts
-  is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_ : _)" [0, 1000] 1000)
-  is_a_type :: "Term \<Rightarrow> prop"           ("(1_ : U)" [0] 1000)
-
-
-text "The following fact is used to make explicit the assumption of well-formed contexts."
-
-axiomatization where
-  inhabited_implies_type [intro, elim, wellform]: "\<And>a A. a : A \<Longrightarrow> A : U"
+  is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_ : _)" [0, 0] 1000)
 
 
 section \<open>Universes\<close>
@@ -62,31 +53,29 @@ where
 and
   Numeral_lt_trans: "\<And>m n. m <- n \<Longrightarrow> S m <- S n"
 
-\<comment> \<open>This lets \<open>standard\<close> prove ordering statements on Numerals.\<close>
-lemmas Numeral_lt_rules [intro] = Numeral_lt_min Numeral_lt_trans
+lemmas Numeral_rules [intro] = Numeral_lt_min Numeral_lt_trans
+  \<comment> \<open>Lets \<open>standard\<close> automatically solve inequalities.\<close>
 
 text "Universe types:"
 
 axiomatization
-  U :: "Numeral \<Rightarrow> Term"  ("U_")
+  U :: "Numeral \<Rightarrow> Term"  ("U _")
 where
   Universe_hierarchy: "\<And>i j. i <- j \<Longrightarrow> U(i) : U(j)"
 and
-  Universe_cumulative: "\<And>a i j. \<lbrakk>a : U(i); i <- j\<rbrakk> \<Longrightarrow> a : U(j)"
-
-lemmas Universe_rules [intro] = Universe_hierarchy Universe_cumulative
+  Universe_cumulative: "\<And>A i j. \<lbrakk>A : U(i); i <- j\<rbrakk> \<Longrightarrow> A : U(j)"
 
 
 section \<open>Type families\<close>
 
-text "A (one-variable) type family is a meta lambda term \<open>P :: Term \<Rightarrow> Term\<close> that further satisfies the following property."
+text "We define the following abbreviation constraining the output type of a meta lambda expression when given input of certain type."
+
+abbreviation (input) constrained :: "[Term \<Rightarrow> Term, Term, Term] \<Rightarrow> prop"  ("_: _ \<longrightarrow> _")
+  where "f: A \<longrightarrow> B \<equiv> (\<And>x. x : A \<Longrightarrow> f x : B)"
+
+text "The above is used to define type families, which are just constrained meta-lambdas \<open>P: A \<longrightarrow> B\<close> where \<open>A\<close> and \<open>B\<close> are elements of some universe type."
 
 type_synonym Typefam = "Term \<Rightarrow> Term"
-
-abbreviation (input) is_type_family :: "[Typefam, Term] \<Rightarrow> prop"  ("(3_:/ _ \<rightarrow> U)")
-  where "P: A \<rightarrow> U \<equiv> (\<And>x. x : A \<Longrightarrow> P x : U)"
-
-\<comment> \<open>There is an obvious generalization to multivariate type families, but implementing such an abbreviation would probably involve writing ML code, and is for the moment not really crucial.\<close>
 
 
 end

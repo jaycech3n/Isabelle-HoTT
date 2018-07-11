@@ -47,12 +47,14 @@ section \<open>Properties\<close>
 
 text "Typing judgments and computation rules for the dependent and non-dependent projection functions."
 
-lemma fst_dep_type: assumes "p : \<Sum>x:A. B x" shows "fst[A,B]`p : A"
+lemma fst_dep_type: assumes "\<Sum>x:A. B x : U(i)" and "p : \<Sum>x:A. B x" shows "fst[A,B]`p : A"
   unfolding fst_dep_def
   by (derive lems: assms)
 
 
-lemma fst_dep_comp: assumes "B: A \<rightarrow> U" and "a : A" and "b : B a" shows "fst[A,B]`(a,b) \<equiv> a"
+lemma fst_dep_comp:
+  assumes "A : U(i)" and "B: A \<longrightarrow> U(i)" and "a : A" and "b : B a"
+  shows "fst[A,B]`(a,b) \<equiv> a"
   unfolding fst_dep_def
   by (simplify lems: assms)
 
@@ -82,7 +84,9 @@ qed
 \<close>
 
 
-lemma snd_dep_type: assumes "p : \<Sum>x:A. B x" shows "snd[A,B]`p : B (fst[A,B]`p)"
+lemma snd_dep_type:
+  assumes "\<Sum>x:A. B x : U(i)" and "p : \<Sum>x:A. B x"
+  shows "snd[A,B]`p : B (fst[A,B]`p)"
   unfolding fst_dep_def snd_dep_def
   by (simplify lems: assms)
 
@@ -97,7 +101,9 @@ qed (assumption | rule assms)+
 \<close>
 
 
-lemma snd_dep_comp: assumes "B: A \<rightarrow> U" and "a : A" and "b : B a" shows "snd[A,B]`(a,b) \<equiv> b"
+lemma snd_dep_comp:
+  assumes "A : U(i)" and "B: A \<longrightarrow> U(i)" and "a : A" and "b : B a"
+  shows "snd[A,B]`(a,b) \<equiv> b"
   unfolding snd_dep_def fst_dep_def
   by (simplify lems: assms)
 
@@ -126,12 +132,14 @@ qed
 
 text "Nondependent projections:"
 
-lemma fst_nondep_type: assumes "p : A \<times> B" shows "fst[A,B]`p : A"
+lemma fst_nondep_type: assumes "A \<times> B : U(i)" and "p : A \<times> B" shows "fst[A,B]`p : A"
   unfolding fst_nondep_def 
   by (derive lems: assms)
 
 
-lemma fst_nondep_comp: assumes "a : A" and "b : B" shows "fst[A,B]`(a,b) \<equiv> a"
+lemma fst_nondep_comp:
+  assumes "A : U(i)" and "B : U(i)" and "a : A" and "b : B"
+  shows "fst[A,B]`(a,b) \<equiv> a"
   unfolding fst_nondep_def
   by (simplify lems: assms)
 
@@ -148,7 +156,7 @@ qed
 \<close>
 
 
-lemma snd_nondep_type: assumes "p : A \<times> B" shows "snd[A,B]`p : B"
+lemma snd_nondep_type: assumes "A \<times> B : U(i)" and "p : A \<times> B" shows "snd[A,B]`p : B"
   unfolding snd_nondep_def
   by (derive lems: assms)
 
@@ -163,7 +171,9 @@ qed (rule assms)
 \<close>
 
 
-lemma snd_nondep_comp: assumes "a : A" and "b : B" shows "snd[A,B]`(a,b) \<equiv> b"
+lemma snd_nondep_comp:
+  assumes "A : U(i)" and "B : U(i)" and "a : A" and "b : B"
+  shows "snd[A,B]`(a,b) \<equiv> b"
   unfolding snd_nondep_def
   by (simplify lems: assms)
 

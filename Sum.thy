@@ -30,22 +30,22 @@ translations
 section \<open>Type rules\<close>
 
 axiomatization where
-  Sum_form: "\<And>A B. \<lbrakk>A : U; B: A \<rightarrow> U\<rbrakk> \<Longrightarrow> \<Sum>x:A. B x : U"
+  Sum_form: "\<And>i A B. \<lbrakk>A : U(i); B: A \<longrightarrow> U(i)\<rbrakk> \<Longrightarrow> \<Sum>x:A. B x : U(i)"
 and
-  Sum_form_cond1: "\<And>A B. (\<Sum>x:A. B x : U) \<Longrightarrow> A : U"
+  Sum_form_cond1: "\<And>i A B. (\<Sum>x:A. B x : U(i)) \<Longrightarrow> A : U(i)"
 and
-  Sum_form_cond2: "\<And>A B. (\<Sum>x:A. B x : U) \<Longrightarrow> B: A \<rightarrow> U"
+  Sum_form_cond2: "\<And>i A B. (\<Sum>x:A. B x : U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
 and
-  Sum_intro: "\<And>A B a b. \<lbrakk>B: A \<rightarrow> U; a : A; b : B a\<rbrakk> \<Longrightarrow> (a,b) : \<Sum>x:A. B x"
+  Sum_intro: "\<And>i A B a b. \<lbrakk>B: A \<longrightarrow> U(i); a : A; b : B a\<rbrakk> \<Longrightarrow> (a,b) : \<Sum>x:A. B x"
 and
-  Sum_elim: "\<And>A B C f p. \<lbrakk>
-    C: \<Sum>x:A. B x \<rightarrow> U;
+  Sum_elim: "\<And>i A B C f p. \<lbrakk>
+    C: \<Sum>x:A. B x \<longrightarrow> U(i);
     \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
     p : \<Sum>x:A. B x
     \<rbrakk> \<Longrightarrow> indSum[A,B] C f p : C p"
 and
-  Sum_comp: "\<And>A B C f a b. \<lbrakk>
-    C: \<Sum>x:A. B x \<rightarrow> U;
+  Sum_comp: "\<And>i A B C f a b. \<lbrakk>
+    C: \<Sum>x:A. B x \<longrightarrow> U(i);
     \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
     a : A;
     b : B a
@@ -58,14 +58,6 @@ lemmas Sum_comps [comp] = Sum_comp
 text "Nondependent pair."
 abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
   where "A \<times> B \<equiv> \<Sum>_:A. B"
-
-text "The nondependent pair needs its own separate introduction rule."
-
-lemma Pair_intro [intro]: "\<And>A B a b. \<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (a,b) : A \<times> B"
-proof
-  fix b B assume "b : B"
-  then show "B : U" ..
-qed
 
 
 end
