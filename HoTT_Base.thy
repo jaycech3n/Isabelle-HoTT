@@ -2,12 +2,19 @@
     Author: Josh Chen
     Date:   Jun 2018
 
-Basic setup and definitions of a homotopy type theory object logic without universes.
+Basic setup and definitions of a homotopy type theory object logic.
 *)
 
 theory HoTT_Base
   imports Pure
 begin
+
+
+section \<open>Foundational definitions\<close>
+
+text "A single meta-type \<open>Term\<close> suffices to implement the object-logic types and terms."
+
+typedecl Term
 
 
 section \<open>Named theorems\<close>
@@ -21,49 +28,53 @@ named_theorems wellform
 named_theorems comp
 
 
-section \<open>Foundational definitions\<close>
-
-text "A single meta-type \<open>Term\<close> suffices to implement the object-logic types and terms.
-We do not implement universes, and simply use \<open>a : U\<close> as a convenient shorthand to mean ``\<open>a\<close> is a type''."
-
-typedecl Term
-
-
-section \<open>Universes\<close>
-
-ML \<open>
-(* Produces universe terms and judgments on-the-fly *)
-fun Ui_type_oracle (x: int) = 
-  let
-    val f = Sign.declare_const @{context} ((Binding.name ("U" ^ Int.toString x), @{typ Term}), NoSyn);
-    val (trm, thy) = f @{theory};
-  in
-    Theory.setup (fn thy => #2 (f thy));
-    Thm.cterm_of (Proof_Context.init_global thy) (trm)
-  end
-\<close>
-
-(*
-Sign.add_consts: (binding * typ * mixfix) list -> theory -> theory
-Thm.cterm_of: Proof.context -> term -> cterm
-Thm.add_oracle: binding * (’a -> cterm) -> theory -> (string * (’a -> thm)) * theory
-*)
-
-
 section \<open>Judgments\<close>
 
-text "We formalize the judgments \<open>a : A\<close> and \<open>A : U\<close> separately, in contrast to the HoTT book where the latter is considered an instance of the former.
+text "Formalize the basic judgments.
 
-For judgmental equality we use the existing Pure equality \<open>\<equiv>\<close> and hence do not need to define a separate judgment for it."
+For judgmental equality we use the existing Pure equality \<open>\<equiv>\<close> and hence do not need to define a separate judgment for it.
+
+The judgment \<open>is_a_type A\<close> expresses the statement ``A is an inhabitant of some universe type'', i.e. ``A is a type''."
 
 consts
+  is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_ : _)" [0, 1000] 1000)
   is_a_type :: "Term \<Rightarrow> prop"           ("(1_ : U)" [0] 1000)
-  is_of_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_ : _)" [0, 0] 1000)
+
 
 text "The following fact is used to make explicit the assumption of well-formed contexts."
 
 axiomatization where
   inhabited_implies_type [intro, elim, wellform]: "\<And>a A. a : A \<Longrightarrow> A : U"
+
+
+section \<open>Universes\<close>
+
+text "Strictly-ordered meta-level natural numbers to index the universes."
+
+typedecl Numeral
+
+axiomatization
+  O :: Numeral ("0") and
+  S :: "Numeral \<Rightarrow> Numeral" ("S_") and
+  lt :: "[Numeral, Numeral] \<Rightarrow> prop"  (infix "<-" 999)
+where
+  Numeral_lt_min: "\<And>n. 0 <- S n"
+and
+  Numeral_lt_trans: "\<And>m n. m <- n \<Longrightarrow> S m <- S n"
+
+\<comment> \<open>This lets \<open>standard\<close> prove ordering statements on Numerals.\<close>
+lemmas Numeral_lt_rules [intro] = Numeral_lt_min Numeral_lt_trans
+
+text "Universe types:"
+
+axiomatization
+  U :: "Numeral \<Rightarrow> Term"  ("U_")
+where
+  Universe_hierarchy: "\<And>i j. i <- j \<Longrightarrow> U(i) : U(j)"
+and
+  Universe_cumulative: "\<And>a i j. \<lbrakk>a : U(i); i <- j\<rbrakk> \<Longrightarrow> a : U(j)"
+
+lemmas Universe_rules [intro] = Universe_hierarchy Universe_cumulative
 
 
 section \<open>Type families\<close>
