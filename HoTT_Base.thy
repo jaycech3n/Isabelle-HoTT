@@ -54,7 +54,7 @@ and
   Numeral_lt_trans: "\<And>m n. m <- n \<Longrightarrow> S m <- S n"
 
 lemmas Numeral_rules [intro] = Numeral_lt_min Numeral_lt_trans
-  \<comment> \<open>Lets \<open>standard\<close> automatically solve inequalities.\<close>
+  \<comment> \<open>Enables \<open>standard\<close> to automatically solve inequalities.\<close>
 
 text "Universe types:"
 
@@ -64,6 +64,7 @@ where
   Universe_hierarchy: "\<And>i j. i <- j \<Longrightarrow> U(i) : U(j)"
 and
   Universe_cumulative: "\<And>A i j. \<lbrakk>A : U(i); i <- j\<rbrakk> \<Longrightarrow> A : U(j)"
+  \<comment> \<open>WARNING: \<open>rule Universe_cumulative\<close> can result in an infinite rewrite loop!\<close>
 
 
 section \<open>Type families\<close>

@@ -69,4 +69,23 @@ abbreviation Function :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<rightarro
   where "A \<rightarrow> B \<equiv> \<Prod>_:A. B"
 
 
+section \<open>Unit type\<close>
+
+axiomatization
+  Unit :: Term  ("\<one>") and
+  pt :: Term    ("\<star>") and
+  indUnit :: "[Typefam, Term, Term] \<Rightarrow> Term"
+where
+  Unit_form: "\<one> : U(0)"
+and
+  Unit_intro: "\<star> : \<one>"
+and
+  Unit_elim: "\<And>i C c a. \<lbrakk>C: \<one> \<longrightarrow> U(i); c : C \<star>; a : \<one>\<rbrakk> \<Longrightarrow> indUnit C c a : C a"
+and
+  Unit_comp: "\<And>i C c. \<lbrakk>C: \<one> \<longrightarrow> U(i); c : C \<star>\<rbrakk> \<Longrightarrow> indUnit C c \<star> \<equiv> c"
+
+lemmas Unit_rules [intro] = Unit_form Unit_intro Unit_elim Unit_comp
+lemmas Unit_comps [comp] = Unit_comp
+
+
 end

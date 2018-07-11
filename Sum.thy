@@ -60,4 +60,17 @@ abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
   where "A \<times> B \<equiv> \<Sum>_:A. B"
 
 
+section \<open>Null type\<close>
+
+axiomatization
+  Null :: Term  ("\<zero>") and
+  indNull :: "[Typefam, Term] \<Rightarrow> Term"
+where
+  Null_form: "\<zero> : U(0)"
+and
+  Null_elim: "\<And>i C z. \<lbrakk>C: \<zero> \<longrightarrow> U(i); z : \<zero>\<rbrakk> \<Longrightarrow> indNull C z : C z"
+
+lemmas Null_rules [intro] = Null_form Null_elim
+
+
 end

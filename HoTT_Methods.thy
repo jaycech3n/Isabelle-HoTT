@@ -49,14 +49,17 @@ method wellformed uses jdgmt declares wellform =
 
 subsection \<open>Derivation search\<close>
 
-text "Combine \<open>simple\<close> and \<open>wellformed\<close> to search for derivations of judgments.
+text "Combine \<open>simple\<close>, \<open>wellformed\<close> and the universe hierarchy rules to search for derivations of judgments.
 \<open>wellformed\<close> uses the facts passed as \<open>lems\<close> to derive any required typing judgments.
 Definitions passed as \<open>unfolds\<close> are unfolded throughout."
 
 method derive uses lems unfolds = (
   unfold unfolds |
   simple lems: lems |
-  match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed jdgmt: lem\<close>
+  match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed jdgmt: lem\<close> |
+  rule Universe_hierarchy |
+  (rule Universe_cumulative, simple lems: lems) |
+  (rule Universe_cumulative, match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed jdgmt: lem\<close>)
   )+
 
 
