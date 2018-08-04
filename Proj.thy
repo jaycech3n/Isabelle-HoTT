@@ -25,10 +25,10 @@ overloading
   fst_nondep \<equiv> fst
 begin
   definition fst_dep :: "[Term, Typefam] \<Rightarrow> Term" where
-    "fst_dep A B \<equiv> \<^bold>\<lambda>p: (\<Sum>x:A. B x). indSum[A,B] (\<lambda>_. A) (\<lambda>x y. x) p"
+    "fst_dep A B \<equiv> \<^bold>\<lambda>p: (\<Sum>x:A. B x). ind\<^sub>\<Sum>[A,B] (\<lambda>_. A) (\<lambda>x y. x) p"
   
   definition fst_nondep :: "[Term, Term] \<Rightarrow> Term" where
-    "fst_nondep A B \<equiv> \<^bold>\<lambda>p: A \<times> B. indSum[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x) p"
+    "fst_nondep A B \<equiv> \<^bold>\<lambda>p: A \<times> B. ind\<^sub>\<Sum>[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x) p"
 end
 
 overloading
@@ -36,10 +36,10 @@ overloading
   snd_nondep \<equiv> snd
 begin
   definition snd_dep :: "[Term, Typefam] \<Rightarrow> Term" where
-    "snd_dep A B \<equiv> \<^bold>\<lambda>p: (\<Sum>x:A. B x). indSum[A,B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) p"
+    "snd_dep A B \<equiv> \<^bold>\<lambda>p: (\<Sum>x:A. B x). ind\<^sub>\<Sum>[A,B] (\<lambda>q. B (fst[A,B]`q)) (\<lambda>x y. y) p"
   
   definition snd_nondep :: "[Term, Term] \<Rightarrow> Term" where
-    "snd_nondep A B \<equiv> \<^bold>\<lambda>p: A \<times> B. indSum[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) p"
+    "snd_nondep A B \<equiv> \<^bold>\<lambda>p: A \<times> B. ind\<^sub>\<Sum>[A, \<lambda>_. B] (\<lambda>_. B) (\<lambda>x y. y) p"
 end
 
 
@@ -48,15 +48,29 @@ section \<open>Properties\<close>
 text "Typing judgments and computation rules for the dependent and non-dependent projection functions."
 
 lemma fst_dep_type: assumes "\<Sum>x:A. B x : U(i)" and "p : \<Sum>x:A. B x" shows "fst[A,B]`p : A"
-  unfolding fst_dep_def
-  by (derive lems: assms)
+unfolding fst_dep_def
+proof
+  show "lambda (Sum A B) (ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x)) : (\<Sum>x:A. B x) \<rightarrow> A"
+  proof
+    show "Sum A B : U(i)" by (rule assms)
+    show "\<And>p. p : Sum A B \<Longrightarrow> ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x) p : A"
+    proof
+      show "A : U(i)" using assms(1) ..
+    qed
+  qed
+qed (rule assms)
 
 
 lemma fst_dep_comp:
   assumes "A : U(i)" and "B: A \<longrightarrow> U(i)" and "a : A" and "b : B a"
   shows "fst[A,B]`(a,b) \<equiv> a"
-  unfolding fst_dep_def
-  by (simplify lems: assms)
+unfolding fst_dep_def
+proof (subst comp)
+  show "\<And>x. x : Sum A B \<Longrightarrow> ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x) x : A" by (standard, rule assms(1), assumption+)
+  show "(a,b) : Sum A B" using assms(2-4) ..
+  show "ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x) (a, b) \<equiv> a"
+  proof
+    oops
 
 \<comment> \<open> (* Old proof *)
 proof -

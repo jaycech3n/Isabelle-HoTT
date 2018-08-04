@@ -10,13 +10,12 @@ theory Sum
 begin
 
 
+section \<open>Constants and syntax\<close>
+
 axiomatization
   Sum :: "[Term, Typefam] \<Rightarrow> Term" and
   pair :: "[Term, Term] \<Rightarrow> Term"  ("(1'(_,/ _'))") and
-  indSum :: "[Term, Typefam, Typefam, [Term, Term] \<Rightarrow> Term, Term] \<Rightarrow> Term"  ("(1indSum[_,/ _])")
-
-
-section \<open>Syntax\<close>
+  indSum :: "[Term, Typefam, Typefam, [Term, Term] \<Rightarrow> Term, Term] \<Rightarrow> Term"  ("(1ind\<^sub>\<Sum>[_,/ _])")
 
 syntax
   "_SUM" :: "[idt, Term, Term] \<Rightarrow> Term"        ("(3\<Sum>_:_./ _)" 20)
@@ -26,15 +25,16 @@ translations
   "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum A (\<lambda>x. B)"
   "SUM x:A. B" \<rightharpoonup> "CONST Sum A (\<lambda>x. B)"
 
+text "Nondependent pair."
+
+abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
+  where "A \<times> B \<equiv> \<Sum>_:A. B"
+
 
 section \<open>Type rules\<close>
 
 axiomatization where
   Sum_form: "\<And>i A B. \<lbrakk>A : U(i); B: A \<longrightarrow> U(i)\<rbrakk> \<Longrightarrow> \<Sum>x:A. B x : U(i)"
-and
-  Sum_form_cond1: "\<And>i A B. (\<Sum>x:A. B x : U(i)) \<Longrightarrow> A : U(i)"
-and
-  Sum_form_cond2: "\<And>i A B. (\<Sum>x:A. B x : U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
 and
   Sum_intro: "\<And>i A B a b. \<lbrakk>B: A \<longrightarrow> U(i); a : A; b : B a\<rbrakk> \<Longrightarrow> (a,b) : \<Sum>x:A. B x"
 and
@@ -42,33 +42,36 @@ and
     C: \<Sum>x:A. B x \<longrightarrow> U(i);
     \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
     p : \<Sum>x:A. B x
-    \<rbrakk> \<Longrightarrow> indSum[A,B] C f p : C p"
+    \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum>[A,B] C f p : C p"
 and
   Sum_comp: "\<And>i A B C f a b. \<lbrakk>
     C: \<Sum>x:A. B x \<longrightarrow> U(i);
     \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
     a : A;
     b : B a
-    \<rbrakk> \<Longrightarrow> indSum[A,B] C f (a,b) \<equiv> f a b"
+    \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum>[A,B] C f (a,b) \<equiv> f a b"
+
+text "Admissible inference rules for sum formation:"
+
+axiomatization where
+  Sum_form_cond1: "\<And>i A B. (\<Sum>x:A. B x : U(i)) \<Longrightarrow> A : U(i)"
+and
+  Sum_form_cond2: "\<And>i A B. (\<Sum>x:A. B x : U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
 
 lemmas Sum_rules [intro] = Sum_form Sum_intro Sum_elim Sum_comp
-lemmas Sum_form_conds [elim, wellform] = Sum_form_cond1 Sum_form_cond2
+lemmas Sum_form_conds [intro (*elim, wellform*)] = Sum_form_cond1 Sum_form_cond2
 lemmas Sum_comps [comp] = Sum_comp
-
-text "Nondependent pair."
-abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
-  where "A \<times> B \<equiv> \<Sum>_:A. B"
 
 
 section \<open>Null type\<close>
 
 axiomatization
   Null :: Term  ("\<zero>") and
-  indNull :: "[Typefam, Term] \<Rightarrow> Term"
+  indNull :: "[Typefam, Term] \<Rightarrow> Term"  ("(1ind\<^sub>\<zero>)")
 where
-  Null_form: "\<zero> : U(0)"
+  Null_form: "\<zero> : U(O)"
 and
-  Null_elim: "\<And>i C z. \<lbrakk>C: \<zero> \<longrightarrow> U(i); z : \<zero>\<rbrakk> \<Longrightarrow> indNull C z : C z"
+  Null_elim: "\<And>i C z. \<lbrakk>C: \<zero> \<longrightarrow> U(i); z : \<zero>\<rbrakk> \<Longrightarrow> ind\<^sub>\<zero> C z : C z"
 
 lemmas Null_rules [intro] = Null_form Null_elim
 
