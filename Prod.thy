@@ -78,15 +78,15 @@ section \<open>Unit type\<close>
 axiomatization
   Unit :: Term  ("\<one>") and
   pt :: Term    ("\<star>") and
-  indUnit :: "[Typefam, Term, Term] \<Rightarrow> Term"  ("(1ind\<^sub>\<one>)")
+  indUnit :: "[Term, Term] \<Rightarrow> Term"  ("(1ind\<^sub>\<one>)")
 where
-  Unit_form: "\<one> : U(O)"
+  Unit_form: "\<one>: U(O)"
 and
-  Unit_intro: "\<star> : \<one>"
+  Unit_intro: "\<star>: \<one>"
 and
-  Unit_elim: "\<And>i C c a. \<lbrakk>C: \<one> \<longrightarrow> U(i); c : C(\<star>); a : \<one>\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(C, c, a) : C(a)"
+  Unit_elim: "\<And>i C c a. \<lbrakk>C: \<one> \<longrightarrow> U(i); c: C(\<star>); a: \<one>\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(c, a) : C(a)"
 and
-  Unit_comp: "\<And>i C c. \<lbrakk>C: \<one> \<longrightarrow> U(i); c : C(\<star>)\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(C, c, \<star>) \<equiv> c"
+  Unit_comp: "\<And>i C c. \<lbrakk>C: \<one> \<longrightarrow> U(i); c: C(\<star>)\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(c, \<star>) \<equiv> c"
 
 lemmas Unit_rules [intro] = Unit_form Unit_intro Unit_elim Unit_comp
 lemmas Unit_comps [comp] = Unit_comp

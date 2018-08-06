@@ -15,15 +15,15 @@ section \<open>Constants and syntax\<close>
 axiomatization
   Sum :: "[Term, Typefam] \<Rightarrow> Term" and
   pair :: "[Term, Term] \<Rightarrow> Term"  ("(1'(_,/ _'))") and
-  indSum :: "[Term, Typefam, Typefam, [Term, Term] \<Rightarrow> Term, Term] \<Rightarrow> Term"  ("(1ind\<^sub>\<Sum>[_,/ _])")
+  indSum :: "[[Term, Term] \<Rightarrow> Term, Term] \<Rightarrow> Term"  ("(1ind\<^sub>\<Sum>)")
 
 syntax
   "_SUM" :: "[idt, Term, Term] \<Rightarrow> Term"        ("(3\<Sum>_:_./ _)" 20)
   "_SUM_ASCII" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3SUM _:_./ _)" 20)
 
 translations
-  "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum A (\<lambda>x. B)"
-  "SUM x:A. B" \<rightharpoonup> "CONST Sum A (\<lambda>x. B)"
+  "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum(A, \<lambda>x. B)"
+  "SUM x:A. B" \<rightharpoonup> "CONST Sum(A, \<lambda>x. B)"
 
 text "Nondependent pair."
 
@@ -34,15 +34,15 @@ abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
 section \<open>Type rules\<close>
 
 axiomatization where
-  Sum_form: "\<And>i A B. \<lbrakk>A : U(i); B: A \<longrightarrow> U(i)\<rbrakk> \<Longrightarrow> \<Sum>x:A. B x : U(i)"
+  Sum_form: "\<And>i A B. \<lbrakk>A: U(i); B: A \<longrightarrow> U(i)\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x): U(i)"
 and
-  Sum_intro: "\<And>i A B a b. \<lbrakk>A : U(i); B: A \<longrightarrow> U(i); a : A; b : B a\<rbrakk> \<Longrightarrow> (a,b) : \<Sum>x:A. B x"
+  Sum_intro: "\<And>i A B a b. \<lbrakk>A: U(i); B: A \<longrightarrow> U(i); a: A; b: B(a)\<rbrakk> \<Longrightarrow> (a,b) : \<Sum>x:A. B(x)"
 and
   Sum_elim: "\<And>i A B C f p. \<lbrakk>
-    C: \<Sum>x:A. B x \<longrightarrow> U(i);
-    \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
-    p : \<Sum>x:A. B x
-    \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum>[A,B] C f p : C p"
+    C: \<Sum>x:A. B(x) \<longrightarrow> U(i);
+    \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f(x, y) : C((x,y));
+    p : \<Sum>x:A. B(x)
+    \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum>(f, p) : C(p)"  (* What does writing \<lambda>x y. f(x, y) change? *)
 and
   Sum_comp: "\<And>i A B C f a b. \<lbrakk>
     A : U(i);
