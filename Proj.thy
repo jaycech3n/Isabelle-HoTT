@@ -52,6 +52,7 @@ unfolding fst_dep_def
 proof
   show "lambda (Sum A B) (ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x)) : (\<Sum>x:A. B x) \<rightarrow> A"
   proof
+    show "A : U(i)" using assms(1) ..
     show "Sum A B : U(i)" by (rule assms)
     show "\<And>p. p : Sum A B \<Longrightarrow> ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x) p : A"
     proof
@@ -66,11 +67,11 @@ lemma fst_dep_comp:
   shows "fst[A,B]`(a,b) \<equiv> a"
 unfolding fst_dep_def
 proof (subst comp)
+  show "Sum A B : U(i)" using assms(1-2) ..
   show "\<And>x. x : Sum A B \<Longrightarrow> ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x) x : A" by (standard, rule assms(1), assumption+)
-  show "(a,b) : Sum A B" using assms(2-4) ..
-  show "ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x) (a, b) \<equiv> a"
-  proof
-    oops
+  show "(a,b) : Sum A B" using assms ..
+  show "ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x) (a, b) \<equiv> a" by (standard, (rule assms|assumption)+)
+qed (rule assms)
 
 \<comment> \<open> (* Old proof *)
 proof -
@@ -101,8 +102,23 @@ qed
 lemma snd_dep_type:
   assumes "\<Sum>x:A. B x : U(i)" and "p : \<Sum>x:A. B x"
   shows "snd[A,B]`p : B (fst[A,B]`p)"
-  unfolding fst_dep_def snd_dep_def
-  by (simplify lems: assms)
+unfolding fst_dep_def snd_dep_def
+proof (subst (3) comp)
+  show "Sum A B : U(i)" by (rule assms)
+  show "\<And>x. x : Sum A B \<Longrightarrow> ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x) x : A"
+  proof
+    show "A : U(i)" using assms(1) ..
+  qed
+  show "A : U(i)" using assms(1) ..
+  show "p : Sum A B" by (rule assms(2))
+  show "lambda
+          (Sum A B)
+          (ind\<^sub>\<Sum>[A, B] (\<lambda>q. B (lambda (Sum A B) (ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x))`q)) (\<lambda>x y. y))
+        ` p : B (ind\<^sub>\<Sum>[A, B] (\<lambda>_. A) (\<lambda>x y. x) p)"
+  proof (subst (2) comp)
+    show "Sum A B : U(i)" by (rule assms)
+    show "
+  
 
 \<comment> \<open> (* Old proof *)
 proof (derive lems: assms unfolds: snd_dep_def)

@@ -36,7 +36,7 @@ section \<open>Type rules\<close>
 axiomatization where
   Sum_form: "\<And>i A B. \<lbrakk>A : U(i); B: A \<longrightarrow> U(i)\<rbrakk> \<Longrightarrow> \<Sum>x:A. B x : U(i)"
 and
-  Sum_intro: "\<And>i A B a b. \<lbrakk>B: A \<longrightarrow> U(i); a : A; b : B a\<rbrakk> \<Longrightarrow> (a,b) : \<Sum>x:A. B x"
+  Sum_intro: "\<And>i A B a b. \<lbrakk>A : U(i); B: A \<longrightarrow> U(i); a : A; b : B a\<rbrakk> \<Longrightarrow> (a,b) : \<Sum>x:A. B x"
 and
   Sum_elim: "\<And>i A B C f p. \<lbrakk>
     C: \<Sum>x:A. B x \<longrightarrow> U(i);
@@ -45,6 +45,8 @@ and
     \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum>[A,B] C f p : C p"
 and
   Sum_comp: "\<And>i A B C f a b. \<lbrakk>
+    A : U(i);
+    B: A \<longrightarrow> U(i);
     C: \<Sum>x:A. B x \<longrightarrow> U(i);
     \<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> f x y : C (x,y);
     a : A;
@@ -63,17 +65,17 @@ lemmas Sum_form_conds [intro (*elim, wellform*)] = Sum_form_cond1 Sum_form_cond2
 lemmas Sum_comps [comp] = Sum_comp
 
 
-section \<open>Null type\<close>
+section \<open>Empty type\<close>
 
 axiomatization
-  Null :: Term  ("\<zero>") and
-  indNull :: "[Typefam, Term] \<Rightarrow> Term"  ("(1ind\<^sub>\<zero>)")
+  Empty :: Term  ("\<zero>") and
+  indEmpty :: "[Typefam, Term] \<Rightarrow> Term"  ("(1ind\<^sub>\<zero>)")
 where
-  Null_form: "\<zero> : U(O)"
+  Empty_form: "\<zero> : U(O)"
 and
-  Null_elim: "\<And>i C z. \<lbrakk>C: \<zero> \<longrightarrow> U(i); z : \<zero>\<rbrakk> \<Longrightarrow> ind\<^sub>\<zero> C z : C z"
+  Empty_elim: "\<And>i C z. \<lbrakk>C: \<zero> \<longrightarrow> U(i); z : \<zero>\<rbrakk> \<Longrightarrow> ind\<^sub>\<zero> C z : C z"
 
-lemmas Null_rules [intro] = Null_form Null_elim
+lemmas Empty_rules [intro] = Empty_form Empty_elim
 
 
 end

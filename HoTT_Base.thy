@@ -9,6 +9,10 @@ theory HoTT_Base
   imports Pure
 begin
 
+text "Use the syntax \<open>f(x)\<close> instead of \<open>f x\<close> for function application."
+
+setup Pure_Thy.old_appl_syntax_setup
+
 
 section \<open>Foundational definitions\<close>
 
@@ -20,12 +24,12 @@ typedecl Term
 section \<open>Judgments\<close>
 
 text "
-  Formalize the typing judgment \<open>a : A\<close>.
+  Formalize the typing judgment \<open>a: A\<close>.
   For judgmental/definitional equality we use the existing Pure equality \<open>\<equiv>\<close> and hence do not need to define a separate judgment for it.
 "
 
 consts
-  has_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_ : _)" [0, 0] 1000)
+  has_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_: _)" [0, 0] 1000)
 
 
 section \<open>Universe hierarchy\<close>
@@ -39,11 +43,11 @@ axiomatization
   S :: "Ord \<Rightarrow> Ord"  ("S_" [0] 1000) and
   lt :: "[Ord, Ord] \<Rightarrow> prop"  (infix "<-" 999)
 where
-  Ord_lt_min: "\<And>n. O <- S n"
+  Ord_min: "\<And>n. O <- S(n)"
 and
-  Ord_lt_trans: "\<And>m n. m <- n \<Longrightarrow> S m <- S n"
+  Ord_monotone: "\<And>m n. m <- n \<Longrightarrow> S(m) <- S(n)"
 
-lemmas Ord_rules [intro] = Ord_lt_min Ord_lt_trans
+lemmas Ord_rules [intro] = Ord_min Ord_monotone
   \<comment> \<open>Enables \<open>standard\<close> to automatically solve inequalities.\<close>
 
 text "Define the universe types."
@@ -51,11 +55,10 @@ text "Define the universe types."
 axiomatization
   U :: "Ord \<Rightarrow> Term"
 where
-  U_hierarchy: "\<And>i j. i <- j \<Longrightarrow> U(i) : U(j)"
+  U_hierarchy: "\<And>i j. i <- j \<Longrightarrow> U(i): U(j)"
 and
-  U_cumulative: "\<And>A i j. \<lbrakk>A : U(i); i <- j\<rbrakk> \<Longrightarrow> A : U(j)"
+  U_cumulative: "\<And>A i j. \<lbrakk>A: U(i); i <- j\<rbrakk> \<Longrightarrow> A: U(j)"
     \<comment> \<open>WARNING: \<open>rule Universe_cumulative\<close> can result in an infinite rewrite loop!\<close>
-
 
 section \<open>Type families\<close>
 
@@ -64,7 +67,7 @@ text "
 "
 
 abbreviation (input) constrained :: "[Term \<Rightarrow> Term, Term, Term] \<Rightarrow> prop"  ("(1_: _ \<longrightarrow> _)")
-  where "f: A \<longrightarrow> B \<equiv> (\<And>x. x : A \<Longrightarrow> f x : B)"
+  where "f: A \<longrightarrow> B \<equiv> (\<And>x. x : A \<Longrightarrow> f(x): B)"
 
 text "
   The above is used to define type families, which are constrained meta-lambdas \<open>P: A \<longrightarrow> B\<close> where \<open>A\<close> and \<open>B\<close> are small types.

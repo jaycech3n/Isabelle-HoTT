@@ -12,9 +12,11 @@ HoTT_Base
 HoTT_Methods
 
 (* Types *)
-Equal
 Prod
 Sum
+Equal
+Coprod
+Nat
 
 (* Additional properties *)
 EqualProps
