@@ -3,9 +3,9 @@ theory scratch
 
 begin
 
-abbreviation pred where "pred \<equiv> \<^bold>\<lambda>n:\<nat>. (ind\<^sub>\<nat> (\<lambda>n. \<nat>) (\<lambda>n c. n) 0 n)"
+abbreviation pred where "pred \<equiv> \<^bold>\<lambda>n:\<nat>. ind\<^sub>\<nat>(\<lambda>n c. n, 0, n)"
 
-schematic_goal "?a : (pred`0) =\<^sub>\<nat> 0"
+schematic_goal "?a: (pred`0) =\<^sub>\<nat> 0"
 apply (subst comp)
 apply (rule Nat_form)
 prefer 4 apply (subst comp)

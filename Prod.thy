@@ -27,10 +27,10 @@ syntax
 text "The translations below bind the variable \<open>x\<close> in the expressions \<open>B\<close> and \<open>b\<close>."
 
 translations
-  "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod(A, \<lambda>x. B)"
-  "\<^bold>\<lambda>x:A. b" \<rightleftharpoons> "CONST lambda(A, \<lambda>x. b)"
-  "PROD x:A. B" \<rightharpoonup> "CONST Prod(A, \<lambda>x. B)"
-  "%%x:A. b" \<rightharpoonup> "CONST lambda(A, \<lambda>x. b)"
+  "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod A (\<lambda>x. B)"
+  "\<^bold>\<lambda>x:A. b" \<rightleftharpoons> "CONST lambda A (\<lambda>x. b)"
+  "PROD x:A. B" \<rightharpoonup> "CONST Prod A (\<lambda>x. B)"
+  "%%x:A. b" \<rightharpoonup> "CONST lambda A (\<lambda>x. b)"
 
 text "Nondependent functions are a special case."
 
@@ -84,9 +84,9 @@ where
 and
   Unit_intro: "\<star>: \<one>"
 and
-  Unit_elim: "\<And>i C c a. \<lbrakk>C: \<one> \<longrightarrow> U(i); c: C(\<star>); a: \<one>\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(c, a) : C(a)"
+  Unit_elim: "\<And>i C c a. \<lbrakk>C: \<one> \<longrightarrow> U(i); c: C(\<star>); a: \<one>\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(c)(a) : C(a)"
 and
-  Unit_comp: "\<And>i C c. \<lbrakk>C: \<one> \<longrightarrow> U(i); c: C(\<star>)\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(c, \<star>) \<equiv> c"
+  Unit_comp: "\<And>i C c. \<lbrakk>C: \<one> \<longrightarrow> U(i); c: C(\<star>)\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(c)(\<star>) \<equiv> c"
 
 lemmas Unit_rules [intro] = Unit_form Unit_intro Unit_elim Unit_comp
 lemmas Unit_comps [comp] = Unit_comp

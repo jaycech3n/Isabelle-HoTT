@@ -9,10 +9,6 @@ theory HoTT_Base
   imports Pure
 begin
 
-text "Use the syntax \<open>f(x)\<close> instead of \<open>f x\<close> for function application."
-
-setup Pure_Thy.old_appl_syntax_setup
-
 
 section \<open>Foundational definitions\<close>
 
