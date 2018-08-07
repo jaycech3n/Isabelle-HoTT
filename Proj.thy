@@ -13,9 +13,8 @@ theory Proj
 begin
 
 
-consts
-  fst :: "[Term, 'a] \<Rightarrow> Term"  ("(1fst[/_,/ _])")
-  snd :: "[Term, 'a] \<Rightarrow> Term"  ("(1snd[/_,/ _])")
+abbreviation fst :: Term where "fst \<equiv> \<^bold>\<lambda>p:\<Sum>x:?A. ?B(x). ind\<^sub>\<Sum>(\<lambda>x y. x)(p)"
+abbreviation snd :: "Term \<Rightarrow> Term" where ""snd \<equiv> \<^bold>\<lambda>p: \<Sum>x:A. B(x). ind\<^sub>\<Sum>(\<lambda>x y. y) p"
 
 
 section \<open>Overloaded syntax for dependent and nondependent pairs\<close>
@@ -25,7 +24,7 @@ overloading
   fst_nondep \<equiv> fst
 begin
   definition fst_dep :: "[Term, Typefam] \<Rightarrow> Term" where
-    "fst_dep A B \<equiv> \<^bold>\<lambda>p: (\<Sum>x:A. B x). ind\<^sub>\<Sum>[A,B] (\<lambda>_. A) (\<lambda>x y. x) p"
+    "fst_dep A B \<equiv> \<^bold>\<lambda>p:\<Sum>x:A. B(x). ind\<^sub>\<Sum>(\<lambda>x y. x)(p)"
   
   definition fst_nondep :: "[Term, Term] \<Rightarrow> Term" where
     "fst_nondep A B \<equiv> \<^bold>\<lambda>p: A \<times> B. ind\<^sub>\<Sum>[A, \<lambda>_. B] (\<lambda>_. A) (\<lambda>x y. x) p"

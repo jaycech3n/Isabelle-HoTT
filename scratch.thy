@@ -3,6 +3,12 @@ theory scratch
 
 begin
 
+lemma
+  assumes "\<Sum>x:A. B(x): U(i)" "(a,b): \<Sum>x:A. B(x)"
+  shows "a : A"
+proof (rule Sum_form_conds)
+  
+
 abbreviation pred where "pred \<equiv> \<^bold>\<lambda>n:\<nat>. ind\<^sub>\<nat>(\<lambda>n c. n, 0, n)"
 
 schematic_goal "?a: (pred`0) =\<^sub>\<nat> 0"
