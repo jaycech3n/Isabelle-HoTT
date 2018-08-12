@@ -57,9 +57,9 @@ method derive uses lems unfolds = (
   unfold unfolds |
   simple lems: lems |
   match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed jdgmt: lem\<close> |
-  rule U_hierarchy |
+  rule U_hierarchy (*|
   (rule U_cumulative, simple lems: lems) |
-  (rule U_cumulative, match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed jdgmt: lem\<close>)
+  (rule U_cumulative, match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed jdgmt: lem\<close>)*)
   )+
 
 

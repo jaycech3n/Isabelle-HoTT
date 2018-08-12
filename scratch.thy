@@ -3,6 +3,12 @@ theory scratch
 
 begin
 
+
+lemma "U(O): U(O)"
+proof (rule inhabited_implies_type)
+  show "\<nat>: U(O)" ..
+qed
+
 lemma
   assumes "\<Sum>x:A. B(x): U(i)" "(a,b): \<Sum>x:A. B(x)"
   shows "a : A"

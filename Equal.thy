@@ -28,11 +28,11 @@ translations
 section \<open>Type rules\<close>
 
 axiomatization where
-  Equal_form: "\<And>i A a b. \<lbrakk>A: U(i); a: A; b: A\<rbrakk> \<Longrightarrow> a =\<^sub>A b : U(i)"
+  Equal_form: "\<lbrakk>A: U(i); a: A; b: A\<rbrakk> \<Longrightarrow> a =\<^sub>A b : U(i)"
 and
-  Equal_intro: "\<And>A a. a : A \<Longrightarrow> refl(a): a =\<^sub>A a"
+  Equal_intro: "a : A \<Longrightarrow> refl(a): a =\<^sub>A a"
 and
-  Equal_elim: "\<And>i A C f a b p. \<lbrakk>
+  Equal_elim: "\<lbrakk>
     \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<longrightarrow> U(i);
     \<And>x. x: A \<Longrightarrow> f(x) : C(x)(x)(refl x);
     a: A;
@@ -40,23 +40,23 @@ and
     p: a =\<^sub>A b
     \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(a)(b)(p) : C(a)(b)(p)"
 and
-  Equal_comp: "\<And>i A C f a. \<lbrakk>
+  Equal_comp: "\<lbrakk>
     \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<longrightarrow> U(i);
     \<And>x. x: A \<Longrightarrow> f(x) : C(x)(x)(refl x);
     a: A
     \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(a)(a)(refl(a)) \<equiv> f(a)"
 
 text "Admissible inference rules for equality type formation:"
-
+(*
 axiomatization where
-  Equal_form_cond1: "\<And>i A a b. a =\<^sub>A b: U(i) \<Longrightarrow> A: U(i)"
+  Equal_form_cond1: "a =\<^sub>A b: U(i) \<Longrightarrow> A: U(i)"
 and
-  Equal_form_cond2: "\<And>i A a b. a =\<^sub>A b: U(i) \<Longrightarrow> a: A"
+  Equal_form_cond2: "a =\<^sub>A b: U(i) \<Longrightarrow> a: A"
 and
-  Equal_form_cond3: "\<And>i A a b. a =\<^sub>A b: U(i) \<Longrightarrow> b: A"
-
+  Equal_form_cond3: "a =\<^sub>A b: U(i) \<Longrightarrow> b: A"
+*)
 lemmas Equal_rules [intro] = Equal_form Equal_intro Equal_elim Equal_comp
-lemmas Equal_form_conds [intro] = Equal_form_cond1 Equal_form_cond2 Equal_form_cond3
+(*lemmas Equal_form_conds [intro] = Equal_form_cond1 Equal_form_cond2 Equal_form_cond3*)
 lemmas Equal_comps [comp] = Equal_comp
 
 

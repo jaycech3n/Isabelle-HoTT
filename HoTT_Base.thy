@@ -56,6 +56,7 @@ and
   U_cumulative: "\<And>A i j. \<lbrakk>A: U(i); i <- j\<rbrakk> \<Longrightarrow> A: U(j)"
     \<comment> \<open>WARNING: \<open>rule Universe_cumulative\<close> can result in an infinite rewrite loop!\<close>
 
+
 section \<open>Type families\<close>
 
 text "

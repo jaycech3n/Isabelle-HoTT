@@ -15,20 +15,25 @@ begin
 
 section \<open>Symmetry / Path inverse\<close>
 
-definition inv :: "[Term, Term, Term] \<Rightarrow> Term"  ("(1inv[_,/ _,/ _])")
-  where "inv[A,x,y] \<equiv> \<^bold>\<lambda>p:x =\<^sub>A y. indEqual[A] (\<lambda>x y _. y =\<^sub>A x) (\<lambda>x. refl(x)) x y p"
+definition inv :: "[Term, Term] \<Rightarrow> (Term \<Rightarrow> Term)"  ("(1inv[_,/ _])")
+  where "inv[x,y] \<equiv> \<lambda>p. ind\<^sub>= (\<lambda>x. refl(x)) x y p"
 
 
 lemma inv_type:
-  assumes "A : U(i)" and "x : A" and "y : A" shows "inv[A,x,y] : x =\<^sub>A y \<rightarrow> y =\<^sub>A x"
-  unfolding inv_def
-  by (derive lems: assms)
+  assumes "A : U(i)" and "x : A" and "y : A" and "p: x =\<^sub>A y" shows "inv[x,y](p): y =\<^sub>A x"
+unfolding inv_def
+proof
+  show "\<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> y =\<^sub>A x: U(i)" using assms(1) ..
+  show "\<And>x. x: A \<Longrightarrow> refl x: x =\<^sub>A x" ..
+qed (fact assms)+
 
-corollary assumes "x =\<^sub>A y : U(i)" and "p : x =\<^sub>A y" shows "inv[A,x,y]`p : y =\<^sub>A x"
-  by (derive lems: inv_type assms)
 
-lemma inv_comp: assumes "A : U(i)" and "a : A" shows "inv[A,a,a]`refl(a) \<equiv> refl(a)"
-  unfolding inv_def by (simplify lems: assms)
+lemma inv_comp: assumes "A : U(i)" and "a : A" shows "inv[a,a](refl(a)) \<equiv> refl(a)"
+unfolding inv_def
+proof
+  show "\<And>x. x: A \<Longrightarrow> refl x: x =\<^sub>A x" ..
+  show "\<And>x. x: A \<Longrightarrow> x =\<^sub>A x: U(i)" using assms(1) ..
+qed (fact assms)
 
 
 section \<open>Transitivity / Path composition\<close>
@@ -42,10 +47,8 @@ definition rcompose :: "Term \<Rightarrow> Term"  ("(1rcompose[_])")
     x y p"
 
 
-text "``Natural'' composition function, of type \<open>\<Prod>x,y,z:A. x =\<^sub>A y \<rightarrow> y =\<^sub>A z \<rightarrow> x =\<^sub>A z\<close>."
-
-abbreviation compose :: "[Term, Term, Term, Term] \<Rightarrow> Term"  ("(1compose[_,/ _,/ _,/ _])")
-  where "compose[A,x,y,z] \<equiv> \<^bold>\<lambda>p:(x =\<^sub>A y). \<^bold>\<lambda>q:(y =\<^sub>A z). rcompose[A]`x`y`p`z`q"
+definition compose :: "[Term, Term, Term] \<Rightarrow> [Term, Term] \<Rightarrow> Term"  ("(1compose[ _,/ _,/ _])")
+  where "compose[x,y,z] \<equiv> \<lambda>p."
 
 
 lemma compose_type:
