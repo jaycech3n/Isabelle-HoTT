@@ -15,7 +15,7 @@ section \<open>Constants and syntax\<close>
 axiomatization
   Equal :: "[Term, Term, Term] \<Rightarrow> Term" and
   refl :: "Term \<Rightarrow> Term" and
-  indEqual :: "[Term \<Rightarrow> Term, Term, Term, Term] \<Rightarrow> Term"  ("(1ind\<^sub>=)")
+  indEqual :: "[Term \<Rightarrow> Term, Term] \<Rightarrow> Term"  ("(1ind\<^sub>=)")
 
 syntax
   "_EQUAL" :: "[Term, Term, Term] \<Rightarrow> Term"        ("(3_ =\<^sub>_/ _)" [101, 0, 101] 100)
@@ -35,16 +35,16 @@ and
   Equal_elim: "\<lbrakk>
     \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<longrightarrow> U(i);
     \<And>x. x: A \<Longrightarrow> f(x) : C(x)(x)(refl x);
-    a: A;
-    b: A;
+    x: A;
+    y: A;
     p: a =\<^sub>A b
-    \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(a)(b)(p) : C(a)(b)(p)"
+    \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(p) : C(x)(y)(p)"
 and
   Equal_comp: "\<lbrakk>
     \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<longrightarrow> U(i);
     \<And>x. x: A \<Longrightarrow> f(x) : C(x)(x)(refl x);
     a: A
-    \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(a)(a)(refl(a)) \<equiv> f(a)"
+    \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(refl(a)) \<equiv> f(a)"
 
 text "Admissible inference rules for equality type formation:"
 (*
@@ -56,7 +56,7 @@ and
   Equal_form_cond3: "a =\<^sub>A b: U(i) \<Longrightarrow> b: A"
 *)
 lemmas Equal_rules [intro] = Equal_form Equal_intro Equal_elim Equal_comp
-(*lemmas Equal_form_conds [intro] = Equal_form_cond1 Equal_form_cond2 Equal_form_cond3*)
+(*lemmas Equal_wellform [intro] = Equal_form_cond1 Equal_form_cond2 Equal_form_cond3*)
 lemmas Equal_comps [comp] = Equal_comp
 
 

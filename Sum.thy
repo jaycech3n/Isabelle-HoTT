@@ -60,7 +60,7 @@ and
   Sum_form_cond2: "(\<Sum>x:A. B(x): U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
 
 lemmas Sum_rules [intro] = Sum_form Sum_intro Sum_elim Sum_comp
-lemmas Sum_forms = Sum_form Sum_form_cond1 Sum_form_cond2
+lemmas Sum_wellform [wellform] = Sum_form_cond1 Sum_form_cond2
 lemmas Sum_comps [comp] = Sum_comp
 
 

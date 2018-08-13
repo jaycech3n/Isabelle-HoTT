@@ -43,6 +43,7 @@ and
     \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat>(f)(a)(succ n) \<equiv> f(n)(ind\<^sub>\<nat> f a n)"
 
 lemmas Nat_rules [intro] = Nat_form Nat_intro1 Nat_intro2 Nat_elim Nat_comp1 Nat_comp2
+lemmas Nat_intro = Nat_intro1 Nat_intro2
 lemmas Nat_comps [comp] = Nat_comp1 Nat_comp2
 
 

@@ -14,23 +14,19 @@ section \<open>Constants and syntax\<close>
 
 axiomatization
   Prod :: "[Term, Typefam] \<Rightarrow> Term" and
-  lambda :: "[Term, Term \<Rightarrow> Term] \<Rightarrow> Term" and
-  appl :: "[Term, Term] \<Rightarrow> Term"  ("(1_`_)" [61, 60] 60)
+  lambda :: "(Term \<Rightarrow> Term) \<Rightarrow> Term"  (binder "\<^bold>\<lambda>" 30) and
+  appl :: "[Term, Term] \<Rightarrow> Term"  (infixl "`" 60)
     \<comment> \<open>Application binds tighter than abstraction.\<close>
 
 syntax
   "_PROD" :: "[idt, Term, Term] \<Rightarrow> Term"          ("(3\<Prod>_:_./ _)" 30)
-  "_LAMBDA" :: "[idt, Term, Term] \<Rightarrow> Term"        ("(1\<^bold>\<lambda>_:_./ _)" 30)
   "_PROD_ASCII" :: "[idt, Term, Term] \<Rightarrow> Term"    ("(3PROD _:_./ _)" 30)
-  "_LAMBDA_ASCII" :: "[idt, Term, Term] \<Rightarrow> Term"  ("(3%%_:_./ _)" 30)
 
 text "The translations below bind the variable \<open>x\<close> in the expressions \<open>B\<close> and \<open>b\<close>."
 
 translations
   "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod A (\<lambda>x. B)"
-  "\<^bold>\<lambda>x:A. b" \<rightleftharpoons> "CONST lambda A (\<lambda>x. b)"
   "PROD x:A. B" \<rightharpoonup> "CONST Prod A (\<lambda>x. B)"
-  "%%x:A. b" \<rightharpoonup> "CONST lambda A (\<lambda>x. b)"
 
 text "Nondependent functions are a special case."
 
@@ -43,21 +39,20 @@ section \<open>Type rules\<close>
 axiomatization where
   Prod_form: "\<lbrakk>A: U(i); B: A \<longrightarrow> U(i)\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x): U(i)"
 and
-  Prod_intro: "\<lbrakk>A: U(i); \<And>x. x: A \<Longrightarrow> b(x): B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x:A. b(x): \<Prod>x:A. B(x)"
+  Prod_intro: "\<lbrakk>A: U(i); \<And>x. x: A \<Longrightarrow> b(x): B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b(x): \<Prod>x:A. B(x)"
 and
   Prod_elim: "\<lbrakk>f: \<Prod>x:A. B(x); a: A\<rbrakk> \<Longrightarrow> f`a: B(a)"
 and
-  Prod_comp: "\<lbrakk>a: A; \<And>x. x: A \<Longrightarrow> b(x): B(x)\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. b(x))`a \<equiv> b(a)"
+  Prod_comp: "\<lbrakk>a: A; \<And>x. x: A \<Longrightarrow> b(x): B(x)\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)"
 and
-  Prod_uniq: "f : \<Prod>x:A. B(x) \<Longrightarrow> \<^bold>\<lambda>x:A. (f`x) \<equiv> f"
+  Prod_uniq: "f : \<Prod>x:A. B(x) \<Longrightarrow> \<^bold>\<lambda>x. (f`x) \<equiv> f"
 
 text "
   Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation).
 "
 
-(*
 text "
-  In addition to the usual type rules, it is a meta-theorem (*PROVE THIS!*) that whenever \<open>\<Prod>x:A. B x: U(i)\<close> is derivable from some set of premises \<Gamma>, then so are \<open>A: U(i)\<close> and \<open>B: A \<longrightarrow> U(i)\<close>.
+  In addition to the usual type rules, it is a meta-theorem that whenever \<open>\<Prod>x:A. B x: U(i)\<close> is derivable from some set of premises \<Gamma>, then so are \<open>A: U(i)\<close> and \<open>B: A \<longrightarrow> U(i)\<close>.
   
   That is to say, the following inference rules are admissible, and it simplifies proofs greatly to axiomatize them directly.
 "
@@ -66,12 +61,11 @@ axiomatization where
   Prod_form_cond1: "(\<Prod>x:A. B(x): U(i)) \<Longrightarrow> A: U(i)"
 and
   Prod_form_cond2: "(\<Prod>x:A. B(x): U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
-*)
 
 text "Set up the standard reasoner to use the type rules:"
 
-lemmas Prod_rules = Prod_form Prod_intro Prod_elim Prod_comp Prod_uniq
-(*lemmas Prod_form_conds [intro (*elim, wellform*)] = Prod_form_cond1 Prod_form_cond2*)
+lemmas Prod_rules [intro] = Prod_form Prod_intro Prod_elim Prod_comp Prod_uniq
+lemmas Prod_wellform [wellform] = Prod_form_cond1 Prod_form_cond2
 lemmas Prod_comps [comp] = Prod_comp Prod_uniq
 
 
