@@ -10,6 +10,8 @@ theory Nat
 begin
 
 
+section \<open>Constants and type rules\<close>
+
 axiomatization
   Nat :: Term   ("\<nat>") and
   zero :: Term  ("0") and
@@ -41,6 +43,9 @@ and
     a: C(0);
     n: \<nat>
     \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat>(f)(a)(succ n) \<equiv> f(n)(ind\<^sub>\<nat> f a n)"
+
+
+text "Rule declarations:"
 
 lemmas Nat_intro = Nat_intro1 Nat_intro2
 lemmas Nat_rules [intro] = Nat_form Nat_intro Nat_elim Nat_comp1 Nat_comp2

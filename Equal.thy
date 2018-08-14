@@ -46,17 +46,21 @@ and
     a: A
     \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(refl(a)) \<equiv> f(a)"
 
+
 text "Admissible inference rules for equality type formation:"
-(*
+
 axiomatization where
   Equal_form_cond1: "a =\<^sub>A b: U(i) \<Longrightarrow> A: U(i)"
 and
   Equal_form_cond2: "a =\<^sub>A b: U(i) \<Longrightarrow> a: A"
 and
   Equal_form_cond3: "a =\<^sub>A b: U(i) \<Longrightarrow> b: A"
-*)
+
+
+text "Rule declarations:"
+
 lemmas Equal_rules [intro] = Equal_form Equal_intro Equal_elim Equal_comp
-(*lemmas Equal_wellform [intro] = Equal_form_cond1 Equal_form_cond2 Equal_form_cond3*)
+lemmas Equal_wellform [wellform] = Equal_form_cond1 Equal_form_cond2 Equal_form_cond3
 lemmas Equal_comps [comp] = Equal_comp
 
 

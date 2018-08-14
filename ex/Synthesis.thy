@@ -2,32 +2,32 @@
     Author: Josh Chen
     Date:   Aug 2018
 
-Examples of inhabitant synthesis.
+Examples of synthesis.
 *)
 
 
-theory scratch
-  imports HoTT
+theory Synthesis
+  imports "../HoTT"
 begin
 
 
 section \<open>Synthesis of the predecessor function\<close>
 
 text "
-  In this example we try, with the help of Isabelle, to synthesize a predecessor function for the natural numbers.
+  In this example we construct, with the help of Isabelle, a predecessor function for the natural numbers.
 
-  This 
+  This is also done in \<open>CTT.thy\<close>; there the work is easier as the equality type is extensional, and also the methods are set up a little more nicely.
 "
 
 text "
-  First we show that the property we want is well-defined:
+  First we show that the property we want is well-defined.
 "
 
 lemma pred_welltyped: "\<Sum>pred:\<nat>\<rightarrow>\<nat> . ((pred`0) =\<^sub>\<nat> 0) \<times> (\<Prod>n:\<nat>. (pred`(succ n)) =\<^sub>\<nat> n): U(O)"
 by simple
 
 text "
-  Now look for an inhabitant.
+  Now we look for an inhabitant of this type.
   Observe that we're looking for a lambda term \<open>pred\<close> satisfying \<open>(pred`0) =\<^sub>\<nat> 0\<close> and \<open>\<Prod>n:\<nat>. (pred`(succ n)) =\<^sub>\<nat> n\<close>.
   What if we require **definitional** equality instead of just propositional equality?
 "
@@ -40,7 +40,7 @@ prefer 8 apply (rule Nat_rules | assumption)+
 done
 
 text "
-  The above proof finds the candidate \<open>\<^bold>\<lambda>n. ind\<^sub>\<nat> (\<lambda>a b. a) n n\<close>.
+  The above proof finds a candidate, namely \<open>\<^bold>\<lambda>n. ind\<^sub>\<nat> (\<lambda>a b. a) n n\<close>.
   We prove this has the required type and properties.
 "
 

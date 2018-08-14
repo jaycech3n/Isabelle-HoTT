@@ -44,17 +44,21 @@ and
     \<And>y. y: B \<Longrightarrow> d(y): C(inr(y));
     b: B
     \<rbrakk> \<Longrightarrow> ind\<^sub>+(c)(d)(inr(b)) \<equiv> d(b)"
-(*
+
+
 text "Admissible formation inference rules:"
 
 axiomatization where
   Coprod_form_cond1: "\<And>i A B. A + B: U(i) \<Longrightarrow> A: U(i)"
 and
   Coprod_form_cond2: "\<And>i A B. A + B: U(i) \<Longrightarrow> B: U(i)"
-*)
-lemmas Coprod_rules [intro] =
-  Coprod_form Coprod_intro1 Coprod_intro2 Coprod_elim Coprod_comp1 Coprod_comp2
-(*lemmas Coprod_form_conds [intro] = Coprod_form_cond1 Coprod_form_cond2 *)
+
+
+text "Rule declarations:"
+
+lemmas Coprod_intro = Coprod_intro1 Coprod_intro2
+lemmas Coprod_rules [intro] = Coprod_form Coprod_intro Coprod_elim Coprod_comp1 Coprod_comp2
+lemmas Coprod_form_conds [wellform] = Coprod_form_cond1 Coprod_form_cond2
 lemmas Coprod_comps [comp] = Coprod_comp1 Coprod_comp2
 
 

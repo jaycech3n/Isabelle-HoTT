@@ -78,7 +78,7 @@ section \<open>Named theorems\<close>
 text "
   Named theorems to be used by proof methods later (see HoTT_Methods.thy).
   
-  \<open>wellform\<close> declares necessary wellformedness conditions for type and inhabitation judgments, while \<open>comp\<close> declares computation rules, which are used by the simplification method as equational rewrite rules.
+  \<open>wellform\<close> declares necessary wellformedness conditions for type and inhabitation judgments, while \<open>comp\<close> declares computation rules, which are usually passed to invocations of the method \<open>subst\<close> to perform equational rewriting.
 "
 
 named_theorems wellform
