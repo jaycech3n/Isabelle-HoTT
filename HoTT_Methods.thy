@@ -13,69 +13,52 @@ theory HoTT_Methods
 begin
 
 
-section \<open>Setup\<close>
+section \<open>Method definitions\<close>
 
-text "Import the \<open>subst\<close> method, used by \<open>simplify\<close>."
+subsection \<open>Simple type rule proof search\<close>
+
+text "
+  Prove type judgments \<open>A : U\<close> and inhabitation judgments \<open>a : A\<close> using the type rules declared [intro] and [elim] (in the respective theory files), as well as additional provided lemmas.
+  
+  Can also perform typechecking, and search for elements of a type.
+"
+
+method simple uses lem = (assumption | rule lem | standard)+
+
+
+subsection \<open>Wellformedness checker\<close>
+
+text "
+  \<open>wellformed\<close> finds a proof of any valid typing judgment derivable from the judgments passed as \<open>lem\<close>.
+  The named theorem \<open>wellform\<close> is declared in HoTT_Base.thy.
+"
+
+method wellformed' uses jmt declares wellform =
+  match wellform in rl: "PROP ?P" \<Rightarrow> \<open>(
+    catch \<open>rule rl[OF jmt]\<close> \<open>fail\<close> |
+    catch \<open>wellformed' jmt: rl[OF jmt]\<close> \<open>fail\<close>
+    )\<close>
+
+method wellformed uses lem =
+  match lem in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed' jmt: lem\<close>
+
+
+subsection \<open>Derivation search\<close>
+
+text " Combine \<open>simple\<close> and \<open>wellformed\<close> to search for derivations of judgments."
+
+method derive uses lem = (simple lem: lem | wellformed lem: lem)+
+
+
+subsection \<open>Substitution and simplification\<close>
+
+text "Import the \<open>subst\<close> method, used for substituting definitional equalities."
 
 ML_file "~~/src/Tools/misc_legacy.ML"
 ML_file "~~/src/Tools/IsaPlanner/isand.ML"
 ML_file "~~/src/Tools/IsaPlanner/rw_inst.ML"
 ML_file "~~/src/Tools/IsaPlanner/zipper.ML"
 ML_file "~~/src/Tools/eqsubst.ML"
-
-
-section \<open>Method definitions\<close>
-
-subsection \<open>Simple type rule proof search\<close>
-
-text "Prove type judgments \<open>A : U\<close> and inhabitation judgments \<open>a : A\<close> using rules declared [intro] and [elim], as well as additional provided lemmas.
-
-Can also perform typechecking, and search for elements of a type."
-
-method simple uses lems = (assumption | rule lems | standard)+
-
-
-subsection \<open>Wellformedness checker\<close>
-
-text "Find a proof of any valid typing judgment derivable from a given wellformed judgment.
-The named theorem \<open>wellform\<close> is declared in HoTT_Base.thy."
-
-method wellformed uses jdgmt declares wellform =
-  match wellform in rl: "PROP ?P" \<Rightarrow> \<open>(
-    catch \<open>rule rl[OF jdgmt]\<close> \<open>fail\<close> |
-    catch \<open>wellformed jdgmt: rl[OF jdgmt]\<close> \<open>fail\<close>
-    )\<close>
-
-
-subsection \<open>Derivation search\<close>
-
-text "Combine \<open>simple\<close>, \<open>wellformed\<close> and the universe hierarchy rules to search for derivations of judgments.
-\<open>wellformed\<close> uses the facts passed as \<open>lems\<close> to derive any required typing judgments.
-Definitions passed as \<open>unfolds\<close> are unfolded throughout."
-
-method derive uses lems unfolds = (
-  unfold unfolds |
-  simple lems: lems |
-  match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed jdgmt: lem\<close> |
-  rule U_hierarchy (*|
-  (rule U_cumulative, simple lems: lems) |
-  (rule U_cumulative, match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed jdgmt: lem\<close>)*)
-  )+
-
-
-subsection \<open>Simplification\<close>
-
-text "The methods \<open>rsimplify\<close> and \<open>simplify\<close> search for lambda applications to simplify and are suitable for solving definitional equalities, as well as harder proofs where \<open>derive\<close> fails.
-
-It is however not true that these methods are strictly stronger; if they fail to find a suitable substitution they will fail where \<open>derive\<close> may succeed.
-
-\<open>simplify\<close> is allowed to use the Pure Simplifier and is hence unsuitable for simplifying lambda expressions using only the type rules.
-In this case use \<open>rsimplify\<close> instead."
-
-method rsimplify uses lems = (subst (0) comp, derive lems: lems)+
-  \<comment> \<open>\<open>subst\<close> performs an equational rewrite according to some computation rule declared as [comp], after which \<open>derive\<close> attempts to solve any new assumptions that arise.\<close>
-
-method simplify uses lems = (simp add: lems | rsimplify lems: lems)+
 
 
 end

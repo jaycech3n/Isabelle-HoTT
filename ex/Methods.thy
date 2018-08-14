@@ -1,6 +1,6 @@
 (*  Title:  HoTT/ex/Methods.thy
     Author: Josh Chen
-    Date:   Jul 2018
+    Date:   Aug 2018
 
 HoTT method usage examples
 *)
@@ -9,33 +9,40 @@ theory Methods
   imports "../HoTT"
 begin
 
+
 lemma
-  assumes "A : U" "B: A \<rightarrow> U" "\<And>x. x : A \<Longrightarrow> C x: B x \<rightarrow> U"
-  shows "\<Sum>x:A. \<Prod>y:B x. \<Sum>z:C x y. \<Prod>w:A. x =\<^sub>A w : U"
-by (simple lems: assms)
+  assumes "A : U(i)" "B: A \<longrightarrow> U(i)" "\<And>x. x : A \<Longrightarrow> C x: B x \<longrightarrow> U(i)"
+  shows "\<Sum>x:A. \<Prod>y:B x. \<Sum>z:C x y. \<Prod>w:A. x =\<^sub>A w : U(i)"
+by (simple lem: assms)
 
 
 lemma
-  assumes "f : \<Sum>x:A. \<Prod>y: B x. \<Sum>z: C x y. D x y z"
+  assumes "\<Sum>x:A. \<Prod>y: B x. \<Sum>z: C x y. D x y z: U(i)"
   shows
-    "A : U" and
-    "B: A \<rightarrow> U" and
-    "\<And>x. x : A \<Longrightarrow> C x: B x \<rightarrow> U" and
-    "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> D x y: C x y \<rightarrow> U"
+    "A : U(i)" and
+    "B: A \<longrightarrow> U(i)" and
+    "\<And>x. x : A \<Longrightarrow> C x: B x \<longrightarrow> U(i)" and
+    "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> D x y: C x y \<longrightarrow> U(i)"
 proof -
-  show "A : U" by (wellformed jdgmt: assms)
-  show "B: A \<rightarrow> U" by (wellformed jdgmt: assms)
-  show "\<And>x. x : A \<Longrightarrow> C x: B x \<rightarrow> U" by (wellformed jdgmt: assms)
-  show "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> D x y: C x y \<rightarrow> U" by (wellformed jdgmt: assms)
+  show
+    "A : U(i)" and
+    "B: A \<longrightarrow> U(i)" and
+    "\<And>x. x : A \<Longrightarrow> C x: B x \<longrightarrow> U(i)" and
+    "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> D x y: C x y \<longrightarrow> U(i)"
+  by (derive lem: assms)
 qed
 
 
-text "Typechecking:"
+text "Typechecking and constructing inhabitants:"
 
 \<comment> \<open>Correctly determines the type of the pair\<close>
-schematic_goal "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (a, b) : ?A" by simple
+schematic_goal "\<lbrakk>A: U(i); B: U(i); a : A; b : B\<rbrakk> \<Longrightarrow> <a, b> : ?A"
+by simple
 
-\<comment> \<open>Finds element\<close>
-schematic_goal "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> ?x : A \<times> B" by simple
+\<comment> \<open>Finds pair (too easy).\<close>
+schematic_goal "\<lbrakk>A: U(i); B: U(i); a : A; b : B\<rbrakk> \<Longrightarrow> ?x : A \<times> B"
+apply (rule Sum_intro)
+apply assumption+
+done
 
 end
