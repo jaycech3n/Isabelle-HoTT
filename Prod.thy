@@ -68,6 +68,22 @@ lemmas Prod_rules [intro] = Prod_form Prod_intro Prod_elim Prod_comp Prod_uniq
 lemmas Prod_wellform [wellform] = Prod_form_cond1 Prod_form_cond2
 lemmas Prod_comps [comp] = Prod_comp Prod_uniq
 
+subsection \<open>Composition\<close>
+
+axiomatization fncompose :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<circ>" 70) where
+  fncompose_type: "\<lbrakk>
+    g: \<Prod>x:B. C(x);
+    f: A \<rightarrow> B;
+    (\<Prod>x:B. C(x)): U(i);
+    A \<rightarrow> B: U(i)
+  \<rbrakk> \<Longrightarrow> g \<circ> f: \<Prod>x:A. C(f`x)"
+and
+  fncompose_comp: "\<lbrakk>
+    A: U(i);
+    \<And>x. x: A \<Longrightarrow> b(x): B;
+    \<And>x. x: A \<Longrightarrow> c(x): C(x)
+  \<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. c(x)) \<circ> (\<^bold>\<lambda>x. b(x)) \<equiv> \<^bold>\<lambda>x. c(b(x))"
+
 
 section \<open>Unit type\<close>
 

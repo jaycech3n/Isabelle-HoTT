@@ -48,17 +48,17 @@ text "
   Raw composition function, of type \<open>\<Prod>x:A. \<Prod>y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)\<close> polymorphic over the type \<open>A\<close>.
 "
 
-axiomatization rcompose :: Term where
-  rcompose_def: "rcompose \<equiv> \<^bold>\<lambda>x y p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= (\<lambda>x. refl(x)) q) p"
+axiomatization reqcompose :: Term where
+  reqcompose_def: "reqcompose \<equiv> \<^bold>\<lambda>x y p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= (\<lambda>x. refl(x)) q) p"
 
 text "
   More complicated proofs---the nested path inductions require more explicit step-by-step rule applications:
 "
 
-lemma rcompose_type:
+lemma reqcompose_type:
   assumes "A: U(i)"
-  shows "rcompose: \<Prod>x:A. \<Prod>y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)"
-unfolding rcompose_def
+  shows "reqcompose: \<Prod>x:A. \<Prod>y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)"
+unfolding reqcompose_def
 proof
   fix x assume 1: "x: A"
   show "\<^bold>\<lambda>y p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q) p: \<Prod>y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)"
@@ -85,17 +85,17 @@ qed fact
 
 corollary
   assumes "A: U(i)" "x: A" "y: A" "z: A" "p: x =\<^sub>A y" "q: y =\<^sub>A z"
-  shows "rcompose`x`y`p`z`q: x =\<^sub>A z"
-  by (simple lem: assms rcompose_type)
+  shows "reqcompose`x`y`p`z`q: x =\<^sub>A z"
+  by (simple lem: assms reqcompose_type)
 
 text "
   The following proof is very long, chiefly because for every application of \<open>`\<close> we have to show the wellformedness of the type family appearing in the equality computation rule.
 "
 
-lemma rcompose_comp:
+lemma reqcompose_comp:
   assumes "A: U(i)" and "a: A"
-  shows "rcompose`a`a`refl(a)`a`refl(a) \<equiv> refl(a)"
-unfolding rcompose_def
+  shows "reqcompose`a`a`refl(a)`a`refl(a) \<equiv> refl(a)"
+unfolding reqcompose_def
 proof (subst comp)
   { fix x assume 1: "x: A"
   show "\<^bold>\<lambda>y p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q) p: \<Prod>y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)"
@@ -197,28 +197,28 @@ qed fact
 
 text "The raw object lambda term is cumbersome to use, so we define a simpler constant instead."
 
-axiomatization compose :: "[Term, Term] \<Rightarrow> Term"  (infixl "\<bullet>" 60) where
-  compose_def: "\<lbrakk>
+axiomatization eqcompose :: "[Term, Term] \<Rightarrow> Term"  (infixl "\<bullet>" 60) where
+  eqcompose_def: "\<lbrakk>
     A: U(i);
     x: A; y: A; z: A;
     p: x =\<^sub>A y; q: y =\<^sub>A z
-  \<rbrakk> \<Longrightarrow> p \<bullet> q \<equiv> rcompose`x`y`p`z`q"
+  \<rbrakk> \<Longrightarrow> p \<bullet> q \<equiv> reqcompose`x`y`p`z`q"
 
 
-lemma compose_type:
+lemma eqcompose_type:
   assumes "A: U(i)" "x: A" "y: A" "z: A" "p: x =\<^sub>A y" "q: y =\<^sub>A z"
   shows "p \<bullet> q: x =\<^sub>A z"
-proof (subst compose_def)
+proof (subst eqcompose_def)
   show "A: U(i)" "x: A" "y: A" "z: A" "p: x =\<^sub>A y" "q: y =\<^sub>A z" by fact+
-qed (simple lem: assms rcompose_type)
+qed (simple lem: assms reqcompose_type)
 
-lemma compose_comp:
+lemma eqcompose_comp:
   assumes "A : U(i)" and "a : A" shows "refl(a) \<bullet> refl(a) \<equiv> refl(a)"
-by (subst compose_def) (simple lem: assms rcompose_comp)
+by (subst eqcompose_def) (simple lem: assms reqcompose_comp)
 
 
-lemmas EqualProps_rules [intro] = inv_type compose_type
-lemmas EqualProps_comps [comp] = inv_comp compose_comp
+lemmas EqualProps_rules [intro] = inv_type eqcompose_type
+lemmas EqualProps_comps [comp] = inv_comp eqcompose_comp
 
 
 end
