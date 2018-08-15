@@ -33,8 +33,8 @@ text "
 "
 
 schematic_goal "?p`0 \<equiv> 0" and "\<And>n. n: \<nat> \<Longrightarrow> (?p`(succ n)) \<equiv> n"
-apply (subst comp)
-prefer 4 apply (subst comp)
+apply compute
+prefer 4 apply compute
 prefer 3 apply (rule Nat_rules)
 apply (rule Nat_rules | assumption)+
 done
@@ -51,7 +51,7 @@ lemma pred_type: "pred: \<nat> \<rightarrow> \<nat>" unfolding pred_def by simpl
 lemma pred_props: "<refl(0), \<^bold>\<lambda>n. refl(n)>: ((pred`0) =\<^sub>\<nat> 0) \<times> (\<Prod>n:\<nat>. (pred`(succ n)) =\<^sub>\<nat> n)"
 proof (simple lems: pred_type)
   have *: "pred`0 \<equiv> 0" unfolding pred_def
-  proof (subst comp)
+  proof compute
     show "\<And>n. n: \<nat> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>a b. a) n n: \<nat>" by simple
     show "ind\<^sub>\<nat> (\<lambda>a b. a) 0 0 \<equiv> 0"
     proof (rule Nat_comps)
@@ -63,10 +63,10 @@ proof (simple lems: pred_type)
   show "\<^bold>\<lambda>n. refl(n): \<Prod>n:\<nat>. (pred`(succ(n))) =\<^sub>\<nat> n"
   unfolding pred_def proof
     show "\<And>n. n: \<nat> \<Longrightarrow> refl(n): ((\<^bold>\<lambda>n. ind\<^sub>\<nat> (\<lambda>a b. a) n n)`succ(n)) =\<^sub>\<nat> n"
-    proof (subst comp)
+    proof compute
       show "\<And>n. n: \<nat> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>a b. a) n n: \<nat>" by simple
       show "\<And>n. n: \<nat> \<Longrightarrow> refl(n): ind\<^sub>\<nat> (\<lambda>a b. a) (succ n) (succ n) =\<^sub>\<nat> n"
-      proof (subst comp)
+      proof compute
         show "\<nat>: U(O)" ..
       qed simple
     qed rule

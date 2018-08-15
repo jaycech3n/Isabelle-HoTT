@@ -96,7 +96,7 @@ lemma reqcompose_comp:
   assumes "A: U(i)" and "a: A"
   shows "reqcompose`a`a`refl(a)`a`refl(a) \<equiv> refl(a)"
 unfolding reqcompose_def
-proof (subst comp)
+proof compute
   { fix x assume 1: "x: A"
   show "\<^bold>\<lambda>y p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q) p: \<Prod>y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)"
   proof
@@ -120,7 +120,7 @@ proof (subst comp)
   qed (rule assms) }
 
   show "(\<^bold>\<lambda>y p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q) p)`a`refl(a)`a`refl(a) \<equiv> refl(a)"
-  proof (subst comp)
+  proof compute
     { fix y assume 1: "y: A"
     show "\<^bold>\<lambda>p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q) p: a =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> a =\<^sub>A z)"
       proof
@@ -141,7 +141,7 @@ proof (subst comp)
       qed (simple lems: assms 1) }
     
     show "(\<^bold>\<lambda>p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z. \<^bold>\<lambda>q. ind\<^sub>= refl q) p)`refl(a)`a`refl(a) \<equiv> refl(a)"
-    proof (subst comp)
+    proof compute
       { fix p assume 1: "p: a =\<^sub>A a"
       show "ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z. \<^bold>\<lambda>q. ind\<^sub>= refl q) p: \<Prod>z:A. a =\<^sub>A a \<rightarrow> a =\<^sub>A z"
       proof (rule Equal_elim[where ?x=a and ?y=a])
@@ -158,7 +158,7 @@ proof (subst comp)
       qed (simple lems: assms 1) }
       
       show "(ind\<^sub>=(\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q)(refl(a)))`a`refl(a) \<equiv> refl(a)"
-      proof (subst comp)
+      proof compute
         { fix u assume 1: "u: A"
         show "\<^bold>\<lambda>z q. ind\<^sub>= refl q: \<Prod>z:A. u =\<^sub>A u\<rightarrow> u =\<^sub>A z"
         proof
@@ -171,7 +171,7 @@ proof (subst comp)
         qed fact }
         
         show "(\<^bold>\<lambda>z q. ind\<^sub>= refl q)`a`refl(a) \<equiv> refl(a)"
-        proof (subst comp)
+        proof compute
           { fix a assume 1: "a: A"
           show "\<^bold>\<lambda>q. ind\<^sub>= refl q: a =\<^sub>A a \<rightarrow> a =\<^sub>A a"
           proof
@@ -180,7 +180,7 @@ proof (subst comp)
           qed (simple lems: assms 1) }
           
           show "(\<^bold>\<lambda>q. ind\<^sub>= refl q)`refl(a) \<equiv> refl(a)"
-          proof (subst comp)
+          proof compute
             show "\<And>p. p: a =\<^sub>A a \<Longrightarrow> ind\<^sub>= refl p: a =\<^sub>A a"
             by (rule Equal_elim[where ?x=a and ?y=a]) (simple lems: assms)
             show "ind\<^sub>= refl (refl(a)) \<equiv> refl(a)"

@@ -60,5 +60,9 @@ ML_file "~~/src/Tools/IsaPlanner/rw_inst.ML"
 ML_file "~~/src/Tools/IsaPlanner/zipper.ML"
 ML_file "~~/src/Tools/eqsubst.ML"
 
+text "Perform basic single-step computations:"
+
+method compute uses lems = (subst comp lems)
+
 
 end
