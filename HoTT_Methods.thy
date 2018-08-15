@@ -62,7 +62,7 @@ ML_file "~~/src/Tools/eqsubst.ML"
 
 text "Perform basic single-step computations:"
 
-method compute uses lems = (subst comp lems)
+method compute uses lems = (subst lems comp)
 
 
 end
