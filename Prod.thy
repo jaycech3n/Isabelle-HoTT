@@ -43,7 +43,7 @@ and
 and
   Prod_elim: "\<lbrakk>f: \<Prod>x:A. B(x); a: A\<rbrakk> \<Longrightarrow> f`a: B(a)"
 and
-  Prod_comp: "\<lbrakk>a: A; \<And>x. x: A \<Longrightarrow> b(x): B(x)\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)"
+  Prod_comp: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b(x): B(x); a: A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)"
 and
   Prod_uniq: "f : \<Prod>x:A. B(x) \<Longrightarrow> \<^bold>\<lambda>x. (f`x) \<equiv> f"
 

@@ -26,7 +26,7 @@ text "
 lemma inv_type:
   assumes "A : U(i)" and "x : A" and "y : A" and "p: x =\<^sub>A y" shows "p\<inverse>: y =\<^sub>A x"
 unfolding inv_def
-by (rule Equal_elim[where ?x=x and ?y=y]) (simple lem: assms)
+by (rule Equal_elim[where ?x=x and ?y=y]) (simple lems: assms)
   \<comment> \<open>The type doesn't depend on \<open>p\<close> so we don't need to specify \<open>?p\<close> in the \<open>where\<close> clause above.\<close>
 
 text "
@@ -39,7 +39,7 @@ lemma inv_comp:
 unfolding inv_def
 proof
   show "\<And>x. x: A \<Longrightarrow> refl x: x =\<^sub>A x" ..
-qed (simple lem: assms)
+qed (simple lems: assms)
 
 
 section \<open>Transitivity / Path composition\<close>
@@ -75,18 +75,18 @@ proof
           proof
             fix u z q assume asm: "u: A" "z: A" "q: u =\<^sub>A z"
             show "ind\<^sub>= refl q: u =\<^sub>A z"
-            by (rule Equal_elim[where ?x=u and ?y=z]) (simple lem: assms asm)
-          qed (simple lem: assms)
+            by (rule Equal_elim[where ?x=u and ?y=z]) (simple lems: assms asm)
+          qed (simple lems: assms)
         qed (rule assms)
-      qed (simple lem: assms 1 2 3)
-    qed (simple lem: assms 1 2)
+      qed (simple lems: assms 1 2 3)
+    qed (simple lems: assms 1 2)
   qed (rule assms)
 qed fact
 
 corollary
   assumes "A: U(i)" "x: A" "y: A" "z: A" "p: x =\<^sub>A y" "q: y =\<^sub>A z"
   shows "reqcompose`x`y`p`z`q: x =\<^sub>A z"
-  by (simple lem: assms reqcompose_type)
+  by (simple lems: assms reqcompose_type)
 
 text "
   The following proof is very long, chiefly because for every application of \<open>`\<close> we have to show the wellformedness of the type family appearing in the equality computation rule.
@@ -112,11 +112,11 @@ proof (subst comp)
           proof
             fix u z assume asm: "u: A" "z: A"
             show "\<And>q. q: u =\<^sub>A z \<Longrightarrow> ind\<^sub>= refl q: u =\<^sub>A z"
-            by (rule Equal_elim[where ?x=u and ?y=z]) (simple lem: assms asm)
-          qed (simple lem: assms)
+            by (rule Equal_elim[where ?x=u and ?y=z]) (simple lems: assms asm)
+          qed (simple lems: assms)
         qed (rule assms)
-      qed (simple lem: assms 1 2 3)
-    qed (simple lem: assms 1 2)
+      qed (simple lems: assms 1 2 3)
+    qed (simple lems: assms 1 2)
   qed (rule assms) }
 
   show "(\<^bold>\<lambda>y p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q) p)`a`refl(a)`a`refl(a) \<equiv> refl(a)"
@@ -134,11 +134,11 @@ proof (subst comp)
             show "\<^bold>\<lambda>q. ind\<^sub>= refl q: u =\<^sub>A z \<rightarrow> u =\<^sub>A z"
             proof
               show "\<And>q. q: u =\<^sub>A z \<Longrightarrow> ind\<^sub>= refl q: u =\<^sub>A z"
-              by (rule Equal_elim[where ?x=u and ?y=z]) (simple lem: assms 3 4)
-            qed (simple lem: assms 3 4)
+              by (rule Equal_elim[where ?x=u and ?y=z]) (simple lems: assms 3 4)
+            qed (simple lems: assms 3 4)
           qed fact
-        qed (simple lem: assms 1 2)
-      qed (simple lem: assms 1) }
+        qed (simple lems: assms 1 2)
+      qed (simple lems: assms 1) }
     
     show "(\<^bold>\<lambda>p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z. \<^bold>\<lambda>q. ind\<^sub>= refl q) p)`refl(a)`a`refl(a) \<equiv> refl(a)"
     proof (subst comp)
@@ -152,10 +152,10 @@ proof (subst comp)
           show "\<^bold>\<lambda>q. ind\<^sub>= refl q: u =\<^sub>A u \<rightarrow> u =\<^sub>A z"
           proof
             show "\<And>q. q: u =\<^sub>A u \<Longrightarrow> ind\<^sub>= refl q: u =\<^sub>A z"
-            by (rule Equal_elim[where ?x=u and ?y=z]) (simple lem: assms 2 3)
-          qed (simple lem: assms 2)
+            by (rule Equal_elim[where ?x=u and ?y=z]) (simple lems: assms 2 3)
+          qed (simple lems: assms 2)
         qed fact
-      qed (simple lem: assms 1) }
+      qed (simple lems: assms 1) }
       
       show "(ind\<^sub>=(\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q)(refl(a)))`a`refl(a) \<equiv> refl(a)"
       proof (subst comp)
@@ -166,8 +166,8 @@ proof (subst comp)
           show "\<^bold>\<lambda>q. ind\<^sub>= refl q: u =\<^sub>A u \<rightarrow> u =\<^sub>A z"
           proof
             show "\<And>q. q: u =\<^sub>A u \<Longrightarrow> ind\<^sub>= refl q: u =\<^sub>A z"
-            by (rule Equal_elim[where ?x=u and ?y=z]) (simple lem: assms 1 2)
-          qed (simple lem: assms 1)
+            by (rule Equal_elim[where ?x=u and ?y=z]) (simple lems: assms 1 2)
+          qed (simple lems: assms 1)
         qed fact }
         
         show "(\<^bold>\<lambda>z q. ind\<^sub>= refl q)`a`refl(a) \<equiv> refl(a)"
@@ -176,21 +176,21 @@ proof (subst comp)
           show "\<^bold>\<lambda>q. ind\<^sub>= refl q: a =\<^sub>A a \<rightarrow> a =\<^sub>A a"
           proof
             show "\<And>q. q: a =\<^sub>A a \<Longrightarrow> ind\<^sub>= refl q: a =\<^sub>A a"
-            by (rule Equal_elim[where ?x=a and ?y=a]) (simple lem: assms 1)
-          qed (simple lem: assms 1) }
+            by (rule Equal_elim[where ?x=a and ?y=a]) (simple lems: assms 1)
+          qed (simple lems: assms 1) }
           
           show "(\<^bold>\<lambda>q. ind\<^sub>= refl q)`refl(a) \<equiv> refl(a)"
           proof (subst comp)
             show "\<And>p. p: a =\<^sub>A a \<Longrightarrow> ind\<^sub>= refl p: a =\<^sub>A a"
-            by (rule Equal_elim[where ?x=a and ?y=a]) (simple lem: assms)
+            by (rule Equal_elim[where ?x=a and ?y=a]) (simple lems: assms)
             show "ind\<^sub>= refl (refl(a)) \<equiv> refl(a)"
             proof
               show "\<And>x. x: A \<Longrightarrow> refl(x): x =\<^sub>A x" ..
-            qed (simple lem: assms)
-          qed (simple lem: assms)
+            qed (simple lems: assms)
+          qed (simple lems: assms)
         qed fact
-      qed (simple lem: assms)
-    qed (simple lem: assms)
+      qed (simple lems: assms)
+    qed (simple lems: assms)
   qed fact
 qed fact
 
@@ -210,11 +210,11 @@ lemma eqcompose_type:
   shows "p \<bullet> q: x =\<^sub>A z"
 proof (subst eqcompose_def)
   show "A: U(i)" "x: A" "y: A" "z: A" "p: x =\<^sub>A y" "q: y =\<^sub>A z" by fact+
-qed (simple lem: assms reqcompose_type)
+qed (simple lems: assms reqcompose_type)
 
 lemma eqcompose_comp:
   assumes "A : U(i)" and "a : A" shows "refl(a) \<bullet> refl(a) \<equiv> refl(a)"
-by (subst eqcompose_def) (simple lem: assms reqcompose_comp)
+by (subst eqcompose_def) (simple lems: assms reqcompose_comp)
 
 
 lemmas EqualProps_rules [intro] = inv_type eqcompose_type

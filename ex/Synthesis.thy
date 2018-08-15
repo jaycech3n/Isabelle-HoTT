@@ -33,10 +33,10 @@ text "
 "
 
 schematic_goal "?p`0 \<equiv> 0" and "\<And>n. n: \<nat> \<Longrightarrow> (?p`(succ n)) \<equiv> n"
-apply (subst comp, rule Nat_rules)
-prefer 3 apply (subst comp, rule Nat_rules)
+apply (subst comp)
+prefer 4 apply (subst comp)
 prefer 3 apply (rule Nat_rules)
-prefer 8 apply (rule Nat_rules | assumption)+
+apply (rule Nat_rules | assumption)+
 done
 
 text "
@@ -49,7 +49,7 @@ definition pred :: Term where "pred \<equiv> \<^bold>\<lambda>n. ind\<^sub>\<nat
 lemma pred_type: "pred: \<nat> \<rightarrow> \<nat>" unfolding pred_def by simple
 
 lemma pred_props: "<refl(0), \<^bold>\<lambda>n. refl(n)>: ((pred`0) =\<^sub>\<nat> 0) \<times> (\<Prod>n:\<nat>. (pred`(succ n)) =\<^sub>\<nat> n)"
-proof (simple lem: pred_type)
+proof (simple lems: pred_type)
   have *: "pred`0 \<equiv> 0" unfolding pred_def
   proof (subst comp)
     show "\<And>n. n: \<nat> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>a b. a) n n: \<nat>" by simple
@@ -75,7 +75,7 @@ qed
 
 theorem
   "<pred, <refl(0), \<^bold>\<lambda>n. refl(n)>>: \<Sum>pred:\<nat>\<rightarrow>\<nat> . ((pred`0) =\<^sub>\<nat> 0) \<times> (\<Prod>n:\<nat>. (pred`(succ n)) =\<^sub>\<nat> n)"
-by (simple lem: pred_welltyped pred_type pred_props)
+by (simple lems: pred_welltyped pred_type pred_props)
 
 
 end

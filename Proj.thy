@@ -20,7 +20,7 @@ text "Typing judgments and computation rules for the dependent and non-dependent
 
 lemma fst_type:
   assumes "\<Sum>x:A. B(x): U(i)" and "p: \<Sum>x:A. B(x)" shows "fst(p): A"
-unfolding fst_def by (derive lem: assms)
+unfolding fst_def by (derive lems: assms)
 
 lemma fst_comp:
   assumes "A: U(i)" and "B: A \<longrightarrow> U(i)" and "a: A" and "b: B(a)" shows "fst(<a,b>) \<equiv> a"
@@ -33,14 +33,14 @@ lemma snd_type:
   assumes "\<Sum>x:A. B(x): U(i)" and "p: \<Sum>x:A. B(x)" shows "snd(p): B(fst p)"
 unfolding snd_def
 proof
-  show "\<And>p. p: \<Sum>x:A. B(x) \<Longrightarrow> B(fst p): U(i)" by (derive lem: assms fst_type)
+  show "\<And>p. p: \<Sum>x:A. B(x) \<Longrightarrow> B(fst p): U(i)" by (derive lems: assms fst_type)
   
   fix x y
   assume asm: "x: A" "y: B(x)"
   show "y: B(fst <x,y>)"
   proof (subst fst_comp)
-    show "A: U(i)" by (wellformed lem: assms(1))
-    show "\<And>x. x: A \<Longrightarrow> B(x): U(i)" by (wellformed lem: assms(1))
+    show "A: U(i)" by (wellformed lems: assms(1))
+    show "\<And>x. x: A \<Longrightarrow> B(x): U(i)" by (wellformed lems: assms(1))
   qed fact+
 qed fact
 
@@ -51,13 +51,13 @@ proof
   show "\<And>x y. y: B(x) \<Longrightarrow> y: B(x)" .
   show "a: A" by fact
   show "b: B(a)" by fact
-qed (simple lem: assms)
+qed (simple lems: assms)
 
 
 text "Rule declarations:"
 
 lemmas Proj_types [intro] = fst_type snd_type
-lemmas Proj_comps [intro] = fst_comp snd_comp
+lemmas Proj_comps [comp] = fst_comp snd_comp
 
 
 end

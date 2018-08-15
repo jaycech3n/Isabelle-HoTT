@@ -23,7 +23,7 @@ text "
   Can also perform typechecking, and search for elements of a type.
 "
 
-method simple uses lem = (assumption | rule lem | standard)+
+method simple uses lems = (assumption | rule lems | standard)+
 
 
 subsection \<open>Wellformedness checker\<close>
@@ -33,21 +33,21 @@ text "
   The named theorem \<open>wellform\<close> is declared in HoTT_Base.thy.
 "
 
-method wellformed' uses jmt declares wellform =
+method wellformed' uses jdmt declares wellform =
   match wellform in rl: "PROP ?P" \<Rightarrow> \<open>(
-    catch \<open>rule rl[OF jmt]\<close> \<open>fail\<close> |
-    catch \<open>wellformed' jmt: rl[OF jmt]\<close> \<open>fail\<close>
+    catch \<open>rule rl[OF jdmt]\<close> \<open>fail\<close> |
+    catch \<open>wellformed' jdmt: rl[OF jdmt]\<close> \<open>fail\<close>
     )\<close>
 
-method wellformed uses lem =
-  match lem in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed' jmt: lem\<close>
+method wellformed uses lems =
+  match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed' jdmt: lem\<close>
 
 
 subsection \<open>Derivation search\<close>
 
 text " Combine \<open>simple\<close> and \<open>wellformed\<close> to search for derivations of judgments."
 
-method derive uses lem = (simple lem: lem | wellformed lem: lem)+
+method derive uses lems = (simple lems: lems | wellformed lems: lems)+
 
 
 subsection \<open>Substitution and simplification\<close>

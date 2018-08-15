@@ -13,7 +13,7 @@ begin
 lemma
   assumes "A : U(i)" "B: A \<longrightarrow> U(i)" "\<And>x. x : A \<Longrightarrow> C x: B x \<longrightarrow> U(i)"
   shows "\<Sum>x:A. \<Prod>y:B x. \<Sum>z:C x y. \<Prod>w:A. x =\<^sub>A w : U(i)"
-by (simple lem: assms)
+by (simple lems: assms)
 
 
 lemma
@@ -29,7 +29,7 @@ proof -
     "B: A \<longrightarrow> U(i)" and
     "\<And>x. x : A \<Longrightarrow> C x: B x \<longrightarrow> U(i)" and
     "\<And>x y. \<lbrakk>x : A; y : B x\<rbrakk> \<Longrightarrow> D x y: C x y \<longrightarrow> U(i)"
-  by (derive lem: assms)
+  by (derive lems: assms)
 qed
 
 
