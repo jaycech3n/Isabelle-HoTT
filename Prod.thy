@@ -43,11 +43,15 @@ and
 and
   Prod_elim: "\<lbrakk>f: \<Prod>x:A. B(x); a: A\<rbrakk> \<Longrightarrow> f`a: B(a)"
 and
-  Prod_comp: "\<lbrakk>a: A; \<And>x. x: A \<Longrightarrow> b(x): B(x)\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)"
+  Prod_comp: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b(x): B(x); a: A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)"
 and
   Prod_uniq: "f : \<Prod>x:A. B(x) \<Longrightarrow> \<^bold>\<lambda>x. (f`x) \<equiv> f"
+and
+  Prod_eq: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b(x) \<equiv> b'(x); A: U(i)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b(x) \<equiv> \<^bold>\<lambda>x. b'(x)"
 
 text "
+  The Pure rules for \<open>\<equiv>\<close> only let us judge strict syntactic equality of object lambda expressions; Prod_eq is the actual definitional equality rule.
+
   Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation).
 "
 
@@ -64,9 +68,9 @@ and
 
 text "Set up the standard reasoner to use the type rules:"
 
-lemmas Prod_rules [intro] = Prod_form Prod_intro Prod_elim Prod_comp Prod_uniq
+lemmas Prod_rules [intro] = Prod_form Prod_intro Prod_elim Prod_comp Prod_uniq Prod_eq
 lemmas Prod_wellform [wellform] = Prod_form_cond1 Prod_form_cond2
-lemmas Prod_comps [comp] = Prod_comp Prod_uniq
+lemmas Prod_comps [comp] = Prod_comp Prod_uniq Prod_eq
 
 
 section \<open>Function composition\<close>
@@ -77,22 +81,12 @@ syntax "_COMPOSE" :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<circ>" 70)
 translations "g \<circ> f" \<rightleftharpoons> "g o f"
 
 axiomatization where
-  compose_type: "\<lbrakk>
-    g: \<Prod>x:B. C(x);
+  compose_def: "\<lbrakk>
     f: A \<rightarrow> B;
-    (\<Prod>x:B. C(x)): U(i);
-    A \<rightarrow> B: U(i)
-  \<rbrakk> \<Longrightarrow> g \<circ> f: \<Prod>x:A. C(f`x)"
-and
-  compose_comp: "\<lbrakk>
     g: \<Prod>x:B. C(x);
-    f: A \<rightarrow> B;
-    (\<Prod>x:B. C(x)): U(i);
-    A \<rightarrow> B: U(i)
+    A \<rightarrow> B: U(i);
+    (\<Prod>x:B. C(x)): U(i)
   \<rbrakk> \<Longrightarrow> g \<circ> f \<equiv> \<^bold>\<lambda>x. g`(f`x)"
-
-lemmas compose_rules [intro] = compose_type
-lemmas compose_comps [comp] = compose_comp
 
 
 section \<open>Unit type\<close>
