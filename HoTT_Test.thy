@@ -1,54 +1,65 @@
-theory HoTT_Theorems
+(*  Title:  HoTT/HoTT_Test.thy
+    Author: Josh Chen
+    Date:   Aug 2018
+
+This is an old "test suite" from early implementations of the theory, updated for the most recent version.
+It is not always guaranteed to be up to date.
+*)
+
+theory HoTT_Test
   imports HoTT
 begin
 
-text "A bunch of theorems and other statements for sanity-checking, as well as things that should be automatically simplified.
 
-Things that *should* be automated:
-  \<bullet> Checking that \<open>A\<close> is a well-formed type, when writing things like \<open>x : A\<close> and \<open>A : U\<close>.
-  \<bullet> Checking that the argument to a (dependent/non-dependent) function matches the type? Also the arguments to a pair?"
+text "
+  A bunch of theorems and other statements for sanity-checking, as well as things that should be automatically simplified.
+  
+  Things that *should* be automated:
+    - Checking that \<open>A\<close> is a well-formed type, when writing things like \<open>x : A\<close> and \<open>A : U\<close>.
+    - Checking that the argument to a (dependent/non-dependent) function matches the type? Also the arguments to a pair?
+"
 
-\<comment> \<open>Turn on trace for unification and the simplifier, for debugging.\<close>
 declare[[unify_trace_simp, unify_trace_types, simp_trace, simp_trace_depth_limit=5]]
+  \<comment> \<open>Turn on trace for unification and the simplifier, for debugging.\<close>
 
-section \<open>\<Prod> type\<close>
+
+section \<open>\<Pi>-type\<close>
 
 subsection \<open>Typing functions\<close>
 
-text "Declaring \<open>Prod_intro\<close> with the \<open>intro\<close> attribute (in HoTT.thy) enables \<open>standard\<close> to prove the following."
+text "
+  Declaring \<open>Prod_intro\<close> with the \<open>intro\<close> attribute (in HoTT.thy) enables \<open>standard\<close> to prove the following.
+"
 
-proposition assumes "A : U" shows "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" using assms ..
+proposition assumes "A : U(i)" shows "\<^bold>\<lambda>x. x: A \<rightarrow> A" using assms ..
 
 proposition
-  assumes "A : U" and "A \<equiv> B"
-  shows "\<^bold>\<lambda>x:A. x : B\<rightarrow>A"
+  assumes "A : U(i)" and "A \<equiv> B"
+  shows "\<^bold>\<lambda>x. x : B \<rightarrow> A"
 proof -
   have "A\<rightarrow>A \<equiv> B\<rightarrow>A" using assms by simp
-  moreover have "\<^bold>\<lambda>x:A. x : A\<rightarrow>A" using assms(1) ..
-  ultimately show "\<^bold>\<lambda>x:A. x : B\<rightarrow>A" by simp
+  moreover have "\<^bold>\<lambda>x. x : A \<rightarrow> A" using assms(1) ..
+  ultimately show "\<^bold>\<lambda>x. x : B \<rightarrow> A" by simp
 qed
 
 proposition
-  assumes "A : U" and "B : U"
-  shows "\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B. x : A\<rightarrow>B\<rightarrow>A"
-proof
-  fix x
-  assume "x : A"
-  with assms(2) show "\<^bold>\<lambda>y:B. x : B\<rightarrow>A" ..
-qed (rule assms)
+  assumes "A : U(i)" and "B : U(i)"
+  shows "\<^bold>\<lambda>x y. x : A \<rightarrow> B \<rightarrow> A"
+by (simple lems: assms)
 
 
 subsection \<open>Function application\<close>
 
-proposition assumes "a : A" shows "(\<^bold>\<lambda>x:A. x)`a \<equiv> a" using assms by simp
+proposition assumes "a : A" shows "(\<^bold>\<lambda>x. x)`a \<equiv> a" by (simple lems: assms)
 
 text "Currying:"
 
 lemma
-  assumes "a : A"
-  shows "(\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). y)`a \<equiv> \<^bold>\<lambda>y:B(a). y"
+  assumes "a : A" and "\<And>x. x: A \<Longrightarrow> B(x): U(i)"
+  shows "(\<^bold>\<lambda>x y. y)`a \<equiv> \<^bold>\<lambda>y. y"
 proof
-  show "\<And>x. a : A \<Longrightarrow> x : A \<Longrightarrow> \<^bold>\<lambda>y:B x. y : B x \<rightarrow> B x"
+  show "\<And>x. x : A \<Longrightarrow> \<^bold>\<lambda>y. y : B(x) \<rightarrow> B(x)" by (simple lems: assms)
+qed fact
 
 lemma "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). y)`a`b \<equiv> b"  by simp
 

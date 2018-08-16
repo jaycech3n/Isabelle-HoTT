@@ -1,3 +1,10 @@
+(*  Title:  HoTT/ex/HoTT book/Ch1.thy
+    Author: Josh Chen
+    Date:   Aug 2018
+
+A formalization of some content of Chapter 1 of the Homotopy Type Theory book.
+*)
+
 theory Ch1
   imports "../../HoTT"
 begin
