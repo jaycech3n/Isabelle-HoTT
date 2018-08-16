@@ -50,6 +50,8 @@ by (simple lems: assms)
 
 subsection \<open>Function application\<close>
 
+text "silly test"
+
 proposition assumes "a : A" shows "(\<^bold>\<lambda>x. x)`a \<equiv> a" by (simple lems: assms)
 
 text "Currying:"
