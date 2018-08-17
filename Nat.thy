@@ -22,22 +22,22 @@ where
 and
   Nat_intro1: "0: \<nat>"
 and
-  Nat_intro2: "\<And>n. n: \<nat> \<Longrightarrow> succ(n): \<nat>"
+  Nat_intro2: "n: \<nat> \<Longrightarrow> succ(n): \<nat>"
 and
-  Nat_elim: "\<And>i C f a n. \<lbrakk>
+  Nat_elim: "\<lbrakk>
     C: \<nat> \<longrightarrow> U(i);
     \<And>n c. \<lbrakk>n: \<nat>; c: C(n)\<rbrakk> \<Longrightarrow> f(n)(c): C(succ n);
     a: C(0);
     n: \<nat>
     \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat>(f)(a)(n): C(n)"
 and
-  Nat_comp1: "\<And>i C f a. \<lbrakk>
+  Nat_comp1: "\<lbrakk>
     C: \<nat> \<longrightarrow> U(i);
     \<And>n c. \<lbrakk>n: \<nat>; c: C(n)\<rbrakk> \<Longrightarrow> f(n)(c): C(succ n);
     a: C(0)
     \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat>(f)(a)(0) \<equiv> a"
 and
-  Nat_comp2: "\<And> i C f a n. \<lbrakk>
+  Nat_comp2: "\<lbrakk>
     C: \<nat> \<longrightarrow> U(i);
     \<And>n c. \<lbrakk>n: \<nat>; c: C(n)\<rbrakk> \<Longrightarrow> f(n)(c): C(succ n);
     a: C(0);
