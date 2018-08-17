@@ -75,18 +75,10 @@ lemmas Prod_comps [comp] = Prod_comp Prod_uniq Prod_eq
 
 section \<open>Function composition\<close>
 
-axiomatization compose :: "[Term, Term] \<Rightarrow> Term"  (infixr "o" 70)
+definition compose :: "[Term, Term] \<Rightarrow> Term"  (infixr "o" 70) where "g o f \<equiv> \<^bold>\<lambda>x. g`(f`x)"
 
 syntax "_COMPOSE" :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<circ>" 70)
 translations "g \<circ> f" \<rightleftharpoons> "g o f"
-
-axiomatization where
-  compose_def: "\<lbrakk>
-    f: A \<rightarrow> B;
-    g: \<Prod>x:B. C(x);
-    A \<rightarrow> B: U(i);
-    (\<Prod>x:B. C(x)): U(i)
-  \<rbrakk> \<Longrightarrow> g \<circ> f \<equiv> \<^bold>\<lambda>x. g`(f`x)"
 
 
 section \<open>Unit type\<close>
