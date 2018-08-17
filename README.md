@@ -12,9 +12,10 @@ Set Isabelle's prover to Pure in the Theories panel, and import `HoTT`.
 
 ## Collaboration
 
-I've been working on this library as part of my Masters project, and there are very many improvements and developments that have yet to be implemented.
+I've been flying solo on this library as part of my Masters project, and there are very many improvements and developments that have yet to be implemented, so...
 
-Collaborators are welcome!
+*Collaborators are welcome!*
+
 If you're interested in working together on any part of this do drop me a line at `joshua DOT chen AT uni-bonn DOT de`.
 
 ## License
