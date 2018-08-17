@@ -13,8 +13,8 @@ theory Proj
 begin
 
 
-axiomatization fst :: "Term \<Rightarrow> Term" where fst_def: "fst \<equiv> \<lambda>p. ind\<^sub>\<Sum>(\<lambda>x y. x)(p)"
-axiomatization snd :: "Term \<Rightarrow> Term" where snd_def: "snd \<equiv> \<lambda>p. ind\<^sub>\<Sum>(\<lambda>x y. y)(p)"
+definition fst :: "Term \<Rightarrow> Term" where "fst(p) \<equiv> ind\<^sub>\<Sum> (\<lambda>x y. x) p"
+definition snd :: "Term \<Rightarrow> Term" where "snd(p) \<equiv> ind\<^sub>\<Sum> (\<lambda>x y. y) p"
 
 text "Typing judgments and computation rules for the dependent and non-dependent projection functions."
 
