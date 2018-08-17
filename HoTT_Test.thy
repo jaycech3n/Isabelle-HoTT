@@ -2,8 +2,8 @@
     Author: Josh Chen
     Date:   Aug 2018
 
-This is an old "test suite" from early implementations of the theory, updated for the most recent version.
-It is not always guaranteed to be up to date.
+This is an old "test suite" from early implementations of the theory.
+It is not always guaranteed to be up to date, or reflect most recent versions of the theory.
 *)
 
 theory HoTT_Test
@@ -50,8 +50,6 @@ by (simple lems: assms)
 
 subsection \<open>Function application\<close>
 
-text "silly test"
-
 proposition assumes "a : A" shows "(\<^bold>\<lambda>x. x)`a \<equiv> a" by (simple lems: assms)
 
 text "Currying:"
@@ -63,35 +61,30 @@ proof
   show "\<And>x. x : A \<Longrightarrow> \<^bold>\<lambda>y. y : B(x) \<rightarrow> B(x)" by (simple lems: assms)
 qed fact
 
-lemma "\<lbrakk>a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). y)`a`b \<equiv> b"  by simp
+lemma "\<lbrakk>A: U(i); B: U(i); a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x y. y)`a`b \<equiv> b" by (compute, simple)
 
-lemma "a : A \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). f x y)`a \<equiv> \<^bold>\<lambda>y:B(a). f a y" by simp
+lemma "\<lbrakk>A: U(i); a : A \<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x y. f x y)`a \<equiv> \<^bold>\<lambda>y. f a y"
+proof compute
+  show "\<And>x. \<lbrakk>A: U(i); x: A\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>y. f x y: \<Prod>y:B(x). C x y"
+  proof
+    oops
 
-lemma "\<lbrakk>a : A; b : B(a); c : C(a)(b)\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). \<^bold>\<lambda>z:C(x)(y). f x y z)`a`b`c \<equiv> f a b c" by simp
+lemma "\<lbrakk>a : A; b : B(a); c : C(a)(b)\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. \<^bold>\<lambda>y. \<^bold>\<lambda>z. f x y z)`a`b`c \<equiv> f a b c"
+  oops
 
 
 subsection \<open>Currying functions\<close>
 
 proposition curried_function_formation:
-  fixes
-    A::Term and
-    B::"Term \<Rightarrow> Term" and
-    C::"Term \<Rightarrow> Term \<Rightarrow> Term"
+  fixes A B C
   assumes
-    "A : U" and
-    "B: A \<rightarrow> U" and
-    "\<And>x::Term. C(x): B(x) \<rightarrow> U"
-  shows "\<Prod>x:A. \<Prod>y:B(x). C x y : U"
-proof
-  fix x::Term
-  assume *: "x : A"
-  show "\<Prod>y:B(x). C x y : U"
-  proof
-    show "B(x) : U" using * by (rule assms)
-  qed (rule assms)
-qed (rule assms)
+    "A : U(i)" and
+    "B: A \<longrightarrow> U(i)" and
+    "\<And>x. C(x): B(x) \<longrightarrow> U(i)"
+  shows "\<Prod>x:A. \<Prod>y:B(x). C x y : U(i)"
+  by (simple lems: assms)
 
-(**** GOOD CANDIDATE FOR AUTOMATION - EISBACH! ****)
+
 proposition higher_order_currying_formation:
   fixes
     A::Term and
@@ -138,8 +131,10 @@ proof
   qed
 qed
 
-text "Note that the propositions and proofs above often say nothing about the well-formedness of the types, or the well-typedness of the lambdas involved; one has to be very explicit and prove such things separately!
-This is the result of the choices made regarding the premises of the type rules."
+text "
+  Note that the propositions and proofs above often say nothing about the well-formedness of the types, or the well-typedness of the lambdas involved; one has to be very explicit and prove such things separately!
+  This is the result of the choices made regarding the premises of the type rules.
+"
 
 
 section \<open>\<Sum> type\<close>
@@ -189,13 +184,14 @@ have "p : \<Sum>x:A. B(x) \<Longrightarrow> indSum(C)`f`p : C(p)" using * ** by 
 
 end
 
+
 section \<open>Universes and polymorphism\<close>
 
-text "Polymorphic identity function."
+text "Polymorphic identity function. Uses universe types."
 
-consts Ui::Term
 
-definition Id where "Id \<equiv> \<^bold>\<lambda>A:Ui. \<^bold>\<lambda>x:A. x"
+
+definition Id :: "Ord \<Rightarrow> Term" where "Id(i) \<equiv> \<^bold>\<lambda>A x. x"
 
 
 (*
