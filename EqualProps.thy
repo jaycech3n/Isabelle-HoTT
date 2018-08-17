@@ -47,7 +47,7 @@ text "
   Raw composition function, of type \<open>\<Prod>x:A. \<Prod>y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)\<close> polymorphic over the type \<open>A\<close>.
 "
 
-definition rpathcomp :: Term where "rpathcomp \<equiv> \<^bold>\<lambda>x y p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= (\<lambda>x. refl(x)) q) p"
+definition rpathcomp :: Term where "rpathcomp \<equiv> \<^bold>\<lambda>_ _ p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>_ q. ind\<^sub>= (\<lambda>x. refl(x)) q) p"
 
 text "
   More complicated proofs---the nested path inductions require more explicit step-by-step rule applications:
@@ -121,51 +121,51 @@ proof compute
   proof compute
     { fix y assume 1: "y: A"
     show "\<^bold>\<lambda>p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q) p: a =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> a =\<^sub>A z)"
-      proof
-        fix p assume 2: "p: a =\<^sub>A y"
-        show "ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q) p: \<Prod>z:A. y =\<^sub>A z \<rightarrow> a =\<^sub>A z"
-        proof (rule Equal_elim[where ?x=a and ?y=y])
-          fix u assume 3: "u: A"
-          show "\<^bold>\<lambda>z q. ind\<^sub>= refl q: \<Prod>z:A. u =[A] z \<rightarrow> u =[A] z"
+    proof
+      fix p assume 2: "p: a =\<^sub>A y"
+      show "ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q) p: \<Prod>z:A. y =\<^sub>A z \<rightarrow> a =\<^sub>A z"
+      proof (rule Equal_elim[where ?x=a and ?y=y])
+        fix u assume 3: "u: A"
+        show "\<^bold>\<lambda>z q. ind\<^sub>= refl q: \<Prod>z:A. u =\<^sub>A z \<rightarrow> u =\<^sub>A z"
+        proof
+          fix z assume 4: "z: A"
+          show "\<^bold>\<lambda>q. ind\<^sub>= refl q: u =\<^sub>A z \<rightarrow> u =\<^sub>A z"
           proof
-            fix z assume 4: "z: A"
-            show "\<^bold>\<lambda>q. ind\<^sub>= refl q: u =\<^sub>A z \<rightarrow> u =\<^sub>A z"
-            proof
-              show "\<And>q. q: u =\<^sub>A z \<Longrightarrow> ind\<^sub>= refl q: u =\<^sub>A z"
-              by (rule Equal_elim[where ?x=u and ?y=z]) (simple lems: assms 3 4)
-            qed (simple lems: assms 3 4)
-          qed fact
-        qed (simple lems: assms 1 2)
-      qed (simple lems: assms 1) }
+            show "\<And>q. q: u =\<^sub>A z \<Longrightarrow> ind\<^sub>= refl q: u =\<^sub>A z"
+            by (rule Equal_elim[where ?x=u and ?y=z]) (simple lems: assms 3 4)
+          qed (simple lems: assms 3 4)
+        qed fact
+      qed (simple lems: assms 1 2)
+    qed (simple lems: assms 1) }
     
     show "(\<^bold>\<lambda>p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z. \<^bold>\<lambda>q. ind\<^sub>= refl q) p)`refl(a)`a`refl(a) \<equiv> refl(a)"
     proof compute
       { fix p assume 1: "p: a =\<^sub>A a"
-      show "ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z. \<^bold>\<lambda>q. ind\<^sub>= refl q) p: \<Prod>z:A. a =\<^sub>A a \<rightarrow> a =\<^sub>A z"
+      show "ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q) p: \<Prod>z:A. a =\<^sub>A z \<rightarrow> a =\<^sub>A z"
       proof (rule Equal_elim[where ?x=a and ?y=a])
         fix u assume 2: "u: A"
-        show "\<^bold>\<lambda>z q. ind\<^sub>= refl q: \<Prod>z:A. u =\<^sub>A u\<rightarrow> u =\<^sub>A z"
+        show "\<^bold>\<lambda>z q. ind\<^sub>= refl q: \<Prod>z:A. u =\<^sub>A z \<rightarrow> u =\<^sub>A z"
         proof
           fix z assume 3: "z: A"
-          show "\<^bold>\<lambda>q. ind\<^sub>= refl q: u =\<^sub>A u \<rightarrow> u =\<^sub>A z"
+          show "\<^bold>\<lambda>q. ind\<^sub>= refl q: u =\<^sub>A z \<rightarrow> u =\<^sub>A z"
           proof
-            show "\<And>q. q: u =\<^sub>A u \<Longrightarrow> ind\<^sub>= refl q: u =\<^sub>A z"
+            show "\<And>q. q: u =\<^sub>A z \<Longrightarrow> ind\<^sub>= refl q: u =\<^sub>A z"
             by (rule Equal_elim[where ?x=u and ?y=z]) (simple lems: assms 2 3)
-          qed (simple lems: assms 2)
+          qed (simple lems: assms 2 3)
         qed fact
       qed (simple lems: assms 1) }
       
       show "(ind\<^sub>=(\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= refl q)(refl(a)))`a`refl(a) \<equiv> refl(a)"
       proof compute
         { fix u assume 1: "u: A"
-        show "\<^bold>\<lambda>z q. ind\<^sub>= refl q: \<Prod>z:A. u =\<^sub>A u\<rightarrow> u =\<^sub>A z"
+        show "\<^bold>\<lambda>z q. ind\<^sub>= refl q: \<Prod>z:A. u =\<^sub>A z \<rightarrow> u =\<^sub>A z"
         proof
           fix z assume 2: "z: A"
-          show "\<^bold>\<lambda>q. ind\<^sub>= refl q: u =\<^sub>A u \<rightarrow> u =\<^sub>A z"
+          show "\<^bold>\<lambda>q. ind\<^sub>= refl q: u =\<^sub>A z \<rightarrow> u =\<^sub>A z"
           proof
-            show "\<And>q. q: u =\<^sub>A u \<Longrightarrow> ind\<^sub>= refl q: u =\<^sub>A z"
+            show "\<And>q. q: u =\<^sub>A z \<Longrightarrow> ind\<^sub>= refl q: u =\<^sub>A z"
             by (rule Equal_elim[where ?x=u and ?y=z]) (simple lems: assms 1 2)
-          qed (simple lems: assms 1)
+          qed (simple lems: assms 1 2)
         qed fact }
         
         show "(\<^bold>\<lambda>z q. ind\<^sub>= refl q)`a`refl(a) \<equiv> refl(a)"

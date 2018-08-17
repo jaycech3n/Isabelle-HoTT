@@ -37,7 +37,7 @@ and
     \<And>x. x: A \<Longrightarrow> f(x) : C(x)(x)(refl x);
     x: A;
     y: A;
-    p: a =\<^sub>A b
+    p: x =\<^sub>A y
     \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(p) : C(x)(y)(p)"
 and
   Equal_comp: "\<lbrakk>
