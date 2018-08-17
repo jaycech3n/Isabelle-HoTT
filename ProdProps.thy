@@ -39,35 +39,16 @@ proof (subst (0 1 2 3) compose_def)
 qed
 
 
-lemma compose_comp':
+lemma compose_comp:
   assumes "A: U(i)" and "\<And>x. x: A \<Longrightarrow> b(x): B" and "\<And>x. x: B \<Longrightarrow> c(x): C(x)"
   shows "(\<^bold>\<lambda>x. c(x)) \<circ> (\<^bold>\<lambda>x. b(x)) \<equiv> \<^bold>\<lambda>x. c(b(x))"
 proof (subst compose_def, subst Prod_eq)
-  show "\<And>x. x: A \<Longrightarrow> (\<^bold>\<lambda>x. c(x))`((\<^bold>\<lambda>x. b(x))`x) \<equiv> \<^bold>\<lambda>x. c (b x)"
+  show "\<And>a. a: A \<Longrightarrow> (\<^bold>\<lambda>x. c(x))`((\<^bold>\<lambda>x. b(x))`a) \<equiv> (\<^bold>\<lambda>x. c (b x))`a"
   proof compute
-    
-  
-
-text "However we can derive a variant with more explicit premises:"
-
-lemma compose_comp:
-  assumes
-    "A: U(i)" "B: U(i)" "C: B \<longrightarrow> U(i)" and
-    "\<And>x. x: A \<Longrightarrow> b(x): B" and
-    "\<And>x. x: B \<Longrightarrow> c(x): C(x)"
-  shows "(\<^bold>\<lambda>x. c(x)) \<circ> (\<^bold>\<lambda>x. b(x)) \<equiv> \<^bold>\<lambda>x. c(b(x))"
-proof (subst compose_def)
-  show "\<^bold>\<lambda>x. (\<^bold>\<lambda>x. c(x))`((\<^bold>\<lambda>x. b(x))`x) \<equiv> \<^bold>\<lambda>x. c(b(x))"
-  proof
-    show "\<And>a. a: A \<Longrightarrow> (\<^bold>\<lambda>x. c(x))`((\<^bold>\<lambda>x. b(x))`a) \<equiv> c(b(a))"
-    proof compute
-      show "\<And>a. a: A \<Longrightarrow> c((\<^bold>\<lambda>x. b(x))`a) \<equiv> c(b(a))" by compute (simple lems: assms)
-    qed (simple lems: assms)
-  qed fact
+    show "\<And>a. a: A \<Longrightarrow> c((\<^bold>\<lambda>x. b(x))`a) \<equiv> (\<^bold>\<lambda>x. c(b(x)))`a"
+    by compute (simple lems: assms, compute?)+
+  qed (simple lems: assms)
 qed (simple lems: assms)
-
-
-lemmas compose_comps [comp] = compose_def compose_comp
 
 
 end
