@@ -1,5 +1,5 @@
 # Isabelle/HoTT
-An experimental implementation of HoTT in Isabelle/Pure
+An experimental implementation of [homotopy type theory](https://en.wikipedia.org/wiki/Homotopy_type_theory) in the interactive theorem prover [Isabelle](https://isabelle.in.tum.de/).
 
 ## Installation
 Clone the contents of this repository into `<Isabelle root directory>/src/HoTT`.
