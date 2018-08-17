@@ -86,130 +86,36 @@ proposition curried_function_formation:
 
 
 proposition higher_order_currying_formation:
-  fixes
-    A::Term and
-    B::"Term \<Rightarrow> Term" and
-    C::"[Term, Term] \<Rightarrow> Term" and
-    D::"[Term, Term, Term] \<Rightarrow> Term"
   assumes
-    "A : U" and
-    "B: A \<rightarrow> U" and
-    "\<And>x y::Term. y : B(x) \<Longrightarrow> C(x)(y) : U" and
-    "\<And>x y z::Term. z : C(x)(y) \<Longrightarrow> D(x)(y)(z) : U"
-  shows "\<Prod>x:A. \<Prod>y:B(x). \<Prod>z:C(x)(y). D(x)(y)(z) : U"
-proof
-  fix x::Term assume 1: "x : A"
-  show "\<Prod>y:B(x). \<Prod>z:C(x)(y). D(x)(y)(z) : U"
-  proof
-    show "B(x) : U" using 1 by (rule assms)
-    
-    fix y::Term assume 2: "y : B(x)"  
-    show "\<Prod>z:C(x)(y). D(x)(y)(z) : U"
-    proof
-      show "C x y : U" using 2 by (rule assms)
-      show "\<And>z::Term. z : C(x)(y) \<Longrightarrow> D(x)(y)(z) : U" by (rule assms)
-    qed
-  qed
-qed (rule assms)
+    "A: U(i)" and
+    "B: A \<longrightarrow> U(i)" and
+    "\<And>x y. y: B(x) \<Longrightarrow> C(x)(y): U(i)" and
+    "\<And>x y z. z : C(x)(y) \<Longrightarrow> D(x)(y)(z): U(i)"
+  shows "\<Prod>x:A. \<Prod>y:B(x). \<Prod>z:C(x)(y). D(x)(y)(z): U(i)"
+  by (simple lems: assms)
 
-(**** AND PROBABLY THIS TOO? ****)
+
 lemma curried_type_judgment:
-  fixes
-    a b A::Term and
-    B::"Term \<Rightarrow> Term" and
-    f C::"[Term, Term] \<Rightarrow> Term"
-  assumes "\<And>x y::Term. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f x y : C x y"
-  shows "\<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). f x y : \<Prod>x:A. \<Prod>y:B(x). C x y"
-proof
-  fix x::Term
-  assume *: "x : A"
-  show "\<^bold>\<lambda>y:B(x). f x y : \<Prod>y:B(x). C x y"
-  proof
-    fix y::Term
-    assume **: "y : B(x)"
-    show "f x y : C x y" using * ** by (rule assms)
-  qed
-qed
+  assumes "A: U(i)" "B: A \<longrightarrow> U(i)" "\<And>x y. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f x y : C x y"
+  shows "\<^bold>\<lambda>x y. f x y : \<Prod>x:A. \<Prod>y:B(x). C x y"
+  by (simple lems: assms)
+
 
 text "
-  Note that the propositions and proofs above often say nothing about the well-formedness of the types, or the well-typedness of the lambdas involved; one has to be very explicit and prove such things separately!
-  This is the result of the choices made regarding the premises of the type rules.
+  Polymorphic identity function. Trivial due to lambda expression polymorphism.
+  (Was more involved in previous monomorphic incarnations.)
 "
 
+definition Id :: "Term" where "Id \<equiv> \<^bold>\<lambda>x. x"
 
-section \<open>\<Sum> type\<close>
-
-text "The following shows that the dependent sum inductor has the type we expect it to have:"
-
-lemma
-  assumes "C: \<Sum>x:A. B(x) \<rightarrow> U"
-  shows "indSum(C) : \<Prod>f:(\<Prod>x:A. \<Prod>y:B(x). C((x,y))). \<Prod>p:(\<Sum>x:A. B(x)). C(p)"
-proof -
-  define F and P where
-    "F \<equiv> \<Prod>x:A. \<Prod>y:B(x). C((x,y))" and
-    "P \<equiv> \<Sum>x:A. B(x)"
-
-  have "\<^bold>\<lambda>f:F. \<^bold>\<lambda>p:P. indSum(C)`f`p : \<Prod>f:F. \<Prod>p:P. C(p)"
-  proof (rule curried_type_judgment)
-    fix f p::Term
-    assume "f : F" and "p : P"
-    with assms show "indSum(C)`f`p : C(p)" unfolding F_def P_def ..
-  qed
+lemma "\<lbrakk>x: A\<rbrakk> \<Longrightarrow> Id`x \<equiv> x"
+unfolding Id_def by (compute, simple)
   
-  then show "indSum(C) : \<Prod>f:F. \<Prod>p:P. C(p)" by simp
-qed
 
-(**** AUTOMATION CANDIDATE ****)
-text "Propositional uniqueness principle for dependent sums:"
-
-text "We would like to eventually automate proving that 'a given type \<open>A\<close> is inhabited', i.e. search for an element \<open>a:A\<close>.
-
-A good starting point would be to automate the application of elimination rules."
-
-notepad begin
-
-fix A B assume "A : U" and "B: A \<rightarrow> U"
-
-define C where "C \<equiv> \<lambda>p. p =[\<Sum>x:A. B(x)] (fst[A,B]`p, snd[A,B]`p)"
-have *: "C: \<Sum>x:A. B(x) \<rightarrow> U"
-proof -
-  fix p assume "p : \<Sum>x:A. B(x)"
-  have "(fst[A,B]`p, snd[A,B]`p) : \<Sum>x:A. B(x)"
-
-define f where "f \<equiv> \<^bold>\<lambda>x:A. \<^bold>\<lambda>y:B(x). refl((x,y))"
-have "f`x`y : C((x,y))"
-sorry
-
-have "p : \<Sum>x:A. B(x) \<Longrightarrow> indSum(C)`f`p : C(p)" using * ** by (rule Sum_elim)
-
-end
-
-
-section \<open>Universes and polymorphism\<close>
-
-text "Polymorphic identity function. Uses universe types."
-
-
-
-definition Id :: "Ord \<Rightarrow> Term" where "Id(i) \<equiv> \<^bold>\<lambda>A x. x"
-
-
-(*
 section \<open>Natural numbers\<close>
 
-text "Here's a dumb proof that 2 is a natural number."
+text "Automatic proof methods recognize natural numbers."
 
-proposition "succ(succ 0) : Nat"
-  proof -
-    have "0 : Nat" by (rule Nat_intro1)
-    from this have "(succ 0) : Nat" by (rule Nat_intro2)
-    thus "succ(succ 0) : Nat" by (rule Nat_intro2)
-  qed
-
-text "We can of course iterate the above for as many applications of \<open>succ\<close> as we like.
-The next thing to do is to implement induction to automate such proofs.
-
-When we get more stuff working, I'd like to aim for formalizing the encode-decode method to be able to prove the only naturals are 0 and those obtained from it by \<open>succ\<close>."
-*)
+proposition "succ(succ(succ 0)): Nat" by simple
 
 end
