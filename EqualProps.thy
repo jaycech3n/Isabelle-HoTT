@@ -15,8 +15,7 @@ begin
 
 section \<open>Symmetry / Path inverse\<close>
 
-axiomatization inv :: "Term \<Rightarrow> Term"  ("_\<inverse>" [1000] 1000)
-  where inv_def: "inv \<equiv> \<lambda>p. ind\<^sub>= (\<lambda>x. refl(x)) p"
+definition inv :: "Term \<Rightarrow> Term"  ("_\<inverse>" [1000] 1000) where "p\<inverse> \<equiv> ind\<^sub>= (\<lambda>x. refl(x)) p"
 
 text "
   In the proof below we begin by using path induction on \<open>p\<close> with the application of \<open>rule Equal_elim\<close>, telling Isabelle the specific substitutions to use.
@@ -48,8 +47,7 @@ text "
   Raw composition function, of type \<open>\<Prod>x:A. \<Prod>y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)\<close> polymorphic over the type \<open>A\<close>.
 "
 
-axiomatization rpathcomp :: Term where
-  rpathcomp_def: "rpathcomp \<equiv> \<^bold>\<lambda>x y p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= (\<lambda>x. refl(x)) q) p"
+definition rpathcomp :: Term where "rpathcomp \<equiv> \<^bold>\<lambda>x y p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>z q. ind\<^sub>= (\<lambda>x. refl(x)) q) p"
 
 text "
   More complicated proofs---the nested path inductions require more explicit step-by-step rule applications:
