@@ -1,4 +1,4 @@
-(*  Title:  HoTT/HoTT_Test.thy
+(*  Title:  HoTT/tests/Test.thy
     Author: Josh Chen
     Date:   Aug 2018
 
