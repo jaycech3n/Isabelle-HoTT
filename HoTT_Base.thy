@@ -23,8 +23,7 @@ text "
   For judgmental/definitional equality we use the existing Pure equality \<open>\<equiv>\<close> and hence do not need to define a separate judgment for it.
 "
 
-consts
-  has_type :: "[Term, Term] \<Rightarrow> prop"  ("(3_:/ _)" [0, 0] 1000)
+judgment has_type :: "[Term, Term] \<Rightarrow> prop"  ("(3_:/ _)" [0, 0] 1000)
 
 
 section \<open>Universe hierarchy\<close>
