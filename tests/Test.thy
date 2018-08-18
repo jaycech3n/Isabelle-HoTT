@@ -31,37 +31,37 @@ text "
   Declaring \<open>Prod_intro\<close> with the \<open>intro\<close> attribute (in HoTT.thy) enables \<open>standard\<close> to prove the following.
 "
 
-proposition assumes "A : U(i)" shows "\<^bold>\<lambda>x. x: A \<rightarrow> A" by (simple lems: assms)
+proposition assumes "A : U(i)" shows "\<^bold>\<lambda>x. x: A \<rightarrow> A" by (routine lems: assms)
 
 proposition
   assumes "A : U(i)" and "A \<equiv> B"
   shows "\<^bold>\<lambda>x. x : B \<rightarrow> A"
 proof -
   have "A \<rightarrow> A \<equiv> B \<rightarrow> A" using assms by simp
-  moreover have "\<^bold>\<lambda>x. x : A \<rightarrow> A" by (simple lems: assms)
+  moreover have "\<^bold>\<lambda>x. x : A \<rightarrow> A" by (routine lems: assms)
   ultimately show "\<^bold>\<lambda>x. x : B \<rightarrow> A" by simp
 qed
 
 proposition
   assumes "A : U(i)" and "B : U(i)"
   shows "\<^bold>\<lambda>x y. x : A \<rightarrow> B \<rightarrow> A"
-by (simple lems: assms)
+by (routine lems: assms)
 
 
 subsection \<open>Function application\<close>
 
-proposition assumes "a : A" shows "(\<^bold>\<lambda>x. x)`a \<equiv> a" by (simple lems: assms)
+proposition assumes "a : A" shows "(\<^bold>\<lambda>x. x)`a \<equiv> a" by (derive lems: assms)
 
 text "Currying:"
 
 lemma
   assumes "a : A" and "\<And>x. x: A \<Longrightarrow> B(x): U(i)"
   shows "(\<^bold>\<lambda>x y. y)`a \<equiv> \<^bold>\<lambda>y. y"
-proof
-  show "\<And>x. x : A \<Longrightarrow> \<^bold>\<lambda>y. y : B(x) \<rightarrow> B(x)" by (simple lems: assms)
+proof compute
+  show "\<And>x. x : A \<Longrightarrow> \<^bold>\<lambda>y. y : B(x) \<rightarrow> B(x)" by (routine lems: assms)
 qed fact
 
-lemma "\<lbrakk>A: U(i); B: U(i); a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x y. y)`a`b \<equiv> b" by (compute, simple)
+lemma "\<lbrakk>A: U(i); B: U(i); a : A; b : B\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x y. y)`a`b \<equiv> b" by derive
 
 lemma "\<lbrakk>A: U(i); a : A \<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x y. f x y)`a \<equiv> \<^bold>\<lambda>y. f a y"
 proof compute
@@ -82,7 +82,7 @@ proposition curried_function_formation:
     "B: A \<longrightarrow> U(i)" and
     "\<And>x. C(x): B(x) \<longrightarrow> U(i)"
   shows "\<Prod>x:A. \<Prod>y:B(x). C x y : U(i)"
-  by (simple lems: assms)
+  by (routine lems: assms)
 
 
 proposition higher_order_currying_formation:
@@ -92,13 +92,13 @@ proposition higher_order_currying_formation:
     "\<And>x y. y: B(x) \<Longrightarrow> C(x)(y): U(i)" and
     "\<And>x y z. z : C(x)(y) \<Longrightarrow> D(x)(y)(z): U(i)"
   shows "\<Prod>x:A. \<Prod>y:B(x). \<Prod>z:C(x)(y). D(x)(y)(z): U(i)"
-  by (simple lems: assms)
+  by (routine lems: assms)
 
 
 lemma curried_type_judgment:
   assumes "A: U(i)" "B: A \<longrightarrow> U(i)" "\<And>x y. \<lbrakk>x : A; y : B(x)\<rbrakk> \<Longrightarrow> f x y : C x y"
   shows "\<^bold>\<lambda>x y. f x y : \<Prod>x:A. \<Prod>y:B(x). C x y"
-  by (simple lems: assms)
+  by (routine lems: assms)
 
 
 text "
@@ -109,13 +109,13 @@ text "
 definition Id :: "Term" where "Id \<equiv> \<^bold>\<lambda>x. x"
 
 lemma "\<lbrakk>x: A\<rbrakk> \<Longrightarrow> Id`x \<equiv> x"
-unfolding Id_def by (compute, simple)
+unfolding Id_def by (compute, routine)
   
 
 section \<open>Natural numbers\<close>
 
 text "Automatic proof methods recognize natural numbers."
 
-proposition "succ(succ(succ 0)): Nat" by simple
+proposition "succ(succ(succ 0)): Nat" by routine
 
 end
