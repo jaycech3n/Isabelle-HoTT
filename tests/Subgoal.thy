@@ -13,21 +13,16 @@ lemma rpathcomp_type:
   shows "rpathcomp: \<Prod>x:A. \<Prod>y:A. x =\<^sub>A y \<rightarrow> (\<Prod>z:A. y =\<^sub>A z \<rightarrow> x =\<^sub>A z)"
 unfolding rpathcomp_def
 apply standard
-prefer 2
   subgoal premises 1 for x  \<comment> \<open>\<open>subgoal\<close> is the proof script version of \<open>fix-assume-show\<close>.\<close>
   apply standard
-  prefer 2
     subgoal premises 2 for y
     apply standard
-    prefer 2
       subgoal premises 3 for p
       apply (rule Equal_elim[where ?x=x and ?y=y and ?A=A])
         \<comment> \<open>specifying \<open>?A=A\<close> is crucial here to prevent the next \<open>subgoal\<close> from binding a schematic ?A which should be instantiated to \<open>A\<close>.\<close>
-      prefer 2
+      prefer 4
         apply standard
-        prefer 2
           apply (rule Prod_intro)
-          prefer 2
             subgoal premises 4 for u z q
             apply (rule Equal_elim[where ?x=u and ?y=z])
             apply (simple lems: assms 4)
@@ -58,11 +53,8 @@ text "
 "
 
 apply (rule Prod_intro)
-prefer 2
   apply (rule Prod_intro)
-  prefer 2
     apply (rule Prod_intro)
-    prefer 2
       subgoal 123 for x y p
       apply (rule Equal_elim[where ?x=x and ?y=y and ?A=A])
       oops

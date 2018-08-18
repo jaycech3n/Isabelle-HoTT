@@ -1,6 +1,5 @@
 (*  Title:  HoTT/HoTT_Base.thy
     Author: Josh Chen
-    Date:   Aug 2018
 
 Basic setup and definitions of a homotopy type theory object logic with a cumulative universe hierarchy à la Russell.
 *)

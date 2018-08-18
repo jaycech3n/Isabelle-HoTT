@@ -1,8 +1,7 @@
 (*  Title:  HoTT/Sum.thy
     Author: Josh Chen
-    Date:   Jun 2018
 
-Dependent sum type.
+Dependent sum type
 *)
 
 theory Sum
@@ -36,32 +35,35 @@ section \<open>Type rules\<close>
 axiomatization where
   Sum_form: "\<lbrakk>A: U(i); B: A \<longrightarrow> U(i)\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x): U(i)"
 and
-  Sum_intro: "\<lbrakk>B: A \<longrightarrow> U(i); a: A; b: B(a)\<rbrakk> \<Longrightarrow> <a,b> : \<Sum>x:A. B(x)"
+  Sum_intro: "\<lbrakk>B: A \<longrightarrow> U(i); a: A; b: B(a)\<rbrakk> \<Longrightarrow> <a,b>: \<Sum>x:A. B(x)"
 and
   Sum_elim: "\<lbrakk>
-    C: \<Sum>x:A. B(x) \<longrightarrow> U(i);
-    \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f(x)(y) : C(<x,y>);
-    p : \<Sum>x:A. B(x)
-    \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum>(f)(p) : C(p)"  (* What does writing \<lambda>x y. f(x, y) change? *)
+    p: \<Sum>x:A. B(x);
+    \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f(x)(y): C(<x,y>);
+    C: \<Sum>x:A. B(x) \<longrightarrow> U(i)
+    \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum>(f)(p): C(p)"  (* What does writing \<lambda>x y. f(x, y) change? *)
 and
   Sum_comp: "\<lbrakk>
-    C: \<Sum>x:A. B(x) \<longrightarrow> U(i);
-    B: A \<longrightarrow> U(i);
-    \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f(x)(y) : C(<x,y>);
     a: A;
-    b: B(a)
+    b: B(a);
+    \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f(x)(y): C(<x,y>);
+    B: A \<longrightarrow> U(i);
+    C: \<Sum>x:A. B(x) \<longrightarrow> U(i)
     \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum>(f)(<a,b>) \<equiv> f(a)(b)"
 
 text "Admissible inference rules for sum formation:"
 
 axiomatization where
-  Sum_form_cond1: "(\<Sum>x:A. B(x): U(i)) \<Longrightarrow> A: U(i)"
+  Sum_wellform1: "(\<Sum>x:A. B(x): U(i)) \<Longrightarrow> A: U(i)"
 and
-  Sum_form_cond2: "(\<Sum>x:A. B(x): U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
+  Sum_wellform2: "(\<Sum>x:A. B(x): U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
 
-lemmas Sum_rules [intro] = Sum_form Sum_intro Sum_elim Sum_comp
-lemmas Sum_wellform [wellform] = Sum_form_cond1 Sum_form_cond2
-lemmas Sum_comps [comp] = Sum_comp
+
+text "Rule attribute declarations:"
+
+lemmas Sum_comp [comp]
+lemmas Sum_wellform [wellform] = Sum_wellform1 Sum_wellform2
+lemmas Sum_routine [intro] = Sum_form Sum_intro Sum_comp Sum_elim
 
 
 section \<open>Empty type\<close>
@@ -74,7 +76,7 @@ where
 and
   Empty_elim: "\<lbrakk>C: \<zero> \<longrightarrow> U(i); z: \<zero>\<rbrakk> \<Longrightarrow> ind\<^sub>\<zero>(z): C(z)"
 
-lemmas Empty_rules [intro] = Empty_form Empty_elim
+lemmas Empty_routine [intro] = Empty_form Empty_elim
 
 
 end

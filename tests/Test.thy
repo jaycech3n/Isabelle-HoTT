@@ -6,8 +6,8 @@ This is an old "test suite" from early implementations of the theory.
 It is not always guaranteed to be up to date, or reflect most recent versions of the theory.
 *)
 
-theory HoTT_Test
-  imports HoTT
+theory Test
+  imports "../HoTT"
 begin
 
 
@@ -31,14 +31,14 @@ text "
   Declaring \<open>Prod_intro\<close> with the \<open>intro\<close> attribute (in HoTT.thy) enables \<open>standard\<close> to prove the following.
 "
 
-proposition assumes "A : U(i)" shows "\<^bold>\<lambda>x. x: A \<rightarrow> A" using assms ..
+proposition assumes "A : U(i)" shows "\<^bold>\<lambda>x. x: A \<rightarrow> A" by (simple lems: assms)
 
 proposition
   assumes "A : U(i)" and "A \<equiv> B"
   shows "\<^bold>\<lambda>x. x : B \<rightarrow> A"
 proof -
-  have "A\<rightarrow>A \<equiv> B\<rightarrow>A" using assms by simp
-  moreover have "\<^bold>\<lambda>x. x : A \<rightarrow> A" using assms(1) ..
+  have "A \<rightarrow> A \<equiv> B \<rightarrow> A" using assms by simp
+  moreover have "\<^bold>\<lambda>x. x : A \<rightarrow> A" by (simple lems: assms)
   ultimately show "\<^bold>\<lambda>x. x : B \<rightarrow> A" by simp
 qed
 
@@ -102,7 +102,7 @@ lemma curried_type_judgment:
 
 
 text "
-  Polymorphic identity function. Trivial due to lambda expression polymorphism.
+  Polymorphic identity function is now trivial due to lambda expression polymorphism.
   (Was more involved in previous monomorphic incarnations.)
 "
 

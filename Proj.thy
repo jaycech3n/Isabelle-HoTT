@@ -1,6 +1,5 @@
 (*  Title:  HoTT/Proj.thy
     Author: Josh Chen
-    Date:   Jun 2018
 
 Projection functions \<open>fst\<close> and \<open>snd\<close> for the dependent sum type.
 *)
@@ -27,7 +26,7 @@ lemma fst_comp:
 unfolding fst_def
 proof
   show "a: A" and "b: B(a)" by fact+
-qed (rule assms)+
+qed (simple lems: assms)+
 
 lemma snd_type:
   assumes "\<Sum>x:A. B(x): U(i)" and "p: \<Sum>x:A. B(x)" shows "snd(p): B(fst p)"
@@ -54,10 +53,10 @@ proof
 qed (simple lems: assms)
 
 
-text "Rule declarations:"
+text "Rule attribute declarations:"
 
-lemmas Proj_types [intro] = fst_type snd_type
-lemmas Proj_comps [comp] = fst_comp snd_comp
+lemmas Proj_type [intro] = fst_type snd_type
+lemmas Proj_comp [comp] = fst_comp snd_comp
 
 
 end

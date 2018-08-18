@@ -1,8 +1,7 @@
 (*  Title:  HoTT/EqualProps.thy
     Author: Josh Chen
-    Date:   Aug 2018
 
-Properties of equality.
+Properties of equality
 *)
 
 theory EqualProps

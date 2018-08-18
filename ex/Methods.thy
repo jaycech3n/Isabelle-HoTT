@@ -1,6 +1,5 @@
 (*  Title:  HoTT/ex/Methods.thy
     Author: Josh Chen
-    Date:   Aug 2018
 
 HoTT method usage examples
 *)

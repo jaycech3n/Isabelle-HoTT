@@ -1,8 +1,7 @@
 (*  Title:  HoTT/ProdProps.thy
     Author: Josh Chen
-    Date:   Aug 2018
 
-Properties of the dependent product.
+Properties of the dependent product
 *)
 
 theory ProdProps

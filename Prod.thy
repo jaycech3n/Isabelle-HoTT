@@ -1,8 +1,7 @@
 (*  Title:  HoTT/Prod.thy
     Author: Josh Chen
-    Date:   Aug 2018
 
-Dependent product (function) type.
+Dependent product (function) type
 *)
 
 theory Prod
@@ -39,11 +38,11 @@ section \<open>Type rules\<close>
 axiomatization where
   Prod_form: "\<lbrakk>A: U(i); B: A \<longrightarrow> U(i)\<rbrakk> \<Longrightarrow> \<Prod>x:A. B(x): U(i)"
 and
-  Prod_intro: "\<lbrakk>A: U(i); \<And>x. x: A \<Longrightarrow> b(x): B(x)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b(x): \<Prod>x:A. B(x)"
+  Prod_intro: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b(x): B(x); A: U(i)\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b(x): \<Prod>x:A. B(x)"
 and
   Prod_elim: "\<lbrakk>f: \<Prod>x:A. B(x); a: A\<rbrakk> \<Longrightarrow> f`a: B(a)"
 and
-  Prod_comp: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b(x): B(x); a: A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)"
+  Prod_appl: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b(x): B(x); a: A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b(x))`a \<equiv> b(a)"
 and
   Prod_uniq: "f : \<Prod>x:A. B(x) \<Longrightarrow> \<^bold>\<lambda>x. (f`x) \<equiv> f"
 and
@@ -62,15 +61,16 @@ text "
 "
 
 axiomatization where
-  Prod_form_cond1: "(\<Prod>x:A. B(x): U(i)) \<Longrightarrow> A: U(i)"
+  Prod_wellform1: "(\<Prod>x:A. B(x): U(i)) \<Longrightarrow> A: U(i)"
 and
-  Prod_form_cond2: "(\<Prod>x:A. B(x): U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
+  Prod_wellform2: "(\<Prod>x:A. B(x): U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
 
-text "Set up the standard reasoner to use the type rules:"
 
-lemmas Prod_rules [intro] = Prod_form Prod_intro Prod_elim Prod_comp Prod_uniq Prod_eq
-lemmas Prod_wellform [wellform] = Prod_form_cond1 Prod_form_cond2
-lemmas Prod_comps [comp] = Prod_comp Prod_uniq Prod_eq
+text "Rule attribute declarations---set up various methods to use the type rules."
+
+lemmas Prod_comp [comp] = Prod_appl Prod_uniq
+lemmas Prod_wellform [wellform] = Prod_wellform1 Prod_wellform2
+lemmas Prod_routine [intro] = Prod_form Prod_intro Prod_comp Prod_elim
 
 
 section \<open>Function composition\<close>
@@ -96,8 +96,8 @@ and
 and
   Unit_comp: "\<lbrakk>C: \<one> \<longrightarrow> U(i); c: C(\<star>)\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(c)(\<star>) \<equiv> c"
 
-lemmas Unit_rules [intro] = Unit_form Unit_intro Unit_elim Unit_comp
-lemmas Unit_comps [comp] = Unit_comp
+lemmas Unit_comp [comp]
+lemmas Unit_routine [intro] = Unit_form Unit_intro Unit_comp Unit_elim
 
 
 end

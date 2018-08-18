@@ -1,6 +1,5 @@
 (*  Title:  HoTT/HoTT_Methods.thy
     Author: Josh Chen
-    Date:   Jun 2018
 
 Method setup for the HoTT library. Relies heavily on Eisbach.
 *)
@@ -18,7 +17,7 @@ section \<open>Method definitions\<close>
 subsection \<open>Simple type rule proof search\<close>
 
 text "
-  Prove type judgments \<open>A : U\<close> and inhabitation judgments \<open>a : A\<close> using the type rules declared [intro] and [elim] (in the respective theory files), as well as additional provided lemmas.
+  Prove type judgments \<open>A : U\<close> and inhabitation judgments \<open>a : A\<close> using the type rules declared [intro] in the respective theory files, as well as additional provided lemmas.
   
   Can also perform typechecking, and search for elements of a type.
 "
@@ -62,7 +61,7 @@ ML_file "~~/src/Tools/eqsubst.ML"
 
 text "Perform basic single-step computations:"
 
-method compute uses lems = (subst lems comp)
+method compute uses lems = (subst lems comp | rule lems comp)
 
 
 end

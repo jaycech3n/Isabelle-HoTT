@@ -1,8 +1,7 @@
 (*  Title:  HoTT/Equal.thy
     Author: Josh Chen
-    Date:   Jun 2018
 
-Equality type.
+Equality type
 *)
 
 theory Equal
@@ -33,36 +32,35 @@ and
   Equal_intro: "a : A \<Longrightarrow> refl(a): a =\<^sub>A a"
 and
   Equal_elim: "\<lbrakk>
-    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<longrightarrow> U(i);
-    \<And>x. x: A \<Longrightarrow> f(x) : C(x)(x)(refl x);
     x: A;
     y: A;
-    p: x =\<^sub>A y
+    p: x =\<^sub>A y;
+    \<And>x. x: A \<Longrightarrow> f(x) : C(x)(x)(refl x);
+    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<longrightarrow> U(i)
     \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(p) : C(x)(y)(p)"
 and
   Equal_comp: "\<lbrakk>
-    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<longrightarrow> U(i);
+    a: A;
     \<And>x. x: A \<Longrightarrow> f(x) : C(x)(x)(refl x);
-    a: A
+    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<longrightarrow> U(i)
     \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(refl(a)) \<equiv> f(a)"
 
 
 text "Admissible inference rules for equality type formation:"
 
 axiomatization where
-  Equal_form_cond1: "a =\<^sub>A b: U(i) \<Longrightarrow> A: U(i)"
+  Equal_wellform1: "a =\<^sub>A b: U(i) \<Longrightarrow> A: U(i)"
 and
-  Equal_form_cond2: "a =\<^sub>A b: U(i) \<Longrightarrow> a: A"
+  Equal_wellform2: "a =\<^sub>A b: U(i) \<Longrightarrow> a: A"
 and
-  Equal_form_cond3: "a =\<^sub>A b: U(i) \<Longrightarrow> b: A"
+  Equal_wellform3: "a =\<^sub>A b: U(i) \<Longrightarrow> b: A"
 
 
-text "Rule declarations:"
+text "Rule attribute declarations:"
 
-lemmas Equal_rules [intro] = Equal_form Equal_intro Equal_elim Equal_comp
-lemmas Equal_wellform [wellform] = Equal_form_cond1 Equal_form_cond2 Equal_form_cond3
-lemmas Equal_comps [comp] = Equal_comp
-
+lemmas Equal_comp [comp]
+lemmas Equal_wellform [wellform] = Equal_wellform1 Equal_wellform2 Equal_wellform3
+lemmas Equal_routine [intro] = Equal_form Equal_intro Equal_comp Equal_elim
 
 
 end

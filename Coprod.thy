@@ -1,8 +1,7 @@
 (*  Title:  HoTT/Coprod.thy
     Author: Josh Chen
-    Date:   Aug 2018
 
-Coproduct type.
+Coproduct type
 *)
 
 theory Coprod
@@ -20,9 +19,9 @@ axiomatization
 where
   Coprod_form: "\<lbrakk>A: U(i); B: U(i)\<rbrakk> \<Longrightarrow> A + B: U(i)"
 and
-  Coprod_intro1: "\<lbrakk>a: A; B: U(i)\<rbrakk> \<Longrightarrow> inl(a): A + B"
+  Coprod_intro_inl: "\<lbrakk>a: A; B: U(i)\<rbrakk> \<Longrightarrow> inl(a): A + B"
 and
-  Coprod_intro2: "\<lbrakk>b: B; A: U(i)\<rbrakk> \<Longrightarrow> inr(b): A + B"
+  Coprod_intro_inr: "\<lbrakk>b: B; A: U(i)\<rbrakk> \<Longrightarrow> inr(b): A + B"
 and
   Coprod_elim: "\<lbrakk>
     C: A + B \<longrightarrow> U(i);
@@ -31,14 +30,14 @@ and
     u: A + B
     \<rbrakk> \<Longrightarrow> ind\<^sub>+(c)(d)(u) : C(u)"
 and
-  Coprod_comp1: "\<lbrakk>
+  Coprod_comp_inl: "\<lbrakk>
     C: A + B \<longrightarrow> U(i);
     \<And>x. x: A \<Longrightarrow> c(x): C(inl(x));
     \<And>y. y: B \<Longrightarrow> d(y): C(inr(y));
     a: A
     \<rbrakk> \<Longrightarrow> ind\<^sub>+(c)(d)(inl(a)) \<equiv> c(a)"
 and
-  Coprod_comp2: "\<lbrakk>
+  Coprod_comp_inr: "\<lbrakk>
     C: A + B \<longrightarrow> U(i);
     \<And>x. x: A \<Longrightarrow> c(x): C(inl(x));
     \<And>y. y: B \<Longrightarrow> d(y): C(inr(y));
@@ -49,17 +48,18 @@ and
 text "Admissible formation inference rules:"
 
 axiomatization where
-  Coprod_form_cond1: "A + B: U(i) \<Longrightarrow> A: U(i)"
+  Coprod_wellform1: "A + B: U(i) \<Longrightarrow> A: U(i)"
 and
-  Coprod_form_cond2: "A + B: U(i) \<Longrightarrow> B: U(i)"
+  Coprod_wellform2: "A + B: U(i) \<Longrightarrow> B: U(i)"
 
 
-text "Rule declarations:"
+text "Rule attribute declarations:"
 
-lemmas Coprod_intro = Coprod_intro1 Coprod_intro2
-lemmas Coprod_rules [intro] = Coprod_form Coprod_intro Coprod_elim Coprod_comp1 Coprod_comp2
-lemmas Coprod_form_conds [wellform] = Coprod_form_cond1 Coprod_form_cond2
-lemmas Coprod_comps [comp] = Coprod_comp1 Coprod_comp2
+lemmas Coprod_intro = Coprod_intro_inl Coprod_intro_inr
+
+lemmas Coprod_comp [comp] = Coprod_comp_inl Coprod_comp_inr
+lemmas Coprod_wellform [wellform] = Coprod_wellform1 Coprod_wellform2
+lemmas Coprod_routine [intro] = Coprod_form Coprod_intro Coprod_comp Coprod_elim
 
 
 end

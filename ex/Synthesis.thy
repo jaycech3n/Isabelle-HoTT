@@ -1,6 +1,5 @@
 (*  Title:  HoTT/ex/Synthesis.thy
     Author: Josh Chen
-    Date:   Aug 2018
 
 Examples of synthesis.
 *)
@@ -33,8 +32,8 @@ text "
 schematic_goal "?p`0 \<equiv> 0" and "\<And>n. n: \<nat> \<Longrightarrow> (?p`(succ n)) \<equiv> n"
 apply compute
 prefer 4 apply compute
-prefer 3 apply (rule Nat_rules)
-apply (rule Nat_rules | assumption)+
+prefer 3 apply compute
+apply (rule Nat_routine Nat_elim | assumption)+
 done
 
 text "
@@ -52,7 +51,7 @@ proof (simple lems: pred_type)
   proof compute
     show "\<And>n. n: \<nat> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>a b. a) 0 n: \<nat>" by simple
     show "ind\<^sub>\<nat> (\<lambda>a b. a) 0 0 \<equiv> 0"
-    proof (rule Nat_comps)
+    proof compute
       show "\<nat>: U(O)" ..
     qed simple
   qed rule
