@@ -25,7 +25,7 @@ text "
 "
 
 consts
-  has_type :: "[Term, Term] \<Rightarrow> prop"  ("(1_: _)" [0, 0] 1000)
+  has_type :: "[Term, Term] \<Rightarrow> prop"  ("(3_:/ _)" [0, 0] 1000)
 
 
 section \<open>Universe hierarchy\<close>
