@@ -13,7 +13,7 @@ chapter \<open>HoTT Book, Chapter 1\<close>
 
 section \<open>1.6 Dependent pair types (\<Sigma>-types)\<close>
 
-text "Prove that the only inhabitants of the \<Sigma>-type are those given by the pair constructor."
+text "Propositional uniqueness principle:"
 
 schematic_goal
   assumes "(\<Sum>x:A. B(x)): U(i)" and "p: \<Sum>x:A. B(x)"

@@ -21,7 +21,6 @@ text "
 lemma compose_assoc:
   assumes "A: U(i)" and "f: A \<rightarrow> B" "g: B \<rightarrow> C" "h: \<Prod>x:C. D(x)"
   shows "(h \<circ> g) \<circ> f \<equiv> h \<circ> (g \<circ> f)"
-
 proof (subst (0 1 2 3) compose_def)
   show "\<^bold>\<lambda>x. (\<^bold>\<lambda>y. h`(g`y))`(f`x) \<equiv> \<^bold>\<lambda>x. h`((\<^bold>\<lambda>y. g`(f`y))`x)"
   proof (subst Prod_eq)
