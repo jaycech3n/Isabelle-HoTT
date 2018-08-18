@@ -2,3 +2,4 @@
 *.thy~
 ex/*.thy~
 ex/Hott book/*.thy~
+tests/*.thy~
