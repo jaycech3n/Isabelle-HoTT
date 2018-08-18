@@ -1,1 +1,4 @@
+.directory
 *.thy~
+ex/*.thy~
+ex/Hott book/*.thy~
