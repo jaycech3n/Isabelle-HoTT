@@ -1,9 +1,10 @@
-theory Schematic_subgoal
+theory Subgoal
   imports "../HoTT"
 begin
 
 text "
   \<open>subgoal\<close> converts schematic variables to fixed free variables, making it unsuitable for use in \<open>schematic_goal\<close> proofs.
+  This is the same thing as being unable to start a "sub-schematic goal" inside an ongoing proof.
 
   This is a problem for syntheses which need to use induction (elimination rules), as these often have to be applied to fixed variables, while keeping any schematic variables intact.
 "
