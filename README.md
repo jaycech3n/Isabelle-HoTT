@@ -16,4 +16,4 @@ If you're interested in working together on any part of this do drop me a line a
 
 ### License
 
-MIT
+GNU LGPLv3
