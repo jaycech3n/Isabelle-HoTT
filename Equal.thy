@@ -60,7 +60,7 @@ text "Rule attribute declarations:"
 
 lemmas Equal_comp [comp]
 lemmas Equal_wellform [wellform] = Equal_wellform1 Equal_wellform2 Equal_wellform3
-lemmas Equal_routine [intro] = Equal_form Equal_intro Equal_comp Equal_elim
+lemmas Equal_routine [intro] = Equal_form Equal_intro Equal_elim
 
 
 end

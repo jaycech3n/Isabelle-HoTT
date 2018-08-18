@@ -48,7 +48,7 @@ text "Rule attribute declarations:"
 
 lemmas Nat_intro = Nat_intro_0 Nat_intro_succ
 lemmas Nat_comp [comp] = Nat_comp_0 Nat_comp_succ
-lemmas Nat_routine [intro] = Nat_form Nat_intro Nat_comp Nat_elim
+lemmas Nat_routine [intro] = Nat_form Nat_intro Nat_elim
 
 
 end

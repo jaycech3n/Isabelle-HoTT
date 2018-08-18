@@ -63,7 +63,7 @@ text "Rule attribute declarations:"
 
 lemmas Sum_comp [comp]
 lemmas Sum_wellform [wellform] = Sum_wellform1 Sum_wellform2
-lemmas Sum_routine [intro] = Sum_form Sum_intro Sum_comp Sum_elim
+lemmas Sum_routine [intro] = Sum_form Sum_intro Sum_elim
 
 
 section \<open>Empty type\<close>

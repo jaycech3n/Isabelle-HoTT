@@ -25,11 +25,11 @@ apply standard
           apply (rule Prod_intro)
             subgoal premises 4 for u z q
             apply (rule Equal_elim[where ?x=u and ?y=z])
-            apply (simple lems: assms 4)
+            apply (routine lems: assms 4)
             done
-          apply (simple lems: assms 1 2 3)
+          apply (routine lems: assms 1 2 3)
       done
-    apply (simple lems: assms 1 2)
+    apply (routine lems: assms 1 2)
     done
   apply fact
   done
@@ -52,9 +52,9 @@ text "
   Try (and fail) to synthesize the constant for path composition, following the proof of \<open>rpathcomp_type\<close> below.
 "
 
-apply (rule Prod_intro)
-  apply (rule Prod_intro)
-    apply (rule Prod_intro)
+apply (rule intros)
+  apply (rule intros)
+    apply (rule intros)
       subgoal 123 for x y p
       apply (rule Equal_elim[where ?x=x and ?y=y and ?A=A])
       oops

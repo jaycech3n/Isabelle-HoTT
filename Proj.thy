@@ -24,9 +24,9 @@ unfolding fst_def by (derive lems: assms)
 lemma fst_comp:
   assumes "A: U(i)" and "B: A \<longrightarrow> U(i)" and "a: A" and "b: B(a)" shows "fst(<a,b>) \<equiv> a"
 unfolding fst_def
-proof
+proof compute
   show "a: A" and "b: B(a)" by fact+
-qed (simple lems: assms)+
+qed (routine lems: assms)+
 
 lemma snd_type:
   assumes "\<Sum>x:A. B(x): U(i)" and "p: \<Sum>x:A. B(x)" shows "snd(p): B(fst p)"
@@ -46,11 +46,11 @@ qed fact
 lemma snd_comp:
   assumes "A: U(i)" and "B: A \<longrightarrow> U(i)" and "a: A" and "b: B(a)" shows "snd(<a,b>) \<equiv> b"
 unfolding snd_def
-proof
+proof compute
   show "\<And>x y. y: B(x) \<Longrightarrow> y: B(x)" .
   show "a: A" by fact
   show "b: B(a)" by fact
-qed (simple lems: assms)
+qed (routine lems: assms)
 
 
 text "Rule attribute declarations:"

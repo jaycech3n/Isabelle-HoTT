@@ -70,7 +70,7 @@ text "Rule attribute declarations---set up various methods to use the type rules
 
 lemmas Prod_comp [comp] = Prod_appl Prod_uniq
 lemmas Prod_wellform [wellform] = Prod_wellform1 Prod_wellform2
-lemmas Prod_routine [intro] = Prod_form Prod_intro Prod_comp Prod_elim
+lemmas Prod_routine [intro] = Prod_form Prod_intro Prod_elim
 
 
 section \<open>Function composition\<close>
@@ -97,7 +97,7 @@ and
   Unit_comp: "\<lbrakk>C: \<one> \<longrightarrow> U(i); c: C(\<star>)\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(c)(\<star>) \<equiv> c"
 
 lemmas Unit_comp [comp]
-lemmas Unit_routine [intro] = Unit_form Unit_intro Unit_comp Unit_elim
+lemmas Unit_routine [intro] = Unit_form Unit_intro Unit_elim
 
 
 end

@@ -59,7 +59,7 @@ lemmas Coprod_intro = Coprod_intro_inl Coprod_intro_inr
 
 lemmas Coprod_comp [comp] = Coprod_comp_inl Coprod_comp_inr
 lemmas Coprod_wellform [wellform] = Coprod_wellform1 Coprod_wellform2
-lemmas Coprod_routine [intro] = Coprod_form Coprod_intro Coprod_comp Coprod_elim
+lemmas Coprod_routine [intro] = Coprod_form Coprod_intro Coprod_elim
 
 
 end

@@ -29,10 +29,10 @@ proof (subst (0 1 2 3) compose_def)
     proof compute
       show "\<And>x. x: A \<Longrightarrow> h`(g`(f`x)) \<equiv> h`((\<^bold>\<lambda>y. g`(f`y))`x)"
       proof compute
-        show "\<And>x. x: A \<Longrightarrow> g`(f`x): C" by (simple lems: assms)
+        show "\<And>x. x: A \<Longrightarrow> g`(f`x): C" by (routine lems: assms)
       qed
-      show "\<And>x. x: B \<Longrightarrow> h`(g`x): D(g`x)" by (simple lems: assms)
-    qed (simple lems: assms)
+      show "\<And>x. x: B \<Longrightarrow> h`(g`x): D(g`x)" by (routine lems: assms)
+    qed (routine lems: assms)
   qed fact
 qed
 
@@ -44,9 +44,9 @@ proof (subst compose_def, subst Prod_eq)
   show "\<And>a. a: A \<Longrightarrow> (\<^bold>\<lambda>x. c(x))`((\<^bold>\<lambda>x. b(x))`a) \<equiv> (\<^bold>\<lambda>x. c (b x))`a"
   proof compute
     show "\<And>a. a: A \<Longrightarrow> c((\<^bold>\<lambda>x. b(x))`a) \<equiv> (\<^bold>\<lambda>x. c(b(x)))`a"
-    by compute (simple lems: assms, compute?)+
-  qed (simple lems: assms)
-qed (simple lems: assms)
+    by (derive lems: assms)
+  qed (routine lems: assms)
+qed (derive lems: assms)
 
 
 end

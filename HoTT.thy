@@ -25,13 +25,13 @@ Proj
 
 begin
 
-lemmas form_rules =
+lemmas forms =
   Nat_form Prod_form Sum_form Coprod_form Equal_form Unit_form Empty_form
-lemmas intro_rules =
+lemmas intros =
   Nat_intro Prod_intro Sum_intro Equal_intro Coprod_intro Unit_intro
-lemmas elim_rules =
+lemmas elims =
   Nat_elim Prod_elim Sum_elim Equal_elim Coprod_elim Unit_elim Empty_elim
-lemmas routine_rules =
+lemmas routines =
   Nat_routine Prod_routine Sum_routine Equal_routine Coprod_routine Unit_routine Empty_routine
 
 end

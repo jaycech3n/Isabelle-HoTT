@@ -14,7 +14,7 @@ text "Wellformedness results, metatheorems written into the object theory using 
 lemma
   assumes "A : U(i)" "B: A \<longrightarrow> U(i)" "\<And>x. x : A \<Longrightarrow> C x: B x \<longrightarrow> U(i)"
   shows "\<Sum>x:A. \<Prod>y:B x. \<Sum>z:C x y. \<Prod>w:A. x =\<^sub>A w : U(i)"
-by (simple lems: assms)
+by (routine lems: assms)
 
 
 lemma
@@ -38,7 +38,7 @@ text "Typechecking and constructing inhabitants:"
 
 \<comment> \<open>Correctly determines the type of the pair\<close>
 schematic_goal "\<lbrakk>A: U(i); B: U(i); a : A; b : B\<rbrakk> \<Longrightarrow> <a, b> : ?A"
-by simple
+by routine
 
 \<comment> \<open>Finds pair (too easy).\<close>
 schematic_goal "\<lbrakk>A: U(i); B: U(i); a : A; b : B\<rbrakk> \<Longrightarrow> ?x : A \<times> B"
@@ -56,19 +56,19 @@ lemma
   assumes "A: U(i)" "a: A"
   shows "(\<^bold>\<lambda>x. <x,0>)`a \<equiv> <a,0>"
 proof compute
-  show "\<And>x. x: A \<Longrightarrow> <x,0>: A \<times> \<nat>" by simple
-qed (simple lems: assms)
+  show "\<And>x. x: A \<Longrightarrow> <x,0>: A \<times> \<nat>" by routine
+qed (routine lems: assms)
 
 
 lemma
   assumes "A: U(i)" "B: A \<longrightarrow> U(i)" "a: A" "b: B(a)"
   shows "(\<^bold>\<lambda>x y. <x,y>)`a`b \<equiv> <a,b>"
 proof compute
-  show "\<And>x. x: A \<Longrightarrow> \<^bold>\<lambda>y. <x,y>: \<Prod>y:B(x). \<Sum>x:A. B(x)" by (simple lems: assms)
+  show "\<And>x. x: A \<Longrightarrow> \<^bold>\<lambda>y. <x,y>: \<Prod>y:B(x). \<Sum>x:A. B(x)" by (routine lems: assms)
 
   show "(\<^bold>\<lambda>b. <a,b>)`b \<equiv> <a, b>"
   proof compute
-    show "\<And>b. b: B(a) \<Longrightarrow> <a, b>: \<Sum>x:A. B(x)" by (simple lems: assms)
+    show "\<And>b. b: B(a) \<Longrightarrow> <a, b>: \<Sum>x:A. B(x)" by (routine lems: assms)
   qed fact
 qed fact
 

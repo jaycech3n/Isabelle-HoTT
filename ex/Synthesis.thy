@@ -21,7 +21,7 @@ text "
 text "First we show that the property we want is well-defined."
 
 lemma pred_welltyped: "\<Sum>pred:\<nat>\<rightarrow>\<nat> . ((pred`0) =\<^sub>\<nat> 0) \<times> (\<Prod>n:\<nat>. (pred`(succ n)) =\<^sub>\<nat> n): U(O)"
-by simple
+by routine
 
 text "
   Now we look for an inhabitant of this type.
@@ -33,7 +33,7 @@ schematic_goal "?p`0 \<equiv> 0" and "\<And>n. n: \<nat> \<Longrightarrow> (?p`(
 apply compute
 prefer 4 apply compute
 prefer 3 apply compute
-apply (rule Nat_routine Nat_elim | assumption)+
+apply (rule Nat_routine Nat_elim | compute | assumption)+
 done
 
 text "
@@ -43,36 +43,36 @@ text "
 
 definition pred :: Term where "pred \<equiv> \<^bold>\<lambda>n. ind\<^sub>\<nat> (\<lambda>a b. a) 0 n"
 
-lemma pred_type: "pred: \<nat> \<rightarrow> \<nat>" unfolding pred_def by simple
+lemma pred_type: "pred: \<nat> \<rightarrow> \<nat>" unfolding pred_def by routine
 
 lemma pred_props: "<refl(0), \<^bold>\<lambda>n. refl(n)>: ((pred`0) =\<^sub>\<nat> 0) \<times> (\<Prod>n:\<nat>. (pred`(succ n)) =\<^sub>\<nat> n)"
-proof (simple lems: pred_type)
+proof (routine lems: pred_type)
   have *: "pred`0 \<equiv> 0" unfolding pred_def
   proof compute
-    show "\<And>n. n: \<nat> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>a b. a) 0 n: \<nat>" by simple
+    show "\<And>n. n: \<nat> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>a b. a) 0 n: \<nat>" by routine
     show "ind\<^sub>\<nat> (\<lambda>a b. a) 0 0 \<equiv> 0"
     proof compute
       show "\<nat>: U(O)" ..
-    qed simple
+    qed routine
   qed rule
-  then show "refl(0): (pred`0) =\<^sub>\<nat> 0" by (subst *) simple
+  then show "refl(0): (pred`0) =\<^sub>\<nat> 0" by (subst *) routine
 
   show "\<^bold>\<lambda>n. refl(n): \<Prod>n:\<nat>. (pred`(succ(n))) =\<^sub>\<nat> n"
   unfolding pred_def proof
     show "\<And>n. n: \<nat> \<Longrightarrow> refl(n): ((\<^bold>\<lambda>n. ind\<^sub>\<nat> (\<lambda>a b. a) 0 n)`succ(n)) =\<^sub>\<nat> n"
     proof compute
-      show "\<And>n. n: \<nat> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>a b. a) 0 n: \<nat>" by simple
+      show "\<And>n. n: \<nat> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>a b. a) 0 n: \<nat>" by routine
       show "\<And>n. n: \<nat> \<Longrightarrow> refl(n): ind\<^sub>\<nat> (\<lambda>a b. a) 0 (succ n) =\<^sub>\<nat> n"
       proof compute
         show "\<nat>: U(O)" ..
-      qed simple
+      qed routine
     qed rule
   qed rule
 qed
 
 theorem
   "<pred, <refl(0), \<^bold>\<lambda>n. refl(n)>>: \<Sum>pred:\<nat>\<rightarrow>\<nat> . ((pred`0) =\<^sub>\<nat> 0) \<times> (\<Prod>n:\<nat>. (pred`(succ n)) =\<^sub>\<nat> n)"
-by (simple lems: pred_welltyped pred_type pred_props)
+by (routine lems: pred_welltyped pred_type pred_props)
 
 
 end
