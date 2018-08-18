@@ -13,10 +13,12 @@ HoTT_Methods
 
 (* Types *)
 Coprod
+Empty
 Equal
 Nat
 Prod
 Sum
+Unit
 
 (* Derived definitions and properties *)
 EqualProps

@@ -66,17 +66,4 @@ lemmas Sum_wellform [wellform] = Sum_wellform1 Sum_wellform2
 lemmas Sum_routine [intro] = Sum_form Sum_intro Sum_elim
 
 
-section \<open>Empty type\<close>
-
-axiomatization
-  Empty :: Term  ("\<zero>") and
-  indEmpty :: "Term \<Rightarrow> Term"  ("(1ind\<^sub>\<zero>)")
-where
-  Empty_form: "\<zero> : U(O)"
-and
-  Empty_elim: "\<lbrakk>C: \<zero> \<longrightarrow> U(i); z: \<zero>\<rbrakk> \<Longrightarrow> ind\<^sub>\<zero>(z): C(z)"
-
-lemmas Empty_routine [intro] = Empty_form Empty_elim
-
-
 end
