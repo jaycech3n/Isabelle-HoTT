@@ -33,7 +33,7 @@ text "
 "
 
 lemma inv_comp:
-  assumes "A : U(i)" and "a : A" shows "(refl a)\<inverse> \<equiv> refl(a)"
+  assumes "A : U(i)" and "a : A" shows "(refl(a))\<inverse> \<equiv> refl(a)"
 unfolding inv_def
 proof compute
   show "\<And>x. x: A \<Longrightarrow> refl x: x =\<^sub>A x" ..
@@ -194,7 +194,7 @@ qed fact
 
 text "The raw object lambda term is cumbersome to use, so we define a simpler constant instead."
 
-axiomatization pathcomp :: "[Term, Term] \<Rightarrow> Term"  (infixl "\<bullet>" 60) where
+axiomatization pathcomp :: "[Term, Term] \<Rightarrow> Term"  (infixl "\<bullet>" 120) where
   pathcomp_def: "\<lbrakk>
     A: U(i);
     x: A; y: A; z: A;
@@ -214,8 +214,71 @@ lemma pathcomp_comp:
 by (subst pathcomp_def) (routine lems: assms rpathcomp_comp)
 
 
-lemmas EqualProps_type [intro] = inv_type pathcomp_type
-lemmas EqualProps_comp [comp] = inv_comp pathcomp_comp
+lemmas inv_type [intro]
+lemmas pathcomp_type [intro]
 
+lemmas inv_comp [comp]
+lemmas pathcomp_comp [comp]
+
+
+section \<open>Weak higher groupoid structure of types\<close>
+
+schematic_goal whg1a:
+  assumes "A: U(i)" "x: A" "y: A" "p: x =\<^sub>A y"
+  shows "?a: p =[x =\<^sub>A y] (p \<bullet> (refl(y)))"
+proof (rule Equal_elim[where ?x=x and ?y=y and ?p=p])
+  show "\<And>x. x: A \<Longrightarrow> refl(refl(x)): refl(x) =[x =\<^sub>A x] (refl(x) \<bullet> refl(x))"
+  by compute (routine lems: assms)
+qed (routine lems: assms)
+
+schematic_goal whg1b:
+  assumes "A: U(i)" "x: A" "y: A" "p: x =\<^sub>A y"
+  shows "?a: p =[x =\<^sub>A y] (refl(x) \<bullet> p)"
+proof (rule Equal_elim[where ?x=x and ?y=y and ?p=p])
+  show "\<And>x. x: A \<Longrightarrow> refl(refl(x)): refl(x) =[x =\<^sub>A x] (refl(x) \<bullet> refl(x))"
+  by compute (routine lems: assms)
+qed (routine lems: assms)
+
+schematic_goal whg2a:
+  assumes "A: U(i)" "x: A" "y: A" "p: x =\<^sub>A y"
+  shows "?a: (p\<inverse> \<bullet> p) =[y =\<^sub>A y] refl(y)"
+proof (rule Equal_elim[where ?x=x and ?y=y and ?p=p])
+  show "\<And>x. x: A \<Longrightarrow> refl(refl(x)): ((refl(x))\<inverse> \<bullet> refl(x)) =[x =\<^sub>A x] refl(x)"
+  by (compute | routine lems: assms)+
+qed (routine lems: assms)+
+
+schematic_goal whg2b:
+  assumes "A: U(i)" "x: A" "y: A" "p: x =\<^sub>A y"
+  shows "?a: (p \<bullet> p\<inverse>) =[x =\<^sub>A x] refl(x)"
+proof (rule Equal_elim[where ?x=x and ?y=y and ?p=p])
+  show "\<And>x. x: A \<Longrightarrow> refl(refl(x)): (refl(x) \<bullet> (refl(x))\<inverse>) =[x =\<^sub>A x] refl(x)"
+  by (compute | routine lems: assms)+
+qed (routine lems: assms)+
+
+schematic_goal whg3:
+  assumes "A: U(i)" "x: A" "y: A" "p: x =\<^sub>A y"
+  shows "?a: p\<inverse>\<inverse> =[x =\<^sub>A y] p"
+proof (rule Equal_elim[where ?x=x and ?y=y and ?p=p])
+  show "\<And>x. x: A \<Longrightarrow> refl(refl(x)): (refl(x))\<inverse>\<inverse> =[x =\<^sub>A x] refl(x)"
+  by (compute | routine lems: assms)+
+qed (routine lems: assms)
+
+
+lemma assumes "A: U(i)" shows "\<And>x. x: A \<Longrightarrow> refl(x): x =\<^sub>A x"
+by (rule Prod_atomize[where ?A=A and ?B="\<lambda>x. x =\<^sub>A x"]) (routine lems: assms)
+
+
+schematic_goal
+  assumes
+    "A: U(i)" and
+    "x: A" "y: A" "z: A" "w: A" and
+    "p: x =\<^sub>A y" "q: y =\<^sub>A z" "r: z =\<^sub>A w"
+  shows
+    "?a: p \<bullet> (q \<bullet> r) =[x =\<^sub>A w] (p \<bullet> q) \<bullet> r"
+proof (rule Equal_elim[where ?x=x and ?y=y and ?p=p])
+  fix y assume "y: A"
+  show "refl(q \<bullet> r): refl(y) \<bullet> (q \<bullet> r) =[y =\<^sub>A w] (refl(y) \<bullet> q) \<bullet> r"
+  proof (compute lems: whg1b)
+  
 
 end
