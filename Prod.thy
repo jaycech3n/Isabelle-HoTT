@@ -81,4 +81,13 @@ syntax "_COMPOSE" :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<circ>" 70)
 translations "g \<circ> f" \<rightleftharpoons> "g o f"
 
 
+section \<open>Atomization\<close>
+
+text "
+  Universal statements can be internalized within the theory; the following rule is admissible.
+" (* PROOF NEEDED *)
+
+axiomatization where Prod_atomize: "(\<^bold>\<lambda>x. b(x): \<Prod>x:A. B(x)) \<Longrightarrow> (\<And>x. x: A \<Longrightarrow> b(x): B(x))"
+
+
 end
