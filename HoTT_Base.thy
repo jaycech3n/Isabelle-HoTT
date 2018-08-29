@@ -42,7 +42,7 @@ where
 and
   Ord_lt_monotone: "\<And>m n. m < n \<Longrightarrow> S(m) < S(n)"
 and
-  Ord_leq_min: "\<And>n. n \<le> n"
+  Ord_leq_min: "\<And>n. O \<le> n"
 and
   Ord_leq_monotone: "\<And>m n. m \<le> n \<Longrightarrow> S(m) \<le> S(n)"
 
@@ -57,7 +57,11 @@ where
   U_hierarchy: "\<And>i j. i < j \<Longrightarrow> U(i): U(j)"
 and
   U_cumulative: "\<And>A i j. \<lbrakk>A: U(i); i \<le> j\<rbrakk> \<Longrightarrow> A: U(j)"
-    \<comment> \<open>WARNING: \<open>rule Universe_cumulative\<close> can result in an infinite rewrite loop!\<close>
+
+text "
+  The rule \<open>U_cumulative\<close> is very unsafe: if used as-is it will usually lead to an infinite rewrite loop!
+  It should be instantiated with the right ordinals \<open>i\<close> and \<open>j\<close> before being applied.
+"
 
 
 section \<open>Type families\<close>

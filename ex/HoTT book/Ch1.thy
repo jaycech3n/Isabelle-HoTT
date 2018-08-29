@@ -40,4 +40,16 @@ proof (rule Sum_elim[where ?p=p])
 qed (derive lems: assms)
 
 
+section \<open>Exercises\<close>
+
+text "Exercise 1.13"
+
+abbreviation "not" ("\<not>'(_')") where "\<not>(A) \<equiv> A \<rightarrow> \<zero>"
+
+text "This proof requires the use of universe cumulativity."
+
+proposition assumes "A: U(i)" shows "\<^bold>\<lambda>f. f`(inr(\<^bold>\<lambda>a. f`inl(a))): \<not>(\<not>(A + \<not>(A)))"
+by (derive lems: assms U_cumulative[where ?A=\<zero> and ?i=O and ?j=i])
+
+
 end
