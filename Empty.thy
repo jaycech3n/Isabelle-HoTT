@@ -17,7 +17,7 @@ axiomatization
   Empty :: Term  ("\<zero>") and
   indEmpty :: "Term \<Rightarrow> Term"  ("(1ind\<^sub>\<zero>)")
 where
-  Empty_form: "\<zero> : U(O)"
+  Empty_form: "\<zero>: U(O)"
 and
   Empty_elim: "\<lbrakk>C: \<zero> \<longrightarrow> U(i); z: \<zero>\<rbrakk> \<Longrightarrow> ind\<^sub>\<zero>(z): C(z)"
 

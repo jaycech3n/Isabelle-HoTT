@@ -35,13 +35,18 @@ typedecl Ord
 axiomatization
   O :: Ord and
   S :: "Ord \<Rightarrow> Ord"  ("S_" [0] 1000) and
-  lt :: "[Ord, Ord] \<Rightarrow> prop"  (infix "<-" 999)
+  lt :: "[Ord, Ord] \<Rightarrow> prop"  (infix "<" 999) and
+  leq :: "[Ord, Ord] \<Rightarrow> prop"  (infix "\<le>" 999)
 where
-  Ord_min: "\<And>n. O <- S(n)"
+  Ord_lt_min: "\<And>n. O < S(n)"
 and
-  Ord_monotone: "\<And>m n. m <- n \<Longrightarrow> S(m) <- S(n)"
+  Ord_lt_monotone: "\<And>m n. m < n \<Longrightarrow> S(m) < S(n)"
+and
+  Ord_leq_min: "\<And>n. n \<le> n"
+and
+  Ord_leq_monotone: "\<And>m n. m \<le> n \<Longrightarrow> S(m) \<le> S(n)"
 
-lemmas Ord_rules [intro] = Ord_min Ord_monotone
+lemmas Ord_rules [intro] = Ord_lt_min Ord_lt_monotone Ord_leq_min Ord_leq_monotone
   \<comment> \<open>Enables \<open>standard\<close> to automatically solve inequalities.\<close>
 
 text "Define the universe types."
@@ -49,9 +54,9 @@ text "Define the universe types."
 axiomatization
   U :: "Ord \<Rightarrow> Term"
 where
-  U_hierarchy: "\<And>i j. i <- j \<Longrightarrow> U(i): U(j)"
+  U_hierarchy: "\<And>i j. i < j \<Longrightarrow> U(i): U(j)"
 and
-  U_cumulative: "\<And>A i j. \<lbrakk>A: U(i); i <- j\<rbrakk> \<Longrightarrow> A: U(j)"
+  U_cumulative: "\<And>A i j. \<lbrakk>A: U(i); i \<le> j\<rbrakk> \<Longrightarrow> A: U(j)"
     \<comment> \<open>WARNING: \<open>rule Universe_cumulative\<close> can result in an infinite rewrite loop!\<close>
 
 
