@@ -4,7 +4,7 @@ An experimental implementation of [homotopy type theory](https://en.wikipedia.or
 
 ### Installation & Usage
 
-Clone the contents of this repository into `<Isabelle root directory>/src/HoTT`.
+Clone the contents of this repository into `<Isabelle root directory>/src/Isabelle-HoTT`.
 
 To use, set Isabelle's prover to Pure in the Theories panel, and import `HoTT`.
 
