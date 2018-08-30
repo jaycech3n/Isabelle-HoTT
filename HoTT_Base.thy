@@ -60,7 +60,7 @@ and
 
 text "
   The rule \<open>U_cumulative\<close> is very unsafe: if used as-is it will usually lead to an infinite rewrite loop!
-  It should be instantiated with the right ordinals \<open>i\<close> and \<open>j\<close> before being applied.
+  To avoid this, it should be instantiated before being applied.
 "
 
 

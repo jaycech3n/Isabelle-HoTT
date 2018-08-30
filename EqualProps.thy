@@ -194,7 +194,7 @@ qed fact
 
 text "The raw object lambda term is cumbersome to use, so we define a simpler constant instead."
 
-axiomatization pathcomp :: "[Term, Term] \<Rightarrow> Term"  (infixl "\<bullet>" 60) where
+axiomatization pathcomp :: "[Term, Term] \<Rightarrow> Term"  (infixl "\<bullet>" 120) where
   pathcomp_def: "\<lbrakk>
     A: U(i);
     x: A; y: A; z: A;
@@ -205,9 +205,11 @@ axiomatization pathcomp :: "[Term, Term] \<Rightarrow> Term"  (infixl "\<bullet>
 lemma pathcomp_type:
   assumes "A: U(i)" "x: A" "y: A" "z: A" "p: x =\<^sub>A y" "q: y =\<^sub>A z"
   shows "p \<bullet> q: x =\<^sub>A z"
+
 proof (subst pathcomp_def)
   show "A: U(i)" "x: A" "y: A" "z: A" "p: x =\<^sub>A y" "q: y =\<^sub>A z" by fact+
 qed (routine lems: assms rpathcomp_type)
+
 
 lemma pathcomp_comp:
   assumes "A : U(i)" and "a : A" shows "refl(a) \<bullet> refl(a) \<equiv> refl(a)"
@@ -216,6 +218,58 @@ by (subst pathcomp_def) (routine lems: assms rpathcomp_comp)
 
 lemmas EqualProps_type [intro] = inv_type pathcomp_type
 lemmas EqualProps_comp [comp] = inv_comp pathcomp_comp
+
+
+section \<open>Higher groupoid structure of types\<close>
+
+lemma
+  assumes "A: U(i)" "x: A" "y: A" "p: x =\<^sub>A y"
+  shows
+    "ind\<^sub>= (\<lambda>u. refl (refl u)) p: p =[x =\<^sub>A y] p \<bullet> refl(y)" and
+    "ind\<^sub>= (\<lambda>u. refl (refl u)) p: p =[x =\<^sub>A y] refl(x) \<bullet> p"
+
+proof -
+  show "ind\<^sub>= (\<lambda>u. refl (refl u)) p: p =[x =[A] y] p \<bullet> refl(y)"
+  by (rule Equal_elim[where ?p=p and ?x=x and ?y=y]) (derive lems: assms)+
+
+  show "ind\<^sub>= (\<lambda>u. refl (refl u)) p: p =[x =[A] y] refl x \<bullet> p"
+  by (rule Equal_elim[where ?p=p and ?x=x and ?y=y]) (derive lems: assms)+
+qed
+
+
+lemma
+  assumes "A: U(i)" "x: A" "y: A" "p: x =\<^sub>A y"
+  shows
+    "ind\<^sub>= (\<lambda>u. refl (refl u)) p: p\<inverse> \<bullet> p =[y =\<^sub>A y] refl(y)" and
+    "ind\<^sub>= (\<lambda>u. refl (refl u)) p: p \<bullet> p\<inverse> =[x =\<^sub>A x] refl(x)"
+
+proof -
+  show "ind\<^sub>= (\<lambda>u. refl (refl u)) p: p\<inverse> \<bullet> p =[y =\<^sub>A y] refl(y)"
+  by (rule Equal_elim[where ?p=p and ?x=x and ?y=y]) (derive lems: assms)+
+
+  show "ind\<^sub>= (\<lambda>u. refl (refl u)) p: p \<bullet> p\<inverse> =[x =\<^sub>A x] refl(x)"
+  by (rule Equal_elim[where ?p=p and ?x=x and ?y=y]) (derive lems: assms)+
+qed
+
+
+lemma
+  assumes "A: U(i)" "x: A" "y: A" "p: x =\<^sub>A y"
+  shows "ind\<^sub>= (\<lambda>u. refl (refl u)) p: p\<inverse>\<inverse> =[x =\<^sub>A y] p"
+by (rule Equal_elim[where ?p=p and ?x=x and ?y=y]) (derive lems: assms)
+
+
+schematic_goal
+  assumes
+    "A: U(i)"
+    "x: A" "y: A" "z: A" "w: A"
+    "p: x =\<^sub>A y" "q: y =\<^sub>A z" "r: z =\<^sub>A w"
+  shows
+    "?a: p \<bullet> (q \<bullet> r) =[x =\<^sub>A z] (p \<bullet> q) \<bullet> r"
+
+apply (rule Equal_elim[where ?p=p and ?x=x and ?y=y])
+apply (rule assms)+
+apply (subst pathcomp_comp)
+
 
 
 end
