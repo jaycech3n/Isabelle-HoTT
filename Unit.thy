@@ -20,9 +20,9 @@ where
 and
   Unit_intro: "\<star>: \<one>"
 and
-  Unit_elim: "\<lbrakk>C: \<one> \<longrightarrow> U(i); c: C(\<star>); a: \<one>\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(c)(a) : C(a)"
+  Unit_elim: "\<lbrakk>C: \<one> \<longrightarrow> U i; c: C \<star>; a: \<one>\<rbrakk> \<Longrightarrow> ind\<^sub>\<one> c a: C a"
 and
-  Unit_comp: "\<lbrakk>C: \<one> \<longrightarrow> U(i); c: C(\<star>)\<rbrakk> \<Longrightarrow> ind\<^sub>\<one>(c)(\<star>) \<equiv> c"
+  Unit_comp: "\<lbrakk>C: \<one> \<longrightarrow> U i; c: C \<star>\<rbrakk> \<Longrightarrow> ind\<^sub>\<one> c \<star> \<equiv> c"
 
 
 text "Rule attribute declarations:"

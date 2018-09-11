@@ -27,33 +27,33 @@ translations
 section \<open>Type rules\<close>
 
 axiomatization where
-  Equal_form: "\<lbrakk>A: U(i); a: A; b: A\<rbrakk> \<Longrightarrow> a =\<^sub>A b : U(i)"
+  Equal_form: "\<lbrakk>A: U i; a: A; b: A\<rbrakk> \<Longrightarrow> a =\<^sub>A b : U i"
 and
-  Equal_intro: "a : A \<Longrightarrow> refl(a): a =\<^sub>A a"
+  Equal_intro: "a : A \<Longrightarrow> (refl a): a =\<^sub>A a"
 and
   Equal_elim: "\<lbrakk>
     x: A;
     y: A;
     p: x =\<^sub>A y;
-    \<And>x. x: A \<Longrightarrow> f(x) : C(x)(x)(refl x);
-    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<longrightarrow> U(i)
-    \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(p) : C(x)(y)(p)"
+    \<And>x. x: A \<Longrightarrow> f x: C x x (refl x);
+    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<longrightarrow> U i
+    \<rbrakk> \<Longrightarrow> ind\<^sub>= f p : C x y p"
 and
   Equal_comp: "\<lbrakk>
     a: A;
-    \<And>x. x: A \<Longrightarrow> f(x) : C(x)(x)(refl x);
-    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C(x)(y): x =\<^sub>A y \<longrightarrow> U(i)
-    \<rbrakk> \<Longrightarrow> ind\<^sub>=(f)(refl(a)) \<equiv> f(a)"
+    \<And>x. x: A \<Longrightarrow> f x: C x x (refl x);
+    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<longrightarrow> U i
+    \<rbrakk> \<Longrightarrow> ind\<^sub>= f (refl a) \<equiv> f a"
 
 
 text "Admissible inference rules for equality type formation:"
 
 axiomatization where
-  Equal_wellform1: "a =\<^sub>A b: U(i) \<Longrightarrow> A: U(i)"
+  Equal_wellform1: "a =\<^sub>A b: U i \<Longrightarrow> A: U i"
 and
-  Equal_wellform2: "a =\<^sub>A b: U(i) \<Longrightarrow> a: A"
+  Equal_wellform2: "a =\<^sub>A b: U i \<Longrightarrow> a: A"
 and
-  Equal_wellform3: "a =\<^sub>A b: U(i) \<Longrightarrow> b: A"
+  Equal_wellform3: "a =\<^sub>A b: U i \<Longrightarrow> b: A"
 
 
 text "Rule attribute declarations:"

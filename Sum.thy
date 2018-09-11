@@ -33,30 +33,30 @@ abbreviation Pair :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<times>" 50)
 section \<open>Type rules\<close>
 
 axiomatization where
-  Sum_form: "\<lbrakk>A: U(i); B: A \<longrightarrow> U(i)\<rbrakk> \<Longrightarrow> \<Sum>x:A. B(x): U(i)"
+  Sum_form: "\<lbrakk>A: U i; B: A \<longrightarrow> U i\<rbrakk> \<Longrightarrow> \<Sum>x:A. B x: U i"
 and
-  Sum_intro: "\<lbrakk>B: A \<longrightarrow> U(i); a: A; b: B(a)\<rbrakk> \<Longrightarrow> <a,b>: \<Sum>x:A. B(x)"
+  Sum_intro: "\<lbrakk>B: A \<longrightarrow> U i; a: A; b: B a\<rbrakk> \<Longrightarrow> <a,b>: \<Sum>x:A. B x"
 and
   Sum_elim: "\<lbrakk>
-    p: \<Sum>x:A. B(x);
-    \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f(x)(y): C(<x,y>);
-    C: \<Sum>x:A. B(x) \<longrightarrow> U(i)
-    \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum>(f)(p): C(p)"  (* What does writing \<lambda>x y. f(x, y) change? *)
+    p: \<Sum>x:A. B x;
+    \<And>x y. \<lbrakk>x: A; y: B x\<rbrakk> \<Longrightarrow> f x y: C <x,y>;
+    C: \<Sum>x:A. B x \<longrightarrow> U i
+    \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum> f p: C p"  (* What does writing \<lambda>x y. f(x, y) change? *)
 and
   Sum_comp: "\<lbrakk>
     a: A;
-    b: B(a);
-    \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f(x)(y): C(<x,y>);
+    b: B a;
+    \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f x y: C <x,y>;
     B: A \<longrightarrow> U(i);
-    C: \<Sum>x:A. B(x) \<longrightarrow> U(i)
-    \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum>(f)(<a,b>) \<equiv> f(a)(b)"
+    C: \<Sum>x:A. B x \<longrightarrow> U i
+    \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum> f <a,b> \<equiv> f a b"
 
 text "Admissible inference rules for sum formation:"
 
 axiomatization where
-  Sum_wellform1: "(\<Sum>x:A. B(x): U(i)) \<Longrightarrow> A: U(i)"
+  Sum_wellform1: "(\<Sum>x:A. B x: U i) \<Longrightarrow> A: U i"
 and
-  Sum_wellform2: "(\<Sum>x:A. B(x): U(i)) \<Longrightarrow> B: A \<longrightarrow> U(i)"
+  Sum_wellform2: "(\<Sum>x:A. B x: U i) \<Longrightarrow> B: A \<longrightarrow> U i"
 
 
 text "Rule attribute declarations:"

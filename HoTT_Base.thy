@@ -16,8 +16,6 @@ text "Meta syntactic type for object-logic types and terms."
 typedecl Term
 
 
-section \<open>Judgments\<close>
-
 text "
   Formalize the typing judgment \<open>a: A\<close>.
   For judgmental/definitional equality we use the existing Pure equality \<open>\<equiv>\<close> and hence do not need to define a separate judgment for it.
@@ -38,13 +36,13 @@ axiomatization
   lt :: "[Ord, Ord] \<Rightarrow> prop"  (infix "<" 999) and
   leq :: "[Ord, Ord] \<Rightarrow> prop"  (infix "\<le>" 999)
 where
-  Ord_lt_min: "\<And>n. O < S(n)"
+  Ord_lt_min: "\<And>n. O < S n"
 and
-  Ord_lt_monotone: "\<And>m n. m < n \<Longrightarrow> S(m) < S(n)"
+  Ord_lt_monotone: "\<And>m n. m < n \<Longrightarrow> S m < S n"
 and
   Ord_leq_min: "\<And>n. O \<le> n"
 and
-  Ord_leq_monotone: "\<And>m n. m \<le> n \<Longrightarrow> S(m) \<le> S(n)"
+  Ord_leq_monotone: "\<And>m n. m \<le> n \<Longrightarrow> S m \<le> S n"
 
 lemmas Ord_rules [intro] = Ord_lt_min Ord_lt_monotone Ord_leq_min Ord_leq_monotone
   \<comment> \<open>Enables \<open>standard\<close> to automatically solve inequalities.\<close>
@@ -54,9 +52,9 @@ text "Define the universe types."
 axiomatization
   U :: "Ord \<Rightarrow> Term"
 where
-  U_hierarchy: "\<And>i j. i < j \<Longrightarrow> U(i): U(j)"
+  U_hierarchy: "\<And>i j. i < j \<Longrightarrow> U i: U j"
 and
-  U_cumulative: "\<And>A i j. \<lbrakk>A: U(i); i \<le> j\<rbrakk> \<Longrightarrow> A: U(j)"
+  U_cumulative: "\<And>A i j. \<lbrakk>A: U i; i \<le> j\<rbrakk> \<Longrightarrow> A: U j"
 
 text "
   The rule \<open>U_cumulative\<close> is very unsafe: if used as-is it will usually lead to an infinite rewrite loop!
@@ -71,7 +69,7 @@ text "
 "
 
 abbreviation (input) constrained :: "[Term \<Rightarrow> Term, Term, Term] \<Rightarrow> prop"  ("(1_: _ \<longrightarrow> _)")
-  where "f: A \<longrightarrow> B \<equiv> (\<And>x. x : A \<Longrightarrow> f(x): B)"
+  where "f: A \<longrightarrow> B \<equiv> (\<And>x. x : A \<Longrightarrow> f x: B)"
 
 text "
   The above is used to define type families, which are constrained meta-lambdas \<open>P: A \<longrightarrow> B\<close> where \<open>A\<close> and \<open>B\<close> are small types.

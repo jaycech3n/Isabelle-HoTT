@@ -18,7 +18,7 @@ text "
 "
 
 lemma compose_assoc:
-  assumes "A: U(i)" and "f: A \<rightarrow> B" "g: B \<rightarrow> C" "h: \<Prod>x:C. D(x)"
+  assumes "A: U i" and "f: A \<rightarrow> B" "g: B \<rightarrow> C" "h: \<Prod>x:C. D x"
   shows "(h \<circ> g) \<circ> f \<equiv> h \<circ> (g \<circ> f)"
 proof (subst (0 1 2 3) compose_def)
   show "\<^bold>\<lambda>x. (\<^bold>\<lambda>y. h`(g`y))`(f`x) \<equiv> \<^bold>\<lambda>x. h`((\<^bold>\<lambda>y. g`(f`y))`x)"
@@ -31,19 +31,19 @@ proof (subst (0 1 2 3) compose_def)
       proof compute
         show "\<And>x. x: A \<Longrightarrow> g`(f`x): C" by (routine lems: assms)
       qed
-      show "\<And>x. x: B \<Longrightarrow> h`(g`x): D(g`x)" by (routine lems: assms)
+      show "\<And>x. x: B \<Longrightarrow> h`(g`x): D (g`x)" by (routine lems: assms)
     qed (routine lems: assms)
   qed fact
 qed
 
 
 lemma compose_comp:
-  assumes "A: U(i)" and "\<And>x. x: A \<Longrightarrow> b(x): B" and "\<And>x. x: B \<Longrightarrow> c(x): C(x)"
-  shows "(\<^bold>\<lambda>x. c(x)) \<circ> (\<^bold>\<lambda>x. b(x)) \<equiv> \<^bold>\<lambda>x. c(b(x))"
+  assumes "A: U i" and "\<And>x. x: A \<Longrightarrow> b x: B" and "\<And>x. x: B \<Longrightarrow> c x: C x"
+  shows "(\<^bold>\<lambda>x. c x) \<circ> (\<^bold>\<lambda>x. b x) \<equiv> \<^bold>\<lambda>x. c (b x)"
 proof (subst compose_def, subst Prod_eq)
-  show "\<And>a. a: A \<Longrightarrow> (\<^bold>\<lambda>x. c(x))`((\<^bold>\<lambda>x. b(x))`a) \<equiv> (\<^bold>\<lambda>x. c (b x))`a"
+  show "\<And>a. a: A \<Longrightarrow> (\<^bold>\<lambda>x. c x)`((\<^bold>\<lambda>x. b x)`a) \<equiv> (\<^bold>\<lambda>x. c (b x))`a"
   proof compute
-    show "\<And>a. a: A \<Longrightarrow> c((\<^bold>\<lambda>x. b(x))`a) \<equiv> (\<^bold>\<lambda>x. c(b(x)))`a"
+    show "\<And>a. a: A \<Longrightarrow> c ((\<^bold>\<lambda>x. b x)`a) \<equiv> (\<^bold>\<lambda>x. c (b x))`a"
     by (derive lems: assms)
   qed (routine lems: assms)
 qed (derive lems: assms)
