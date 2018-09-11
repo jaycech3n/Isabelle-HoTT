@@ -81,4 +81,9 @@ syntax "_COMPOSE" :: "[Term, Term] \<Rightarrow> Term"  (infixr "\<circ>" 110)
 translations "g \<circ> f" \<rightleftharpoons> "g o f"
 
 
+section \<open>Polymorphic identity function\<close>
+
+abbreviation id :: Term where "id \<equiv> \<^bold>\<lambda>x. x"
+
+
 end
