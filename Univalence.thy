@@ -76,7 +76,8 @@ section \<open>idtoeqv and the univalence axiom\<close>
 definition idtoeqv :: Term
   where "idtoeqv \<equiv> \<^bold>\<lambda>p. <transport p, ind\<^sub>= (\<lambda>A. <<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>) p>"
 
-text "Equal types are equivalent. The proof uses universes."
+
+text "We prove that equal types are equivalent. The proof is long and uses universes."
 
 theorem
   assumes "A: U i" and "B: U i"
@@ -95,7 +96,7 @@ proof
       show "\<And>x. x: U i \<Longrightarrow> x: U S i" by (elim U_cumulative) standard
       show "U i: U S i" by (rule U_hierarchy) standard
     qed fact+
-
+    
     show "ind\<^sub>= (\<lambda>A. <<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>) p: isequiv (transport p)"
     proof (rule Equal_elim[where ?C="\<lambda>_ _ p. isequiv (transport p)"])
       fix A assume asm: "A: U i"
@@ -108,8 +109,67 @@ proof
         show "<<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>:
                 (\<Sum>g:A \<rightarrow> A. g \<circ> (transport (refl A)) ~ id) \<times>
                 (\<Sum>g:A \<rightarrow> A. (transport (refl A)) \<circ> g ~ id)"
-        proof (derive lems: asm homotopic_def transport_def)
-          show "id: A \<rightarrow> A" by (routine lems: asm)
+        proof (subst (1 2) transport_comp)
+          show "U i: U S i" by (rule U_hierarchy) standard
+          show "U i: U S i" by (rule U_hierarchy) standard
+          
+          show "<<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>:
+                  (\<Sum>g:A \<rightarrow> A. g \<circ> id ~ id) \<times> (\<Sum>g:A \<rightarrow> A. id \<circ> g ~ id)"
+          proof
+            show "\<Sum>g:A \<rightarrow> A. id \<circ> g ~ id: U i"
+            proof (derive lems: asm homotopic_def)
+              fix g assume asm': "g: A \<rightarrow> A"
+              show *: "id \<circ> g: A \<rightarrow> A" by (derive lems: asm asm' compose_def)
+              show "\<Prod>x:A. ((id \<circ> g)`x) =\<^sub>A (id`x): U i" by (derive lems: asm *)
+            qed (routine lems: asm)
+
+            show "<id, \<^bold>\<lambda>x. refl x>: \<Sum>g:A \<rightarrow> A. id \<circ> g ~ id"
+            proof
+              fix g assume asm': "g: A \<rightarrow> A"
+              show "id \<circ> g ~ id: U i"
+              proof (derive lems: homotopic_def)
+                show *: "id \<circ> g: A \<rightarrow> A" by (derive lems: asm asm' compose_def)
+                show "\<Prod>x:A. ((id \<circ> g)`x) =\<^sub>A (id`x): U i" by (derive lems: asm *)
+              qed (routine lems: asm)
+              next
+              show "\<^bold>\<lambda>x. refl x: id \<circ> id ~ id"
+              proof compute
+                show "\<^bold>\<lambda>x. refl x: id ~ id" by (subst homotopic_def) (derive lems: asm)
+              qed (rule asm)
+            qed (routine lems: asm)
+
+            show "<id, \<^bold>\<lambda>x. refl x>: \<Sum>g:A \<rightarrow> A. g \<circ> id ~ id"
+            proof
+              fix g assume asm': "g: A \<rightarrow> A"
+              show "g \<circ> id ~ id: U i" by (derive lems: asm asm' homotopic_def compose_def)
+              next
+              show "\<^bold>\<lambda>x. refl x: id \<circ> id ~ id"
+              proof compute
+                show "\<^bold>\<lambda>x. refl x: id ~ id" by (subst homotopic_def) (derive lems: asm)
+              qed (rule asm)
+            qed (routine lems: asm)
+          qed
+        qed fact+
+      qed
+      next
+      
+      fix A' B' p' assume asm:  "A': U i" "B': U i" "p': A' =[U i] B'"
+      show "isequiv (transport p'): U i"
+      proof (rule isequiv_type)
+        show "transport p': A' \<rightarrow> B'" by (derive lems: asm transport_def)
+      qed fact+
+    qed fact+
+  qed
+  next
+
+  show "A =[U i] B: U (S i)" by (derive lems: assms | rule U_hierarchy)+
+qed
+
+
+text "The univalence axiom:"
+
+axiomatization univalence :: Term where
+  ua: "univalence: isequiv idtoeqv"
 
 
 end

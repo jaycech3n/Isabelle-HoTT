@@ -49,4 +49,9 @@ proof (subst compose_def, subst Prod_eq)
 qed (derive lems: assms)
 
 
+text "Set up the \<open>compute\<close> method to automatically simplify function compositions."
+
+lemmas compose_comp [comp]
+
+
 end

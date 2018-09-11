@@ -292,5 +292,7 @@ lemma transport_comp:
   shows "transport (refl x) \<equiv> id"
 unfolding transport_def by (derive lems: assms)
 
+text "Note that in our formulation, \<open>transport\<close> is a polymorphic function!"
+
 
 end
