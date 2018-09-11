@@ -7,7 +7,7 @@ Definitions of homotopy, equivalence and the univalence axiom.
 theory Univalence
   imports
     HoTT_Methods
-    Equal
+    EqualProps
     ProdProps
     Sum
 begin
@@ -22,7 +22,7 @@ axiomatization homotopic :: "[Term, Term] \<Rightarrow> Term"  (infix "~" 100) w
   \<rbrakk> \<Longrightarrow> f ~ g \<equiv> \<Prod>x:A. (f`x) =[B x] (g`x)"
 
 axiomatization isequiv :: "Term \<Rightarrow> Term" where
-  isequiv_def: "f: A \<rightarrow> B \<Longrightarrow> isequiv f \<equiv> (\<Sum>g: A \<rightarrow> B. g \<circ> f ~ id) \<times> (\<Sum>g: A \<rightarrow> B. f \<circ> g ~ id)"
+  isequiv_def: "f: A \<rightarrow> B \<Longrightarrow> isequiv f \<equiv> (\<Sum>g: B \<rightarrow> A. g \<circ> f ~ id) \<times> (\<Sum>g: B \<rightarrow> A. f \<circ> g ~ id)"
 
 definition equivalence :: "[Term, Term] \<Rightarrow> Term"  (infix "\<simeq>" 100)
   where "A \<simeq> B \<equiv> \<Sum>f: A \<rightarrow> B. isequiv f"
@@ -36,12 +36,12 @@ lemma isequiv_id:
 proof (derive lems: assms isequiv_def homotopic_def)
   fix g assume asm: "g: A \<rightarrow> A"
   show "id \<circ> g: A \<rightarrow> A"
-    unfolding compose_def by (derive lems: asm assms)
+    unfolding compose_def by (routine lems: asm assms)
 
   show "\<Prod>x:A. ((id \<circ> g)`x) =\<^sub>A (id`x): U i"
-    unfolding compose_def by (derive lems: asm assms)
-
+    unfolding compose_def by (routine lems: asm assms)
   next
+  
   show "<\<^bold>\<lambda>x. x, \<^bold>\<lambda>x. refl x>: \<Sum>g:A \<rightarrow> A. (g \<circ> id) ~ id"
     unfolding compose_def by (derive lems: assms homotopic_def)
 
@@ -50,22 +50,66 @@ proof (derive lems: assms isequiv_def homotopic_def)
 qed (rule assms)
 
 
+text "We use the following lemma in a few proofs:"
+
+lemma isequiv_type:
+  assumes "A: U i" and "B: U i" and "f: A \<rightarrow> B"
+  shows "isequiv f: U i"
+  by (derive lems: assms isequiv_def homotopic_def compose_def)
+
+
 text "The equivalence relation \<open>\<simeq>\<close> is symmetric:"
 
-lemma
+lemma equiv_sym:
   assumes "A: U i" and "id: A \<rightarrow> A"
   shows "<id, <<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>>: A \<simeq> A"
 unfolding equivalence_def proof
   show "<<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>: isequiv id" using assms by (rule isequiv_id)
   
-  fix f assume asm: "f: A \<rightarrow> A" show "isequiv f: U i"
-    by (derive lems: asm assms homotopic_def isequiv_def compose_def)
+  fix f assume "f: A \<rightarrow> A"
+  with assms(1) assms(1) show "isequiv f: U i" by (rule isequiv_type)
 qed (rule assms)
 
 
-text "Definition of \<open>idtoeqv\<close>:"
+section \<open>idtoeqv and the univalence axiom\<close>
 
+definition idtoeqv :: Term
+  where "idtoeqv \<equiv> \<^bold>\<lambda>p. <transport p, ind\<^sub>= (\<lambda>A. <<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>) p>"
 
+text "Equal types are equivalent. The proof uses universes."
+
+theorem
+  assumes "A: U i" and "B: U i"
+  shows "idtoeqv: (A =[U i] B) \<rightarrow> A \<simeq> B"
+unfolding idtoeqv_def equivalence_def
+proof
+  fix p assume "p: A =[U i] B"
+  show "<transport p, ind\<^sub>= (\<lambda>A. <<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>) p>: \<Sum>f: A \<rightarrow> B. isequiv f"
+  proof
+    { fix f assume "f: A \<rightarrow> B"
+    with assms show "isequiv f: U i" by (rule isequiv_type)
+    }
+    
+    show "transport p: A \<rightarrow> B"
+    proof (rule transport_type[where ?P="\<lambda>x. x" and ?A="U i" and ?i="S i"])
+      show "\<And>x. x: U i \<Longrightarrow> x: U S i" by (elim U_cumulative) standard
+      show "U i: U S i" by (rule U_hierarchy) standard
+    qed fact+
+
+    show "ind\<^sub>= (\<lambda>A. <<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>) p: isequiv (transport p)"
+    proof (rule Equal_elim[where ?C="\<lambda>_ _ p. isequiv (transport p)"])
+      fix A assume asm: "A: U i"
+      show "<<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>: isequiv (transport (refl A))"
+      proof (derive lems: isequiv_def)
+        show "transport (refl A): A \<rightarrow> A"
+          unfolding transport_def
+          by (compute lems: Equal_comp[where ?A="U i" and ?C="\<lambda>_ _ _. A \<rightarrow> A"]) (derive lems: asm)
+        
+        show "<<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>:
+                (\<Sum>g:A \<rightarrow> A. g \<circ> (transport (refl A)) ~ id) \<times>
+                (\<Sum>g:A \<rightarrow> A. (transport (refl A)) \<circ> g ~ id)"
+        proof (derive lems: asm homotopic_def transport_def)
+          show "id: A \<rightarrow> A" by (routine lems: asm)
 
 
 end

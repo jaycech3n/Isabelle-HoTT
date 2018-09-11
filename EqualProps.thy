@@ -275,7 +275,22 @@ sorry
 
 section \<open>Transport\<close>
 
+definition transport :: "Term \<Rightarrow> Term" where
+  "transport p \<equiv> ind\<^sub>= (\<lambda>x. (\<^bold>\<lambda>x. x)) p"
 
+lemma transport_type:
+  assumes
+    "A: U i" "P: A \<longrightarrow> U i"
+    "x: A" "y: A"
+    "p: x =\<^sub>A y"
+  shows "transport p: P x \<rightarrow> P y"
+unfolding transport_def
+by (rule Equal_elim[where ?p=p and ?x=x and ?y=y]) (routine lems: assms)
+
+lemma transport_comp:
+  assumes "A: U i" and "x: A"
+  shows "transport (refl x) \<equiv> id"
+unfolding transport_def by (derive lems: assms)
 
 
 end

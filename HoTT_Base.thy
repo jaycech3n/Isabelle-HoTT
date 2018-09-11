@@ -32,19 +32,23 @@ typedecl Ord
 
 axiomatization
   O :: Ord and
-  S :: "Ord \<Rightarrow> Ord"  ("S_" [0] 1000) and
+  S :: "Ord \<Rightarrow> Ord"  ("S _" [0] 1000) and
   lt :: "[Ord, Ord] \<Rightarrow> prop"  (infix "<" 999) and
   leq :: "[Ord, Ord] \<Rightarrow> prop"  (infix "\<le>" 999)
 where
-  Ord_lt_min: "\<And>n. O < S n"
+  lt_min: "\<And>n. O < S n"
 and
-  Ord_lt_monotone: "\<And>m n. m < n \<Longrightarrow> S m < S n"
+  lt_monotone1: "\<And>n. n < S n"
 and
-  Ord_leq_min: "\<And>n. O \<le> n"
+  lt_monotone2: "\<And>m n. m < n \<Longrightarrow> S m < S n"
 and
-  Ord_leq_monotone: "\<And>m n. m \<le> n \<Longrightarrow> S m \<le> S n"
+  leq_min: "\<And>n. O \<le> n"
+and
+  leq_monotone1: "\<And>n. n \<le> S n"
+and
+  leq_monotone2: "\<And>m n. m \<le> n \<Longrightarrow> S m \<le> S n"
 
-lemmas Ord_rules [intro] = Ord_lt_min Ord_lt_monotone Ord_leq_min Ord_leq_monotone
+lemmas Ord_rules [intro] = lt_min lt_monotone1 lt_monotone2 leq_min leq_monotone1 leq_monotone2
   \<comment> \<open>Enables \<open>standard\<close> to automatically solve inequalities.\<close>
 
 text "Define the universe types."
