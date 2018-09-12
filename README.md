@@ -1,4 +1,4 @@
-https://zenodo.org/badge/DOI/10.5281/zenodo.1413984.svg
+![DOI:10.5281/zenodo.1413984](https://zenodo.org/badge/DOI/10.5281/zenodo.1413984.svg)
 
 # Isabelle/HoTT
 
