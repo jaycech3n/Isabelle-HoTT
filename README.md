@@ -1,3 +1,5 @@
+https://zenodo.org/badge/DOI/10.5281/zenodo.1413984.svg
+
 # Isabelle/HoTT
 
 An experimental implementation of [homotopy type theory](https://en.wikipedia.org/wiki/Homotopy_type_theory) in the interactive theorem prover [Isabelle](https://isabelle.in.tum.de/).
