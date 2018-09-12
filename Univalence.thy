@@ -171,7 +171,7 @@ qed
 text "The univalence axiom."
 
 axiomatization univalence :: Term where
-  ua: "univalence: isequiv idtoeqv"
+  UA: "univalence: isequiv idtoeqv"
 
 
 end
