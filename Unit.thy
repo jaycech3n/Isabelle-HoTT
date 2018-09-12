@@ -16,7 +16,7 @@ axiomatization
   pt :: Term    ("\<star>") and
   indUnit :: "[Term, Term] \<Rightarrow> Term"  ("(1ind\<^sub>\<one>)")
 where
-  Unit_form: "\<one>: U(O)"
+  Unit_form: "\<one>: U O"
 and
   Unit_intro: "\<star>: \<one>"
 and

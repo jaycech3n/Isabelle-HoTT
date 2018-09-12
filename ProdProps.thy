@@ -14,7 +14,7 @@ begin
 section \<open>Composition\<close>
 
 text "
-  The proof of associativity needs some guidance; it involves telling Isabelle to use the correct rule for \<Pi>-type definitional equality, and the correct substitutions in the subgoals thereafter.
+  The proof of associativity needs some guidance; it involves telling Isabelle to use the correct rule for \<Prod>-type definitional equality, and the correct substitutions in the subgoals thereafter.
 "
 
 lemma compose_assoc:

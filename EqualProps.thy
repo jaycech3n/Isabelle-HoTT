@@ -278,6 +278,8 @@ section \<open>Transport\<close>
 definition transport :: "Term \<Rightarrow> Term" where
   "transport p \<equiv> ind\<^sub>= (\<lambda>x. (\<^bold>\<lambda>x. x)) p"
 
+text "Note that \<open>transport\<close> is a polymorphic function in our formulation."
+
 lemma transport_type:
   assumes
     "A: U i" "P: A \<longrightarrow> U i"
@@ -291,8 +293,6 @@ lemma transport_comp:
   assumes "A: U i" and "x: A"
   shows "transport (refl x) \<equiv> id"
 unfolding transport_def by (derive lems: assms)
-
-text "Note that in our formulation, \<open>transport\<close> is a polymorphic function!"
 
 
 end

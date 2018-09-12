@@ -28,7 +28,7 @@ and
     \<And>x. x: A \<Longrightarrow> c x: C (inl x);
     \<And>y. y: B \<Longrightarrow> d y: C (inr y);
     u: A + B
-    \<rbrakk> \<Longrightarrow> ind\<^sub>+ c d u : C u"
+    \<rbrakk> \<Longrightarrow> ind\<^sub>+ c d u: C u"
 and
   Coprod_comp_inl: "\<lbrakk>
     C: A + B \<longrightarrow> U i;

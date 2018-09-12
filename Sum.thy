@@ -47,7 +47,7 @@ and
     a: A;
     b: B a;
     \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f x y: C <x,y>;
-    B: A \<longrightarrow> U(i);
+    B: A \<longrightarrow> U i;
     C: \<Sum>x:A. B x \<longrightarrow> U i
     \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum> f <a,b> \<equiv> f a b"
 

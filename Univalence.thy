@@ -15,6 +15,8 @@ begin
 
 section \<open>Homotopy and equivalence\<close>
 
+text "We define polymorphic constants implementing the definitions of homotopy and equivalence."
+
 axiomatization homotopic :: "[Term, Term] \<Rightarrow> Term"  (infix "~" 100) where
   homotopic_def: "\<lbrakk>
     f: \<Prod>x:A. B x;
@@ -166,7 +168,7 @@ proof
 qed
 
 
-text "The univalence axiom:"
+text "The univalence axiom."
 
 axiomatization univalence :: Term where
   ua: "univalence: isequiv idtoeqv"
