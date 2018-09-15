@@ -23,7 +23,7 @@ declare[[unify_trace_simp, unify_trace_types, simp_trace, simp_trace_depth_limit
   \<comment> \<open>Turn on trace for unification and the simplifier, for debugging.\<close>
 
 
-section \<open>\<Pi>-type\<close>
+section \<open>\<Prod>-type\<close>
 
 subsection \<open>Typing functions\<close>
 

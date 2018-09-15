@@ -1,11 +1,12 @@
 (*  Title:  HoTT/HoTT_Base.thy
-    Author: Josh Chen
+    Author: Joshua Chen
 
 Basic setup and definitions of a homotopy type theory object logic with a cumulative universe hierarchy à la Russell.
 *)
 
 theory HoTT_Base
-  imports Pure
+imports Pure
+
 begin
 
 
@@ -13,7 +14,7 @@ section \<open>Foundational definitions\<close>
 
 text "Meta syntactic type for object-logic types and terms."
 
-typedecl Term
+typedecl t
 
 
 section \<open>Judgments\<close>
@@ -23,19 +24,19 @@ text "
   For judgmental/definitional equality we use the existing Pure equality \<open>\<equiv>\<close> and hence do not need to define a separate judgment for it.
 "
 
-judgment has_type :: "[Term, Term] \<Rightarrow> prop"  ("(3_:/ _)" [0, 0] 1000)
+judgment hastype :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
 
 
 section \<open>Universe hierarchy\<close>
 
-text "Finite meta-ordinals to index the universes."
+text "Meta-numerals to index the universes."
 
-typedecl Ord
+typedecl ord
 
 axiomatization
-  O :: Ord and
-  S :: "Ord \<Rightarrow> Ord"  ("S_" [0] 1000) and
-  lt :: "[Ord, Ord] \<Rightarrow> prop"  (infix "<-" 999)
+  O :: ord and
+  S :: "ord \<Rightarrow> ord"  ("S_") and
+  lt :: "[ord, ord] \<Rightarrow> prop"  (infix "<-" 999)
 where
   Ord_min: "\<And>n. O <- S(n)"
 and
