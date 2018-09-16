@@ -1,84 +1,77 @@
 (*  Title:  HoTT/HoTT_Base.thy
     Author: Joshua Chen
 
-Basic setup and definitions of a homotopy type theory object logic with a cumulative universe hierarchy à la Russell.
+Basic setup of a homotopy type theory object logic with a Russell-style cumulative universe hierarchy.
 *)
 
 theory HoTT_Base
-imports Pure
+imports
+  Pure
+  "HOL-Eisbach.Eisbach"
 
 begin
 
 
-section \<open>Foundational definitions\<close>
+section \<open>Basic setup\<close>
 
-text "Meta syntactic type for object-logic types and terms."
+typedecl t  \<comment> \<open>Type of object types and terms\<close>
+typedecl ord  \<comment> \<open>Type of meta-level numerals\<close>
 
-typedecl t
+axiomatization
+  O :: ord and
+  Suc :: "ord \<Rightarrow> ord" and
+  lt :: "[ord, ord] \<Rightarrow> prop"  (infix "<" 999)
+where
+  lt_Suc [intro]: "n < (Suc n)" and
+  lt_trans [intro]: "\<lbrakk>m1 < m2; m2 < m3\<rbrakk> \<Longrightarrow> m1 < m3" and
+  Suc_monotone [simp]: "m < n \<Longrightarrow> (Suc m) < (Suc n)"
+
+method proveSuc = (rule lt_Suc | (rule lt_trans, (rule lt_Suc)+)+)
+
+text \<open>Method @{method proveSuc} proves statements of the form \<open>n < (Suc (... (Suc n) ...))\<close>.\<close>
 
 
-section \<open>Judgments\<close>
-
-text "
-  Formalize the typing judgment \<open>a: A\<close>.
-  For judgmental/definitional equality we use the existing Pure equality \<open>\<equiv>\<close> and hence do not need to define a separate judgment for it.
-"
+section \<open>Judgment\<close>
 
 judgment hastype :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
 
 
-section \<open>Universe hierarchy\<close>
-
-text "Meta-numerals to index the universes."
-
-typedecl ord
+section \<open>Universes\<close>
 
 axiomatization
-  O :: ord and
-  S :: "ord \<Rightarrow> ord"  ("S_") and
-  lt :: "[ord, ord] \<Rightarrow> prop"  (infix "<-" 999)
+  U :: "ord \<Rightarrow> t"
 where
-  Ord_min: "\<And>n. O <- S(n)"
-and
-  Ord_monotone: "\<And>m n. m <- n \<Longrightarrow> S(m) <- S(n)"
+  U_hierarchy: "i < j \<Longrightarrow> U i: U j" and                               
+  U_cumulative: "\<lbrakk>A: U i; i < j\<rbrakk> \<Longrightarrow> A: U j"
 
-lemmas Ord_rules [intro] = Ord_min Ord_monotone
-  \<comment> \<open>Enables \<open>standard\<close> to automatically solve inequalities.\<close>
+text \<open>
+Using method @{method rule} with @{thm U_cumulative} is unsafe, if applied blindly it will typically lead to non-termination.
+One should instead use @{method elim}, or instantiate @{thm U_cumulative} suitably.
+\<close>
 
-text "Define the universe types."
-
-axiomatization
-  U :: "Ord \<Rightarrow> Term"
-where
-  U_hierarchy: "\<And>i j. i <- j \<Longrightarrow> U(i): U(j)"
-and
-  U_cumulative: "\<And>A i j. \<lbrakk>A: U(i); i <- j\<rbrakk> \<Longrightarrow> A: U(j)"
-    \<comment> \<open>WARNING: \<open>rule Universe_cumulative\<close> can result in an infinite rewrite loop!\<close>
+method cumulativity = (elim U_cumulative, proveSuc)  \<comment> \<open>Proves \<open>A: U i \<Longrightarrow> A: U (Suc (... (Suc i) ...))\<close>.\<close>
+method hierarchy = (rule U_hierarchy, proveSuc)  \<comment> \<open>Proves \<open>U i: U (Suc (... (Suc i) ...)).\<close>\<close>
 
 
 section \<open>Type families\<close>
 
-text "
-  The following abbreviation constrains the output type of a meta lambda expression when given input of certain type.
-"
+abbreviation (input) constrained :: "[t \<Rightarrow> t, t, t] \<Rightarrow> prop"  ("(1_:/ _ \<longrightarrow> _)")
+  where "f: A \<longrightarrow> B \<equiv> (\<And>x. x : A \<Longrightarrow> f x: B)"
 
-abbreviation (input) constrained :: "[Term \<Rightarrow> Term, Term, Term] \<Rightarrow> prop"  ("(1_: _ \<longrightarrow> _)")
-  where "f: A \<longrightarrow> B \<equiv> (\<And>x. x : A \<Longrightarrow> f(x): B)"
+text \<open>
+The abbreviation @{abbrev constrained} is used to define type families, which are constrained expressions @{term "P: A \<longrightarrow> B"} where @{term "A::t"} and @{term "B::t"} are small types.
+\<close>
 
-text "
-  The above is used to define type families, which are constrained meta-lambdas \<open>P: A \<longrightarrow> B\<close> where \<open>A\<close> and \<open>B\<close> are small types.
-"
-
-type_synonym Typefam = "Term \<Rightarrow> Term"
+type_synonym tf = "t \<Rightarrow> t"  \<comment> \<open>Type of type families.\<close>
 
 
 section \<open>Named theorems\<close>
 
-text "
-  Named theorems to be used by proof methods later (see HoTT_Methods.thy).
-  
-  \<open>wellform\<close> declares necessary wellformedness conditions for type and inhabitation judgments, while \<open>comp\<close> declares computation rules, which are usually passed to invocations of the method \<open>subst\<close> to perform equational rewriting.
-"
+text \<open>
+Declare named theorems to be used by proof methods defined in @{file HoTT_Methods.thy}.
+\<open>wellform\<close> declares necessary well-formedness conditions for type and inhabitation judgments.
+\<open>comp\<close> declares computation rules, which are usually passed to invocations of the method \<open>subst\<close> to perform equational rewriting.
+\<close>
 
 named_theorems wellform
 named_theorems comp

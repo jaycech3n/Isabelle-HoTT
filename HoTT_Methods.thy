@@ -14,11 +14,11 @@ begin
 
 section \<open>Deriving typing judgments\<close>
 
-text "
-  \<open>routine\<close> proves routine type judgments \<open>a : A\<close> using the rules declared [intro] in the respective theory files, as well as additional provided lemmas.
-"
-
 method routine uses lems = (assumption | rule lems | standard)+
+
+text "
+  @{method routine} proves routine type judgments \<open>a : A\<close> using the rules declared [intro] in the respective theory files, as well as additional provided lemmas.
+"
 
 text "
   \<open>wellformed'\<close> finds a proof of any valid typing judgment derivable from the judgment passed as \<open>jdmt\<close>.
