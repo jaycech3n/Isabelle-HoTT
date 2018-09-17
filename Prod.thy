@@ -1,89 +1,89 @@
-(*  Title:  HoTT/Prod.thy
-    Author: Josh Chen
+(*
+Title:  Prod.thy
+Author: Joshua Chen
+Date:   2018
 
-Dependent product (function) type
+Dependent product type
 *)
 
 theory Prod
-  imports HoTT_Base
+imports HoTT_Base HoTT_Methods
+
 begin
 
 
-section \<open>Constants and syntax\<close>
+section \<open>Basic definitions\<close>
 
 axiomatization
-  Prod :: "[t, tf] \<Rightarrow> t" and
+  Prod   :: "[t, tf] \<Rightarrow> t" and
   lambda :: "(t \<Rightarrow> t) \<Rightarrow> t"  (binder "\<^bold>\<lambda>" 30) and
-  appl :: "[t, t] \<Rightarrow> t"  (infixl "`" 60)
-    \<comment> \<open>Application binds tighter than abstraction.\<close>
+  appl   :: "[t, t] \<Rightarrow> t"  ("(1_`/_)" [60, 61] 60)  \<comment> \<open>Application binds tighter than abstraction.\<close>
 
 syntax
-  "_PROD" :: "[idt, t, t] \<Rightarrow> t"          ("(3\<Prod>_:_./ _)" 30)
-  "_PROD_ASCII" :: "[idt, t, t] \<Rightarrow> t"    ("(3PROD _:_./ _)" 30)
+  "_prod" :: "[idt, t, t] \<Rightarrow> t"        ("(3\<Prod>_:_./ _)" 30)
+  "_prod_ascii" :: "[idt, t, t] \<Rightarrow> t"  ("(3II _:_./ _)" 30)
 
-text "The translations below bind the variable \<open>x\<close> in the expressions \<open>B\<close> and \<open>b\<close>."
+text \<open>The translations below bind the variable @{term x} in the expressions @{term B} and @{term b}.\<close>
 
 translations
   "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod A (\<lambda>x. B)"
-  "PROD x:A. B" \<rightharpoonup> "CONST Prod A (\<lambda>x. B)"
+  "II x:A. B" \<rightharpoonup> "CONST Prod A (\<lambda>x. B)"
 
-text "Nondependent functions are a special case."
+text \<open>Non-dependent functions are a special case.\<close>
 
-abbreviation Function :: "[t, t] \<Rightarrow> t"  (infixr "\<rightarrow>" 40)
+abbreviation Fun :: "[t, t] \<Rightarrow> t"  (infixr "\<rightarrow>" 40)
   where "A \<rightarrow> B \<equiv> \<Prod>_: A. B"
 
-
-section \<open>Type rules\<close>
-
 axiomatization where
-  Prod_form: "\<lbrakk>A: U i; B: A \<longrightarrow> U i\<rbrakk> \<Longrightarrow> \<Prod>x:A. B x: U i"
-and
-  Prod_intro: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x: B x; A: U i\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b x: \<Prod>x:A. B x"
-and
-  Prod_elim: "\<lbrakk>f: \<Prod>x:A. B x; a: A\<rbrakk> \<Longrightarrow> f`a: B a"
-and
-  Prod_appl: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x: B x; a: A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b x)`a \<equiv> b a"
-and
-  Prod_uniq: "f : \<Prod>x:A. B x \<Longrightarrow> \<^bold>\<lambda>x. (f`x) \<equiv> f"
-and
-  Prod_eq: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x \<equiv> c x; A: U i\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b x \<equiv> \<^bold>\<lambda>x. c x"
+\<comment> \<open>Type rules\<close>
 
-text "
-  The Pure rules for \<open>\<equiv>\<close> only let us judge strict syntactic equality of object lambda expressions; Prod_eq is the actual definitional equality rule.
+  Prod_form: "\<lbrakk>A: U i; B: A \<longrightarrow> U i\<rbrakk> \<Longrightarrow> \<Prod>x:A. B x: U i" and
 
-  Note that the syntax \<open>\<^bold>\<lambda>\<close> (bold lambda) used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation).
-"
+  Prod_intro: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x: B x; A: U i\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b x: \<Prod>x:A. B x" and
 
-text "
-  In addition to the usual type rules, it is a meta-theorem that whenever \<open>\<Prod>x:A. B x: U i\<close> is derivable from some set of premises \<Gamma>, then so are \<open>A: U i\<close> and \<open>B: A \<longrightarrow> U i\<close>.
-  
-  That is to say, the following inference rules are admissible, and it simplifies proofs greatly to axiomatize them directly.
-"
+  Prod_elim: "\<lbrakk>f: \<Prod>x:A. B x; a: A\<rbrakk> \<Longrightarrow> f`a: B a" and
 
-axiomatization where
-  Prod_wellform1: "(\<Prod>x:A. B x: U i) \<Longrightarrow> A: U i"
-and
-  Prod_wellform2: "(\<Prod>x:A. B x: U i) \<Longrightarrow> B: A \<longrightarrow> U i"
+  Prod_comp: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x: B x; a: A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b x)`a \<equiv> b a" and
 
+  Prod_uniq: "f: \<Prod>x:A. B x \<Longrightarrow> \<^bold>\<lambda>x. f`x \<equiv> f" and
 
-text "Rule attribute declarations---set up various methods to use the type rules."
+\<comment> \<open>Congruence rules\<close>
 
-lemmas Prod_comp [comp] = Prod_appl Prod_uniq
-lemmas Prod_wellform [wellform] = Prod_wellform1 Prod_wellform2
+  Prod_form_eq: "\<lbrakk>A: U i; B: A \<longrightarrow> U i; C: A \<longrightarrow> U i; \<And>x. x: A \<Longrightarrow> B x \<equiv> C x\<rbrakk> \<Longrightarrow> \<Prod>x:A. B x \<equiv> \<Prod>x:A. C x" and
+
+  Prod_intro_eq: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x \<equiv> c x; A: U i\<rbrakk> \<Longrightarrow> \<^bold>\<lambda>x. b x \<equiv> \<^bold>\<lambda>x. c x"
+
+text \<open>
+The Pure rules for \<open>\<equiv>\<close> only let us judge strict syntactic equality of object lambda expressions.
+The actual definitional equality rule is @{thm Prod_intro_eq}.
+Note that this is a separate rule from function extensionality.
+
+Note that the bold lambda symbol \<open>\<^bold>\<lambda>\<close> used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation).
+\<close>
+
 lemmas Prod_routine [intro] = Prod_form Prod_intro Prod_elim
+lemmas Prod_comps [comp] = Prod_comp Prod_uniq
 
 
-section \<open>Function composition\<close>
+section \<open>Additional definitions\<close>
 
 definition compose :: "[t, t] \<Rightarrow> t"  (infixr "o" 110) where "g o f \<equiv> \<^bold>\<lambda>x. g`(f`x)"
-
-syntax "_COMPOSE" :: "[t, t] \<Rightarrow> t"  (infixr "\<circ>" 110)
+syntax "_compose" :: "[t, t] \<Rightarrow> t"  (infixr "\<circ>" 110)
 translations "g \<circ> f" \<rightleftharpoons> "g o f"
 
+declare compose_def [comp]
 
-section \<open>Polymorphic identity function\<close>
+lemma compose_assoc:
+  assumes "A: U i" and "f: A \<rightarrow> B" "g: B \<rightarrow> C" "h: \<Prod>x:C. D x"
+  shows "(h \<circ> g) \<circ> f \<equiv> h \<circ> (g \<circ> f)"
+by (derive lems: assms Prod_intro_eq)
 
-abbreviation id :: t where "id \<equiv> \<^bold>\<lambda>x. x"
+lemma compose_comp:
+  assumes "A: U i" and "\<And>x. x: A \<Longrightarrow> b x: B" and "\<And>x. x: B \<Longrightarrow> c x: C x"
+  shows "(\<^bold>\<lambda>x. c x) \<circ> (\<^bold>\<lambda>x. b x) \<equiv> \<^bold>\<lambda>x. c (b x)"
+by (derive lems: assms Prod_intro_eq)
+
+abbreviation id :: t where "id \<equiv> \<^bold>\<lambda>x. x"  \<comment> \<open>Polymorphic identity function\<close>
 
 
 end
