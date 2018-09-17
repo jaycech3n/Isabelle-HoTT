@@ -7,10 +7,7 @@ Projection functions \<open>fst\<close> and \<open>snd\<close> for the dependent
 *)
 
 theory Proj
-imports
-  HoTT_Methods
-  Prod
-  Sum
+imports HoTT_Methods Prod Sum
 
 begin
 
@@ -28,12 +25,12 @@ unfolding fst_def by compute (derive lems: assms)
 
 lemma snd_type:
   assumes "A: U i" and "B: A \<longrightarrow> U i" and "p: \<Sum>x:A. B x" shows "snd p: B (fst p)"
-unfolding snd_def proof
-  show "\<And>p. p: \<Sum>x:A. B x \<Longrightarrow> B (fst p): U i" by (derive lems: assms fst_type)
-  
+unfolding snd_def proof (derive lems: assms)
+  show "\<And>p. p: \<Sum>x:A. B x \<Longrightarrow> fst p: A" using assms(1-2) by (rule fst_type)
+
   fix x y assume asm: "x: A" "y: B x"
   show "y: B (fst <x,y>)" by (derive lems: asm assms fst_comp)
-qed fact
+qed
 
 lemma snd_comp:
   assumes "A: U i" and "B: A \<longrightarrow> U i" and "a: A" and "b: B a" shows "snd <a,b> \<equiv> b"

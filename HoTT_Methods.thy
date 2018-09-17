@@ -50,10 +50,10 @@ method derive uses lems = (routine add: lems | compute comp: lems)+
 
 section \<open>Induction\<close>
 
-text "
+text \<open>
   Placeholder section for the automation of induction, i.e. using the elimination rules.
   At the moment one must directly apply them with \<open>rule X_elim\<close>.
-"
+\<close>
 
 
 end
