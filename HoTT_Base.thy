@@ -77,7 +77,7 @@ Declare named theorems to be used by proof methods defined in @{file HoTT_Method
 These are used by the \<open>compute\<close> method, and may also be passed to invocations of the method \<open>subst\<close> to perform equational rewriting.
 \<close>
 
-(* Todo: Set up the simplifier! *)
+(* Todo: Set up the Simplifier! *)
 
 
 end
