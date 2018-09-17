@@ -1,46 +1,30 @@
-(*  Title:  HoTT/HoTT_Methods.thy
-    Author: Josh Chen
+(*
+Title:  HoTT_Methods.thy
+Author: Joshua Chen
+Date:   2018
 
-Method setup for the HoTT library. Relies heavily on Eisbach.
+Method setup for the HoTT logic. Relies heavily on Eisbach.
 *)
 
 theory HoTT_Methods
-  imports
-    "HOL-Eisbach.Eisbach"
-    "HOL-Eisbach.Eisbach_Tools"
-    HoTT_Base
+imports
+  "HOL-Eisbach.Eisbach"
+  "HOL-Eisbach.Eisbach_Tools"
+  HoTT_Base
+
 begin
 
 
 section \<open>Deriving typing judgments\<close>
 
-method routine uses lems = (assumption | rule lems | standard)+
+method routine uses add = (assumption | rule add | rule)+
 
-text "
-  @{method routine} proves routine type judgments \<open>a : A\<close> using the rules declared [intro] in the respective theory files, as well as additional provided lemmas.
-"
-
-text "
-  \<open>wellformed'\<close> finds a proof of any valid typing judgment derivable from the judgment passed as \<open>jdmt\<close>.
-  If no judgment is passed, it will try to resolve with the theorems declared \<open>wellform\<close>.
-  \<open>wellform\<close> is like \<open>wellformed'\<close> but takes multiple judgments.
-
-  The named theorem \<open>wellform\<close> is declared in HoTT_Base.thy.
-"
-
-method wellformed' uses jdmt declares wellform =
-  match wellform in rl: "PROP ?P" \<Rightarrow> \<open>(
-    catch \<open>rule rl[OF jdmt]\<close> \<open>fail\<close> |
-    catch \<open>wellformed' jdmt: rl[OF jdmt]\<close> \<open>fail\<close>
-    )\<close>
-
-method wellformed uses lems =
-  match lems in lem: "?X : ?Y" \<Rightarrow> \<open>wellformed' jdmt: lem\<close>
+text \<open>
+The method @{method routine} proves type judgments @{prop "a : A"} using the rules declared @{attribute intro} in the respective theory files, as well as additional provided lemmas passed using the modifier \<open>add\<close>.
+\<close>
 
 
 section \<open>Substitution and simplification\<close>
-
-text "Import the \<open>subst\<close> method, used for substituting definitional equalities."
 
 ML_file "~~/src/Tools/misc_legacy.ML"
 ML_file "~~/src/Tools/IsaPlanner/isand.ML"
@@ -48,16 +32,20 @@ ML_file "~~/src/Tools/IsaPlanner/rw_inst.ML"
 ML_file "~~/src/Tools/IsaPlanner/zipper.ML"
 ML_file "~~/src/Tools/eqsubst.ML"
 
-text "Perform basic single-step computations:"
+\<comment> \<open>Import the @{method subst} method, used for substituting definitional equalities.\<close>
 
-method compute uses lems = (subst lems comp | rule lems comp)
+method compute declares comp = (subst comp)
 
+text \<open>
+Method @{method compute} performs single-step simplifications, using any rules declared @{attribute comp} in the context.
+Premises of the rule(s) applied are added as new subgoals.
+\<close>
 
 section \<open>Derivation search\<close>
 
-text " Combine \<open>routine\<close>, \<open>wellformed\<close>, and \<open>compute\<close> to search for derivations of judgments."
+text \<open>Combine @{method routine} and @{method compute} to search for derivations of judgments.\<close>
 
-method derive uses lems = (routine lems: lems | compute lems: lems | wellformed lems: lems)+
+method derive uses lems = (routine add: lems | compute comp: lems)+
 
 
 section \<open>Induction\<close>
