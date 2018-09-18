@@ -24,6 +24,7 @@ Unit
 (* Derived definitions and properties *)
 EqualProps
 Proj
+Univalence
 
 begin
 
