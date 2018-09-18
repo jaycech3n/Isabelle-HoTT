@@ -42,6 +42,7 @@ where
     \<And>x. x: A \<Longrightarrow> c x: C (inl x);
     \<And>y. y: B \<Longrightarrow> d y: C (inr y) \<rbrakk> \<Longrightarrow> ind\<^sub>+ (\<lambda>x. c x) (\<lambda>y. d y) (inr b) \<equiv> d b"
 
+lemmas Coprod_form [form]
 lemmas Coprod_routine [intro] = Coprod_form Coprod_intro_inl Coprod_intro_inr Coprod_elim
 lemmas Coprod_comp [comp] = Coprod_comp_inl Coprod_comp_inr
 

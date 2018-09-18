@@ -20,6 +20,7 @@ where
 
   Empty_elim: "\<lbrakk>a: \<zero>; C: \<zero> \<longrightarrow> U i\<rbrakk> \<Longrightarrow> ind\<^sub>\<zero> a: C a"
 
+lemmas Empty_form [form]
 lemmas Empty_routine [intro] = Empty_form Empty_elim
 
 

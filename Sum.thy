@@ -51,6 +51,7 @@ axiomatization where
 
   Sum_form_eq: "\<lbrakk>A: U i; B: A \<longrightarrow> U i; C: A \<longrightarrow> U i; \<And>x. x: A \<Longrightarrow> B x \<equiv> C x\<rbrakk> \<Longrightarrow> \<Sum>x:A. B x \<equiv> \<Sum>x:A. C x"
 
+lemmas Sum_form [form]
 lemmas Sum_routine [intro] = Sum_form Sum_intro Sum_elim
 lemmas Sum_comp [comp]
 

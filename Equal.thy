@@ -44,6 +44,7 @@ axiomatization where
     \<And>x. x: A \<Longrightarrow> f x: C x x (refl x);
     \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<longrightarrow> U i \<rbrakk> \<Longrightarrow> ind\<^sub>= (\<lambda>x. f x) (refl a) \<equiv> f a"
 
+lemmas Equal_form [form]
 lemmas Equal_routine [intro] = Equal_form Equal_intro Equal_elim
 lemmas Equal_comp [comp]
 

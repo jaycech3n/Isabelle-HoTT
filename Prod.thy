@@ -61,6 +61,7 @@ Note that this is a separate rule from function extensionality.
 Note that the bold lambda symbol \<open>\<^bold>\<lambda>\<close> used for dependent functions clashes with the proof term syntax (cf. \<section>2.5.2 of the Isabelle/Isar Implementation).
 \<close>
 
+lemmas Prod_form [form]
 lemmas Prod_routine [intro] = Prod_form Prod_intro Prod_elim
 lemmas Prod_comps [comp] = Prod_comp Prod_uniq
 

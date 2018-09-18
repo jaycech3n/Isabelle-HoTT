@@ -12,6 +12,26 @@ imports HoTT_Base "HOL-Eisbach.Eisbach" "HOL-Eisbach.Eisbach_Tools"
 begin
 
 
+section \<open>Handling universes\<close>
+
+method provelt = (rule lt_Suc | (rule lt_trans, (rule lt_Suc)+)+)
+
+method hierarchy = (rule U_hierarchy, provelt)
+
+method cumulativity declares form = (
+  ((elim U_cumulative' | (rule U_cumulative', rule form)), rule leq_min) |
+  ((elim U_cumulative | (rule U_cumulative, rule form)), provelt)
+)
+
+text \<open>
+Methods @{method provelt}, @{method hierarchy}, and @{method cumulativity} prove statements of the form
+\<^item> \<open>n < (Suc (... (Suc n) ...))\<close>,
+\<^item> \<open>U i: U (Suc (... (Suc i) ...))\<close>, and
+\<^item> @{prop "A: U i \<Longrightarrow> A: U j"}, where @{prop "i \<le> j"}
+respectively.
+\<close>
+
+
 section \<open>Deriving typing judgments\<close>
 
 method routine uses add = (assumption | rule add | rule)+
@@ -38,14 +58,15 @@ Method @{method compute} performs single-step simplifications, using any rules d
 Premises of the rule(s) applied are added as new subgoals.
 \<close>
 
+
 section \<open>Derivation search\<close>
 
 text \<open>
 Combine @{method routine} and @{method compute} to search for derivations of judgments.
-Also handle universes using methods @{method hierarchy} and @{method cumulativity} defined in @{file HoTT_Base.thy}.
+Also handle universes using @{method hierarchy} and @{method cumulativity}.
 \<close>
 
-method derive uses lems = (routine add: lems | compute comp: lems | cumulativity | hierarchy)+
+method derive uses lems = (routine add: lems | compute comp: lems | cumulativity form: lems | hierarchy)+
 
 
 section \<open>Induction\<close>

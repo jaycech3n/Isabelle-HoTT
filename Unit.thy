@@ -25,6 +25,7 @@ where
 
   Unit_comp: "\<lbrakk>c: C \<star>; C: \<one> \<longrightarrow> U i\<rbrakk> \<Longrightarrow> ind\<^sub>\<one> c \<star> \<equiv> c"
 
+lemmas Unit_form [form]
 lemmas Unit_routine [intro] = Unit_form Unit_intro Unit_elim
 lemmas Unit_comp [comp]
 

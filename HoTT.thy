@@ -1,5 +1,7 @@
-(*  Title:  HoTT/HoTT.thy
-    Author: Josh Chen
+(*
+Title:  HoTT.thy
+Author: Joshua Chen
+Date:   2018
 
 Homotopy type theory
 *)
@@ -26,8 +28,7 @@ Proj
 begin
 
 
-lemmas forms =
-  Nat_form Prod_form Sum_form Coprod_form Equal_form Unit_form Empty_form
+text \<open>Rule bundles:\<close>
 
 lemmas intros =
   Nat_intro_0 Nat_intro_succ Prod_intro Sum_intro Equal_intro Coprod_intro_inl Coprod_intro_inr Unit_intro
