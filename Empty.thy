@@ -1,29 +1,26 @@
-(*  Title:  HoTT/Empty.thy
-    Author: Josh Chen
+(*
+Title:  Empty.thy
+Author: Joshua Chen
+Date:   2018
 
 Empty type
 *)
 
 theory Empty
-  imports HoTT_Base
+imports HoTT_Base
+
 begin
 
 
-section \<open>Constants and type rules\<close>
-
-section \<open>Empty type\<close>
-
 axiomatization
-  Empty :: Term  ("\<zero>") and
-  indEmpty :: "Term \<Rightarrow> Term"  ("(1ind\<^sub>\<zero>)")
+  Empty    :: t  ("\<zero>") and
+  indEmpty :: "t \<Rightarrow> t"  ("(1ind\<^sub>\<zero>)")
 where
-  Empty_form: "\<zero>: U O"
-and
-  Empty_elim: "\<lbrakk>C: \<zero> \<longrightarrow> U i; z: \<zero>\<rbrakk> \<Longrightarrow> ind\<^sub>\<zero> z: C z"
+  Empty_form: "\<zero>: U O" and
 
+  Empty_elim: "\<lbrakk>a: \<zero>; C: \<zero> \<longrightarrow> U i\<rbrakk> \<Longrightarrow> ind\<^sub>\<zero> a: C a"
 
-text "Rule attribute declarations:"
-
+lemmas Empty_form [form]
 lemmas Empty_routine [intro] = Empty_form Empty_elim
 
 
