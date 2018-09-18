@@ -14,6 +14,8 @@ begin
 
 section \<open>Basic setup\<close>
 
+declare[[eta_contract=false]]
+
 typedecl t  \<comment> \<open>Type of object types and terms\<close>
 typedecl ord  \<comment> \<open>Type of meta-level numerals\<close>
 
