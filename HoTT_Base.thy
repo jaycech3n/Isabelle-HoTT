@@ -7,9 +7,7 @@ Basic setup of a homotopy type theory object logic with a cumulative Russell-sty
 *)
 
 theory HoTT_Base
-imports
-  Pure
-  "HOL-Eisbach.Eisbach"
+imports Pure "HOL-Eisbach.Eisbach"
 
 begin
 

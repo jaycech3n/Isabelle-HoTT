@@ -3,14 +3,11 @@ Title:  HoTT_Methods.thy
 Author: Joshua Chen
 Date:   2018
 
-Method setup for the HoTT logic. Relies heavily on Eisbach.
+Method setup for the HoTT logic.
 *)
 
 theory HoTT_Methods
-imports
-  "HOL-Eisbach.Eisbach"
-  "HOL-Eisbach.Eisbach_Tools"
-  HoTT_Base
+imports HoTT_Base "HOL-Eisbach.Eisbach" "HOL-Eisbach.Eisbach_Tools"
 
 begin
 
@@ -43,16 +40,19 @@ Premises of the rule(s) applied are added as new subgoals.
 
 section \<open>Derivation search\<close>
 
-text \<open>Combine @{method routine} and @{method compute} to search for derivations of judgments.\<close>
+text \<open>
+Combine @{method routine} and @{method compute} to search for derivations of judgments.
+Also handle universes using methods @{method hierarchy} and @{method cumulativity} defined in @{file HoTT_Base.thy}.
+\<close>
 
-method derive uses lems = (routine add: lems | compute comp: lems)+
+method derive uses lems = (routine add: lems | compute comp: lems | cumulativity | hierarchy)+
 
 
 section \<open>Induction\<close>
 
 text \<open>
-  Placeholder section for the automation of induction, i.e. using the elimination rules.
-  At the moment one must directly apply them with \<open>rule X_elim\<close>.
+Placeholder section for the automation of induction, i.e. using the elimination rules.
+At the moment one must directly apply them with \<open>rule X_elim\<close>.
 \<close>
 
 

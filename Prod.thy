@@ -17,7 +17,7 @@ section \<open>Basic definitions\<close>
 axiomatization
   Prod   :: "[t, tf] \<Rightarrow> t" and
   lambda :: "(t \<Rightarrow> t) \<Rightarrow> t"  (binder "\<^bold>\<lambda>" 30) and
-  appl   :: "[t, t] \<Rightarrow> t"  ("(1_`/_)" [60, 61] 60)  \<comment> \<open>Application binds tighter than abstraction.\<close>
+  appl   :: "[t, t] \<Rightarrow> t"  ("(1_`/_)" [105, 106] 105)  \<comment> \<open>Application binds tighter than abstraction.\<close>
 
 syntax
   "_prod" :: "[idt, t, t] \<Rightarrow> t"        ("(3\<Prod>_:_./ _)" 30)
@@ -43,7 +43,7 @@ axiomatization where
 
   Prod_elim: "\<lbrakk>f: \<Prod>x:A. B x; a: A\<rbrakk> \<Longrightarrow> f`a: B a" and
 
-  Prod_comp: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x: B x; a: A\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b x)`a \<equiv> b a" and
+  Prod_comp: "\<lbrakk>a: A; \<And>x. x: A \<Longrightarrow> b x: B x\<rbrakk> \<Longrightarrow> (\<^bold>\<lambda>x. b x)`a \<equiv> b a" and
 
   Prod_uniq: "f: \<Prod>x:A. B x \<Longrightarrow> \<^bold>\<lambda>x. f`x \<equiv> f" and
 
@@ -68,6 +68,7 @@ lemmas Prod_comps [comp] = Prod_comp Prod_uniq
 section \<open>Additional definitions\<close>
 
 definition compose :: "[t, t] \<Rightarrow> t"  (infixr "o" 110) where "g o f \<equiv> \<^bold>\<lambda>x. g`(f`x)"
+
 syntax "_compose" :: "[t, t] \<Rightarrow> t"  (infixr "\<circ>" 110)
 translations "g \<circ> f" \<rightleftharpoons> "g o f"
 
