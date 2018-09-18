@@ -1,5 +1,5 @@
 (*
-Title:  ex/HoTT book/Ch1.thy
+Title:  ex/Book/Ch1.thy
 Author: Josh Chen
 Date:   2018
 
