@@ -117,7 +117,6 @@ proof (rule Equal_elim[where ?x=x and ?y=y and ?p=p])
   fix x assume "x: A"
   show "refl (q \<bullet> r): (refl x) \<bullet> (q \<bullet> r) =[x =\<^sub>A w] ((refl x) \<bullet> q) \<bullet> r"
   \<comment> \<open>This requires substitution of *propositional* equality. \<close>
-  sorry
   oops
 
 
