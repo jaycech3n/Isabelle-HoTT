@@ -22,8 +22,8 @@ Sum
 Unit
 
 (* Derived definitions and properties *)
-EqualProps
-Proj
+Equality
+Projections
 Univalence
 
 begin

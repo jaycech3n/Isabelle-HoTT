@@ -7,7 +7,7 @@ Definitions of homotopy, equivalence and the univalence axiom.
 *)
 
 theory Univalence
-imports HoTT_Methods EqualProps Prod Sum
+imports HoTT_Methods Equality Prod Sum
 
 begin
 
