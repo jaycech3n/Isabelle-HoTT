@@ -25,9 +25,14 @@ axiomatization
   lt  :: "[ord, ord] \<Rightarrow> prop"  (infix "<" 999) and
   leq :: "[ord, ord] \<Rightarrow> prop"  (infix "\<le>" 999)
 where
-  lt_Suc [intro]: "n < (Suc n)" and
-  lt_trans [intro]: "\<lbrakk>m1 < m2; m2 < m3\<rbrakk> \<Longrightarrow> m1 < m3" and
-  leq_min [intro]: "O \<le> n"
+  lt_Suc: "n < (Suc n)" and
+  lt_trans: "\<lbrakk>m1 < m2; m2 < m3\<rbrakk> \<Longrightarrow> m1 < m3" and
+  leq_min: "O \<le> n"
+
+declare
+  lt_Suc [intro!]
+  leq_min [intro!]
+  lt_trans [intro]
 
 
 section \<open>Judgment\<close>
