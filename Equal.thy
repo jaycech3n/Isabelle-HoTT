@@ -37,12 +37,12 @@ axiomatization where
     x: A;
     y: A;
     \<And>x. x: A \<Longrightarrow> f x: C x x (refl x);
-    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<longrightarrow> U i \<rbrakk> \<Longrightarrow> ind\<^sub>= (\<lambda>x. f x) p : C x y p" and
+    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<longrightarrow> U i \<rbrakk> \<Longrightarrow> ind\<^sub>= f p : C x y p" and
 
   Equal_comp: "\<lbrakk>
     a: A;
     \<And>x. x: A \<Longrightarrow> f x: C x x (refl x);
-    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<longrightarrow> U i \<rbrakk> \<Longrightarrow> ind\<^sub>= (\<lambda>x. f x) (refl a) \<equiv> f a"
+    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C x y: x =\<^sub>A y \<longrightarrow> U i \<rbrakk> \<Longrightarrow> ind\<^sub>= f (refl a) \<equiv> f a"
 
 lemmas Equal_form [form]
 lemmas Equal_routine [intro] = Equal_form Equal_intro Equal_elim

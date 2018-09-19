@@ -38,14 +38,14 @@ axiomatization where
   Sum_elim: "\<lbrakk>
     p: \<Sum>x:A. B x;
     C: \<Sum>x:A. B x \<longrightarrow> U i;
-    \<And>x y. \<lbrakk>x: A; y: B x\<rbrakk> \<Longrightarrow> f x y: C <x,y> \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum> (\<lambda>x y. f x y) p: C p" and
+    \<And>x y. \<lbrakk>x: A; y: B x\<rbrakk> \<Longrightarrow> f x y: C <x,y> \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum> f p: C p" and
 
   Sum_comp: "\<lbrakk>
     a: A;
     b: B a;
     B: A \<longrightarrow> U i;
     C: \<Sum>x:A. B x \<longrightarrow> U i;
-    \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f x y: C <x,y> \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum> (\<lambda>x y. f x y) <a,b> \<equiv> f a b" and
+    \<And>x y. \<lbrakk>x: A; y: B(x)\<rbrakk> \<Longrightarrow> f x y: C <x,y> \<rbrakk> \<Longrightarrow> ind\<^sub>\<Sum> f <a,b> \<equiv> f a b" and
 
 \<comment> \<open>Congruence rules\<close>
 

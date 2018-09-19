@@ -20,8 +20,8 @@ axiomatization
   appl   :: "[t, t] \<Rightarrow> t"  ("(1_`/_)" [105, 106] 105)  \<comment> \<open>Application binds tighter than abstraction.\<close>
 
 syntax
-  "_prod" :: "[idt, t, t] \<Rightarrow> t"        ("(3\<Prod>_:_./ _)" 30)
-  "_prod_ascii" :: "[idt, t, t] \<Rightarrow> t"  ("(3II _:_./ _)" 30)
+  "_prod" :: "[idt, t, t] \<Rightarrow> t"        ("(3\<Prod>_: _./ _)" 30)
+  "_prod_ascii" :: "[idt, t, t] \<Rightarrow> t"  ("(3II _: _./ _)" 30)
 
 text \<open>The translations below bind the variable @{term x} in the expressions @{term B} and @{term b}.\<close>
 

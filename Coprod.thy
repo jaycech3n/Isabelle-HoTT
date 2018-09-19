@@ -28,19 +28,19 @@ where
     u: A + B;
     C: A + B \<longrightarrow> U i;
     \<And>x. x: A \<Longrightarrow> c x: C (inl x);
-    \<And>y. y: B \<Longrightarrow> d y: C (inr y) \<rbrakk> \<Longrightarrow> ind\<^sub>+ (\<lambda> x. c x) (\<lambda>y. d y) u: C u" and
+    \<And>y. y: B \<Longrightarrow> d y: C (inr y) \<rbrakk> \<Longrightarrow> ind\<^sub>+ c d u: C u" and
 
   Coprod_comp_inl: "\<lbrakk>
     a: A;
     C: A + B \<longrightarrow> U i;
     \<And>x. x: A \<Longrightarrow> c x: C (inl x);
-    \<And>y. y: B \<Longrightarrow> d y: C (inr y) \<rbrakk> \<Longrightarrow> ind\<^sub>+ (\<lambda>x. c x) (\<lambda>y. d y) (inl a) \<equiv> c a" and
+    \<And>y. y: B \<Longrightarrow> d y: C (inr y) \<rbrakk> \<Longrightarrow> ind\<^sub>+ c d (inl a) \<equiv> c a" and
 
   Coprod_comp_inr: "\<lbrakk>
     b: B;
     C: A + B \<longrightarrow> U i;
     \<And>x. x: A \<Longrightarrow> c x: C (inl x);
-    \<And>y. y: B \<Longrightarrow> d y: C (inr y) \<rbrakk> \<Longrightarrow> ind\<^sub>+ (\<lambda>x. c x) (\<lambda>y. d y) (inr b) \<equiv> d b"
+    \<And>y. y: B \<Longrightarrow> d y: C (inr y) \<rbrakk> \<Longrightarrow> ind\<^sub>+ c d (inr b) \<equiv> d b"
 
 lemmas Coprod_form [form]
 lemmas Coprod_routine [intro] = Coprod_form Coprod_intro_inl Coprod_intro_inr Coprod_elim

@@ -28,18 +28,18 @@ where
     a: C 0;
     n: \<nat>;
     C: \<nat> \<longrightarrow> U i;
-    \<And>n c. \<lbrakk>n: \<nat>; c: C n\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>n c. f n c) a n: C n" and
+    \<And>n c. \<lbrakk>n: \<nat>; c: C n\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat> f a n: C n" and
 
   Nat_comp_0: "\<lbrakk>
     a: C 0;
     C: \<nat> \<longrightarrow> U i;
-    \<And>n c. \<lbrakk>n: \<nat>; c: C(n)\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>n c. f n c) a 0 \<equiv> a" and
+    \<And>n c. \<lbrakk>n: \<nat>; c: C(n)\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat> f a 0 \<equiv> a" and
 
   Nat_comp_succ: "\<lbrakk>
     a: C 0;
     n: \<nat>;
     C: \<nat> \<longrightarrow> U i;
-    \<And>n c. \<lbrakk>n: \<nat>; c: C n\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat> (\<lambda>n c. f n c) a (succ n) \<equiv> f n (ind\<^sub>\<nat> f a n)"
+    \<And>n c. \<lbrakk>n: \<nat>; c: C n\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat> f a (succ n) \<equiv> f n (ind\<^sub>\<nat> f a n)"
 
 lemmas Nat_form [form]
 lemmas Nat_routine [intro] = Nat_form Nat_intro_0 Nat_intro_succ Nat_elim
