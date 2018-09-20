@@ -35,7 +35,7 @@ Composition function, of type @{term "x =\<^sub>A y \<rightarrow> (y =\<^sub>A z
 
 definition pathcomp :: t where "pathcomp \<equiv> \<^bold>\<lambda>p. ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>q. ind\<^sub>= (\<lambda>x. (refl x)) q) p"
 
-syntax "_pathcomp" :: "[t, t] \<Rightarrow> t"  (infixl "\<bullet>" 120)
+syntax "_pathcomp" :: "[t, t] \<Rightarrow> t"  (infixl "\<bullet>" 110)
 translations "p \<bullet> q" \<rightleftharpoons> "CONST pathcomp`p`q"
 
 lemma pathcomp_type:
@@ -189,7 +189,7 @@ schematic_goal functions_are_functorial:
     "x: A" "y: A" "z: A"
     "p: x =\<^sub>A y" "q: y =\<^sub>A z"
   shows
-    1: "?a: ap\<^sub>f`(p \<bullet> q) =[?A] (ap\<^sub>f`p) \<bullet> (ap\<^sub>f`q)" and
+    1: "?a: ap\<^sub>f`(p \<bullet> q) =[?A] ap\<^sub>f`p \<bullet> ap\<^sub>f`q" and
     2: "?b: ap\<^sub>f`(p\<inverse>) =[?B] (ap\<^sub>f`p)\<inverse>" and
     3: "?c: ap\<^sub>g`(ap\<^sub>f`p) =[?C] ap[g \<circ> f]`p" and
     4: "?d: ap[id]`p =[?D] p"
