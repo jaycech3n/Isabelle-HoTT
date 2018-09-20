@@ -17,7 +17,7 @@ section \<open>Basic definitions\<close>
 axiomatization
   Prod   :: "[t, tf] \<Rightarrow> t" and
   lambda :: "(t \<Rightarrow> t) \<Rightarrow> t"  (binder "\<^bold>\<lambda>" 30) and
-  appl   :: "[t, t] \<Rightarrow> t"  ("(1_`/_)" [105, 106] 105)  \<comment> \<open>Application binds tighter than abstraction.\<close>
+  appl   :: "[t, t] \<Rightarrow> t"  (infixl "`" 105)  \<comment> \<open>Application binds tighter than abstraction.\<close>
 
 syntax
   "_prod" :: "[idt, t, t] \<Rightarrow> t"        ("(3\<Prod>_: _./ _)" 30)
