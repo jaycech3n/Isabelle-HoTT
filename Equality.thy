@@ -51,21 +51,7 @@ by (routine add: assms pathcomp_type)
 lemma pathcomp_comp:
   assumes "A: U i" and "a: A"
   shows "(refl a) \<bullet> (refl a) \<equiv> refl a"
-unfolding pathcomp_def proof compute
-  show "(ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>q. ind\<^sub>= (\<lambda>x. refl x) q) (refl a))`(refl a) \<equiv> refl a"
-  proof compute
-    show "\<^bold>\<lambda>q. (ind\<^sub>= (\<lambda>x. refl x) q): a =\<^sub>A a \<rightarrow> a =\<^sub>A a"
-    by (routine add: assms)
-
-    show "(\<^bold>\<lambda>q. (ind\<^sub>= (\<lambda>x. refl x) q))`(refl a) \<equiv> refl a"
-    proof compute
-      show "\<And>q. q: a =\<^sub>A a \<Longrightarrow> ind\<^sub>= (\<lambda>x. refl x) q: a =\<^sub>A a" by (routine add: assms)
-    qed (derive lems: assms)
-  qed (routine add: assms)
-
-  show "\<And>p. p: a =\<^sub>A a \<Longrightarrow> ind\<^sub>= (\<lambda>_. \<^bold>\<lambda>q. ind\<^sub>= (\<lambda>x. refl x) q) p: a =\<^sub>A a \<rightarrow> a =\<^sub>A a"
-  by (routine add: assms)
-qed (routine add: assms)
+unfolding pathcomp_def by (derive lems: assms)
 
 declare
   pathcomp_type [intro]

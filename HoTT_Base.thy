@@ -53,7 +53,7 @@ text \<open>
 Using method @{method rule} with @{thm U_cumulative} is unsafe, if applied blindly it will typically lead to non-termination.
 One should instead use @{method elim}, or instantiate @{thm U_cumulative} suitably.
 
-@{thm U_cumulative'} is an alternative rule used by the method \<open>lift\<close> in @{file HoTT_Methods.thy}.
+@{thm U_cumulative'} is an alternative rule used by the method \<open>cumulativity\<close> in @{file HoTT_Methods.thy}.
 \<close>
 
 
