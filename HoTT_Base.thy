@@ -1,8 +1,15 @@
-(*
-Homotopy Type Theory
+(********
+Isabelle/HoTT: Foundational definitions and notation
+Jan 2019
 
-Foundational setup and definitions
-*)
+This file is the starting point, and contains the base setup and definitions of the object logic.
+Among other things, it defines:
+
+* Meta-numerals to index the universe hierarchy, and related axioms.
+* The universe hierarchy and its governing rules.
+* Named theorems for later use by proof methods.
+
+********)
 
 theory HoTT_Base
 imports Pure
@@ -11,7 +18,7 @@ begin
 
 section \<open>Basic setup\<close>
 
-declare[[eta_contract=false]]
+declare[[eta_contract=false]] (* I'm not actually sure this does anything... *)
 
 typedecl t  \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
 typedecl ord  \<comment> \<open>Type of meta-numerals\<close>
@@ -51,26 +58,13 @@ Instead use @{method elim}, or instantiate @{thm U_cumulative} suitably.
 @{thm U_cumulative'} is an alternative rule used by the method \<open>cumulativity\<close> in @{file HoTT_Methods.thy}.
 \<close>
 
-
-section \<open>Type families\<close>
-
-abbreviation (input) constrained :: "[t \<Rightarrow> t, t, t] \<Rightarrow> prop"  ("(1_:/ _ \<longrightarrow> _)")
-  where "f: A \<longrightarrow> B \<equiv> (\<And>x. x : A \<Longrightarrow> f x: B)"
-
-text \<open>
-The abbreviation @{abbrev constrained} is used to define type families, which are constrained expressions @{term "P: A \<longrightarrow> B"}, where @{term "A::t"} and @{term "B::t"} are small types.
-\<close>
-
-type_synonym tf = "t \<Rightarrow> t"  \<comment> \<open>Type of type families\<close>
-
-
 section \<open>Named theorems\<close>
 
 named_theorems comp
 named_theorems form
 
 text \<open>
-Declare named theorems to be used by proof methods defined in @{file HoTT_Methods.thy}.
+The named theorems above will be used by proof methods defined in @{file HoTT_Methods.thy}.
 
 @{attribute comp} declares computation rules, which are used by the \<open>compute\<close> method, and may also be passed to invocations of the method \<open>subst\<close> to perform equational rewriting.
 
@@ -79,6 +73,5 @@ These are mainly used by the \<open>cumulativity\<close> method, which lifts typ
 \<close>
 
 (* Todo: Set up the Simplifier! *)
-
 
 end
