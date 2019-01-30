@@ -1,9 +1,7 @@
 (*
-Title:  HoTT_Base.thy
-Author: Joshua Chen
-Date:   2018
+Homotopy Type Theory
 
-Basic setup of a homotopy type theory object logic with a cumulative Russell-style universe hierarchy.
+Foundational setup and definitions
 *)
 
 theory HoTT_Base
@@ -11,13 +9,12 @@ imports Pure
 
 begin
 
-
 section \<open>Basic setup\<close>
 
 declare[[eta_contract=false]]
 
-typedecl t  \<comment> \<open>Type of object types and terms\<close>
-typedecl ord  \<comment> \<open>Type of meta-level numerals\<close>
+typedecl t  \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
+typedecl ord  \<comment> \<open>Type of meta-numerals\<close>
 
 axiomatization
   O   :: ord and
@@ -34,11 +31,9 @@ declare
   leq_min [intro!]
   lt_trans [intro]
 
-
-section \<open>Judgment\<close>
+section \<open>Typing judgment\<close>
 
 judgment hastype :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
-
 
 section \<open>Universes\<close>
 
@@ -50,8 +45,8 @@ where
   U_cumulative': "\<lbrakk>A: U i; i \<le> j\<rbrakk> \<Longrightarrow> A: U j"
 
 text \<open>
-Using method @{method rule} with @{thm U_cumulative} is unsafe, if applied blindly it will typically lead to non-termination.
-One should instead use @{method elim}, or instantiate @{thm U_cumulative} suitably.
+Using method @{method rule} with @{thm U_cumulative} is unsafe, if applied blindly it will very easily lead to non-termination.
+Instead use @{method elim}, or instantiate @{thm U_cumulative} suitably.
 
 @{thm U_cumulative'} is an alternative rule used by the method \<open>cumulativity\<close> in @{file HoTT_Methods.thy}.
 \<close>
