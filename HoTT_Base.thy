@@ -2,7 +2,7 @@
 Isabelle/HoTT: Foundational definitions and notation
 Jan 2019
 
-This file is the starting point, and contains the base setup and definitions of the object logic.
+This file is the starting point of the Isabelle/HoTT object logic, and contains the basic setup and definitions.
 Among other things, it defines:
 
 * Meta-numerals to index the universe hierarchy, and related axioms.
@@ -18,7 +18,7 @@ begin
 
 section \<open>Basic setup\<close>
 
-declare[[eta_contract=false]] (* I'm not actually sure this does anything... *)
+declare[[eta_contract=false]] (* Does this option actually do anything? *)
 
 typedecl t  \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
 typedecl ord  \<comment> \<open>Type of meta-numerals\<close>
@@ -55,8 +55,12 @@ text \<open>
 Using method @{method rule} with @{thm U_cumulative} is unsafe, if applied blindly it will very easily lead to non-termination.
 Instead use @{method elim}, or instantiate @{thm U_cumulative} suitably.
 
-@{thm U_cumulative'} is an alternative rule used by the method \<open>cumulativity\<close> in @{file HoTT_Methods.thy}.
+@{thm U_cumulative'} is an alternative rule used by the method @{theory_text cumulativity} in @{file HoTT_Methods.thy}.
 \<close>
+
+section \<open>Type families\<close>
+
+abbrev (input) 
 
 section \<open>Named theorems\<close>
 
