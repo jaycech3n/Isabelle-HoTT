@@ -6,7 +6,8 @@ session HoTT = Pure +
     hierarchy à la Russell.
     
     Follows the development of the theory in
-    The Univalent Foundations Program, Homotopy Type Theory: Univalent Foundations of Mathematics,
+    The Univalent Foundations Program,
+    Homotopy Type Theory: Univalent Foundations of Mathematics,
     Institute for Advanced Study, (2013).
     Available online at https://homotopytypetheory.org/book.
     

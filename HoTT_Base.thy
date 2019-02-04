@@ -5,7 +5,7 @@ Jan 2019
 This file is the starting point of the Isabelle/HoTT object logic, and contains the basic setup and definitions.
 Among other things, it defines:
 
-* Meta-numerals to index the universe hierarchy, and related axioms.
+* Containers for storing type information of object-level terms.
 * The universe hierarchy and its governing rules.
 * Named theorems for later use by proof methods.
 
@@ -16,12 +16,56 @@ imports Pure
 
 begin
 
-section \<open>Basic setup\<close>
+section \<open>Terms and typing\<close>
 
-declare[[eta_contract=false]] (* Does this option actually do anything? *)
+typedecl t \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
 
-typedecl t  \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
-typedecl ord  \<comment> \<open>Type of meta-numerals\<close>
+consts has_type :: "[t, t] \<Rightarrow> prop"  \<comment> \<open>The judgment coercion\<close>
+
+text \<open>
+We create a dedicated container in which to store object-level typing information whenever a typing judgment that does not depend on assumptions is proved.
+\<close>
+
+ML \<open>
+signature TYPINGS =
+sig
+  val get: term -> term
+end
+
+structure Typings: TYPINGS = 
+struct
+
+structure Typing_Data = Theory_Data
+(
+  type T = term Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+
+  fun merge (tbl, tbl') =
+    let
+      val key_vals = map (Symtab.lookup_key tbl') (Symtab.keys tbl')
+      val updates = map (fn SOME kv => Symtab.update kv) key_vals
+      fun f u t = u t
+    in fold f updates tbl end
+)
+
+fun get tm =
+  case Symtab.lookup (Typing_Data.get @{theory}) (Syntax.string_of_term @{context} tm) of
+    SOME tm' => tm'
+  | NONE => raise Fail "No typing information available"
+
+end
+\<close>
+
+syntax "_has_type" :: "[t, t] \<Rightarrow> prop"  ("3(_:/ _)")
+
+parse_translation \<open>
+
+\<close>
+
+section \<open>Universes\<close>
+
+typedecl ord \<comment> \<open>Type of meta-numerals\<close>
 
 axiomatization
   O   :: ord and
@@ -37,12 +81,6 @@ declare
   lt_Suc [intro!]
   leq_min [intro!]
   lt_trans [intro]
-
-section \<open>Typing judgment\<close>
-
-judgment hastype :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
-
-section \<open>Universes\<close>
 
 axiomatization
   U :: "ord \<Rightarrow> t"
@@ -60,7 +98,10 @@ Instead use @{method elim}, or instantiate @{thm U_cumulative} suitably.
 
 section \<open>Type families\<close>
 
-abbrev (input) 
+abbreviation (input) constraint :: "[t \<Rightarrow> t, t, t] \<Rightarrow> prop"  ("(1_:/ _ \<leadsto> _)")
+where "f: A \<leadsto> B \<equiv> (\<And>x. x: A \<Longrightarrow> f x: B)"
+
+text \<open>We use the notation @{prop "B: A \<leadsto> U i"} to abbreviate type families.\<close>
 
 section \<open>Named theorems\<close>
 
