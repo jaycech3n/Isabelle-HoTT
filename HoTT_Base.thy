@@ -1,23 +1,34 @@
-(*
-Title:  HoTT_Base.thy
-Author: Joshua Chen
-Date:   2018
+(********
+Isabelle/HoTT: Foundational definitions and notation
+Jan 2019
 
-Basic setup of a homotopy type theory object logic with a cumulative Russell-style universe hierarchy.
-*)
+This file is the starting point of the Isabelle/HoTT object logic, and contains the basic setup and definitions.
+Among other things, it:
+
+* Sets up object-level type inference functionality (via typing.ML).
+* Defines the universe hierarchy and its governing rules.
+* Defines named theorems for later use by proof methods.
+
+********)
 
 theory HoTT_Base
 imports Pure
 
 begin
 
-
-section \<open>Basic setup\<close>
+section \<open>Terms and typing\<close>
 
 declare[[eta_contract=false]]
 
-typedecl t  \<comment> \<open>Type of object types and terms\<close>
-typedecl ord  \<comment> \<open>Type of meta-level numerals\<close>
+typedecl t \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
+
+judgment has_type :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
+
+ML_file "typing.ML"
+
+section \<open>Universes\<close>
+
+typedecl ord \<comment> \<open>Type of meta-numerals\<close>
 
 axiomatization
   O   :: ord and
@@ -34,56 +45,44 @@ declare
   leq_min [intro!]
   lt_trans [intro]
 
-
-section \<open>Judgment\<close>
-
-judgment hastype :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
-
-
-section \<open>Universes\<close>
-
 axiomatization
   U :: "ord \<Rightarrow> t"
 where
-  U_hierarchy: "i < j \<Longrightarrow> U i: U j" and                               
+  U_hierarchy: "i < j \<Longrightarrow> U i: U j" and
   U_cumulative: "\<lbrakk>A: U i; i < j\<rbrakk> \<Longrightarrow> A: U j" and
   U_cumulative': "\<lbrakk>A: U i; i \<le> j\<rbrakk> \<Longrightarrow> A: U j"
 
 text \<open>
-Using method @{method rule} with @{thm U_cumulative} is unsafe, if applied blindly it will typically lead to non-termination.
-One should instead use @{method elim}, or instantiate @{thm U_cumulative} suitably.
+Using method @{method rule} with @{thm U_cumulative} and @{thm U_cumulative'} is unsafe: if applied blindly it will very easily lead to non-termination.
+Instead use @{method elim}, or instantiate the rules suitably.
 
-@{thm U_cumulative'} is an alternative rule used by the method \<open>cumulativity\<close> in @{file HoTT_Methods.thy}.
+@{thm U_cumulative'} is an alternative rule used by the method @{theory_text cumulativity} in @{file HoTT_Methods.thy}.
 \<close>
-
 
 section \<open>Type families\<close>
 
-abbreviation (input) constrained :: "[t \<Rightarrow> t, t, t] \<Rightarrow> prop"  ("(1_:/ _ \<longrightarrow> _)")
-  where "f: A \<longrightarrow> B \<equiv> (\<And>x. x : A \<Longrightarrow> f x: B)"
+abbreviation (input) constraint :: "[t \<Rightarrow> t, t, t] \<Rightarrow> prop"  ("(1_:/ _ \<leadsto> _)")
+where "f: A \<leadsto> B \<equiv> (\<And>x. x: A \<Longrightarrow> f x: B)"
 
-text \<open>
-The abbreviation @{abbrev constrained} is used to define type families, which are constrained expressions @{term "P: A \<longrightarrow> B"}, where @{term "A::t"} and @{term "B::t"} are small types.
-\<close>
-
-type_synonym tf = "t \<Rightarrow> t"  \<comment> \<open>Type of type families\<close>
-
+text \<open>We use the notation @{prop "B: A \<leadsto> U i"} to abbreviate type families.\<close>
 
 section \<open>Named theorems\<close>
 
-named_theorems comp
 named_theorems form
+named_theorems comp
+named_theorems cong
 
 text \<open>
-Declare named theorems to be used by proof methods defined in @{file HoTT_Methods.thy}.
-
-@{attribute comp} declares computation rules, which are used by the \<open>compute\<close> method, and may also be passed to invocations of the method \<open>subst\<close> to perform equational rewriting.
+The named theorems above will be used by proof methods defined in @{file HoTT_Methods.thy}.
 
 @{attribute form} declares type formation rules.
 These are mainly used by the \<open>cumulativity\<close> method, which lifts types into higher universes.
+
+@{attribute comp} declares computation rules, which are used by the \<open>compute\<close> method, and may also be passed to invocations of the method \<open>subst\<close> to perform equational rewriting.
+
+@{attribute cong} declares congruence rules, the definitional equality rules of the type theory.
 \<close>
 
 (* Todo: Set up the Simplifier! *)
-
 
 end
