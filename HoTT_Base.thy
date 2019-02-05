@@ -68,16 +68,19 @@ text \<open>We use the notation @{prop "B: A \<leadsto> U i"} to abbreviate type
 
 section \<open>Named theorems\<close>
 
-named_theorems comp
 named_theorems form
+named_theorems comp
+named_theorems cong
 
 text \<open>
 The named theorems above will be used by proof methods defined in @{file HoTT_Methods.thy}.
 
-@{attribute comp} declares computation rules, which are used by the \<open>compute\<close> method, and may also be passed to invocations of the method \<open>subst\<close> to perform equational rewriting.
-
 @{attribute form} declares type formation rules.
 These are mainly used by the \<open>cumulativity\<close> method, which lifts types into higher universes.
+
+@{attribute comp} declares computation rules, which are used by the \<open>compute\<close> method, and may also be passed to invocations of the method \<open>subst\<close> to perform equational rewriting.
+
+@{attribute cong} declares congruence rules, the definitional equality rules of the type theory.
 \<close>
 
 (* Todo: Set up the Simplifier! *)

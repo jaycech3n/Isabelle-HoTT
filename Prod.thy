@@ -66,6 +66,7 @@ Note that this is a separate rule from function extensionality.
 lemmas Prod_form [form]
 lemmas Prod_routine [intro] = Prod_form Prod_intro Prod_elim
 lemmas Prod_comp [comp] = Prod_cmp Prod_uniq
+lemmas Prod_cong [cong] = Prod_form_eq Prod_intro_eq
 
 section \<open>Function composition\<close>
 
@@ -98,12 +99,12 @@ end
 lemma compose_assoc:
   assumes "A: U i" "f: A \<rightarrow> B" "g: B \<rightarrow> C" "h: TT x: C. D x"
   shows "compose A (compose B h g) f \<equiv> compose A h (compose A g f)"
-by (derive lems: assms Prod_intro_eq)
+by (derive lems: assms cong)
 
 lemma compose_comp:
   assumes "A: U i" and "\<And>x. x: A \<Longrightarrow> b x: B" and "\<And>x. x: B \<Longrightarrow> c x: C x"
   shows "(,\\x: B. c x) o (,\\x: A. b x) \<equiv> ,\\x: A. c (b x)"
-by (derive lems: assms Prod_intro_eq)
+by (derive lems: assms cong)
 
 abbreviation id :: "t \<Rightarrow> t" where "id A \<equiv> ,\\x: A. x"
 
