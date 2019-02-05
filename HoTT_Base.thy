@@ -18,6 +18,8 @@ begin
 
 section \<open>Terms and typing\<close>
 
+declare[[eta_contract=false]]
+
 typedecl t \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
 
 judgment has_type :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
