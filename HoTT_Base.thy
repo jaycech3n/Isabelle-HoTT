@@ -3,11 +3,11 @@ Isabelle/HoTT: Foundational definitions and notation
 Jan 2019
 
 This file is the starting point of the Isabelle/HoTT object logic, and contains the basic setup and definitions.
-Among other things, it defines:
+Among other things, it:
 
-* Containers for storing type information of object-level terms.
-* The universe hierarchy and its governing rules.
-* Named theorems for later use by proof methods.
+* Sets up object-level type inference functionality (via typing.ML).
+* Defines the universe hierarchy and its governing rules.
+* Defines named theorems for later use by proof methods.
 
 ********)
 
@@ -20,48 +20,9 @@ section \<open>Terms and typing\<close>
 
 typedecl t \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
 
-consts has_type :: "[t, t] \<Rightarrow> prop"  \<comment> \<open>The judgment coercion\<close>
+judgment has_type :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
 
-text \<open>
-We create a dedicated container in which to store object-level typing information whenever a typing judgment that does not depend on assumptions is proved.
-\<close>
-
-ML \<open>
-signature TYPINGS =
-sig
-  val get: term -> term
-end
-
-structure Typings: TYPINGS = 
-struct
-
-structure Typing_Data = Theory_Data
-(
-  type T = term Symtab.table
-  val empty = Symtab.empty
-  val extend = I
-
-  fun merge (tbl, tbl') =
-    let
-      val key_vals = map (Symtab.lookup_key tbl') (Symtab.keys tbl')
-      val updates = map (fn SOME kv => Symtab.update kv) key_vals
-      fun f u t = u t
-    in fold f updates tbl end
-)
-
-fun get tm =
-  case Symtab.lookup (Typing_Data.get @{theory}) (Syntax.string_of_term @{context} tm) of
-    SOME tm' => tm'
-  | NONE => raise Fail "No typing information available"
-
-end
-\<close>
-
-syntax "_has_type" :: "[t, t] \<Rightarrow> prop"  ("3(_:/ _)")
-
-parse_translation \<open>
-
-\<close>
+ML_file "typing.ML"
 
 section \<open>Universes\<close>
 
@@ -85,13 +46,13 @@ declare
 axiomatization
   U :: "ord \<Rightarrow> t"
 where
-  U_hierarchy: "i < j \<Longrightarrow> U i: U j" and                               
+  U_hierarchy: "i < j \<Longrightarrow> U i: U j" and
   U_cumulative: "\<lbrakk>A: U i; i < j\<rbrakk> \<Longrightarrow> A: U j" and
   U_cumulative': "\<lbrakk>A: U i; i \<le> j\<rbrakk> \<Longrightarrow> A: U j"
 
 text \<open>
-Using method @{method rule} with @{thm U_cumulative} is unsafe, if applied blindly it will very easily lead to non-termination.
-Instead use @{method elim}, or instantiate @{thm U_cumulative} suitably.
+Using method @{method rule} with @{thm U_cumulative} and @{thm U_cumulative'} is unsafe: if applied blindly it will very easily lead to non-termination.
+Instead use @{method elim}, or instantiate the rules suitably.
 
 @{thm U_cumulative'} is an alternative rule used by the method @{theory_text cumulativity} in @{file HoTT_Methods.thy}.
 \<close>

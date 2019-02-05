@@ -79,32 +79,37 @@ syntax "_compose" :: "[t, t] \<Rightarrow> t"  (infixr "o" 110)
 parse_translation \<open>
 let fun compose_tr ctxt tms =
   let
-    val f::g::_ = tms;
-    fun domain f = @{term "A :: t"}
+    val g :: f :: _ = tms |> map (Typing.tm_of_ptm ctxt)
+    val dom =
+      case Typing.get_typing f (Typing.typing_assms ctxt) of
+        SOME (Const ("Prod.Prod", _) $ T $ _) => T
+      | SOME _ => Exn.error "Can't compose with a non-function"
+      | NONE => Exn.error "Cannot infer domain of composition—please state this explicitly"
   in
-    @{const compose} $ (domain f) $ f $ g
+    @{const compose} $ dom $ g $ f
   end
 in
   [("_compose", compose_tr)]
 end
 \<close>
 
-ML_val \<open>
-Proof_Context.get_thms @{context} "compose_def"
-\<close>
-
 lemma compose_assoc:
-  assumes "A: U i" "f: A \<rightarrow> B" "g: B \<rightarrow> C" "h: TT x: C. D x"
+  assumes "A: U i" "f: A \<rightarrow> B" "g: B \<rightarrow> C" "h: TT x: C. D x" "(,\\(x: A). b x): TT x: A. D x"
   shows "(h o g) o f \<equiv> h o (g o f)"
-ML_prf \<open>
-@{thms assms};
-\<close>
 (* (derive lems: assms Prod_intro_eq) *)
+sorry
 
 lemma compose_comp:
   assumes "A: U i" and "\<And>x. x: A \<Longrightarrow> b x: B" and "\<And>x. x: B \<Longrightarrow> c x: C x"
-  shows "(\<^bold>\<lambda>x. c x) \<circ> (\<^bold>\<lambda>x. b x) \<equiv> \<^bold>\<lambda>x. c (b x)"
-by (derive lems: assms Prod_intro_eq)
+  shows "(,\\x: B. c x) o (,\\x: A. b x) \<equiv> ,\\x: A. c (b x)"
+ML_prf \<open>
+Assumption.all_assms_of @{context};
+nth (Assumption.all_assms_of @{context}) 1 |> Thm.term_of;
+Assumption.all_prems_of @{context};
+nth (Assumption.all_prems_of @{context}) 0 |> Thm.prop_of;
+typing_assms @{context}
+\<close>
+(*by (derive lems: assms Prod_intro_eq)*)
 
 abbreviation id :: "t \<Rightarrow> t" where "id A \<equiv> ,\\x: A. x"
 
