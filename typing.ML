@@ -6,9 +6,6 @@ Functionality for object-level type inference.
 
 ********)
 
-(* Context attribute for tracing; use declare[[trace=true]] at any point in a theory to turn on *)
-val trace = Attrib.setup_config_bool @{binding "trace"} (K false)
-
 (* ====================================== Helper functions ====================================== *)
 
 signature TYPING_LIB =
@@ -104,14 +101,14 @@ struct
 type jmt = term
 
 (* Determine if a term is a typing judgment *)
-fun is_typing_jmt (@{const has_type} $ _ $ _) = true
+fun is_typing_jmt (@{const HoTT_Base.has_type} $ _ $ _) = true
   | is_typing_jmt _ = false
 
 (* Functions to extract a and A from propositions "a: A" *)
-fun term_of_jmt (@{const has_type} $ t $ _) = t
+fun term_of_jmt (@{const HoTT_Base.has_type} $ t $ _) = t
   | term_of_jmt _ = Exn.error "Not a typing judgment"
 
-fun type_of_jmt (@{const has_type} $ _ $ T) = T
+fun type_of_jmt (@{const HoTT_Base.has_type} $ _ $ T) = T
   | type_of_jmt _ = Exn.error "Not a typing judgment"
 
 (* Get typing assumptions in "this" *)
