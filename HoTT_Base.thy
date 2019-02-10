@@ -30,10 +30,10 @@ declare[[eta_contract=false]] \<comment> \<open>Do not eta-contract\<close>
 ML \<open>val trace = Attrib.setup_config_bool @{binding "trace"} (K false)\<close>
   \<comment> \<open>Context attribute for tracing; use declare[[trace=true]] at any point in a theory to turn on.\<close>
 
-text \<open>The following file sets up type assumption and inference functionality.\<close>
+text \<open>Set up type assumption and inference functionality:\<close>
 
+ML_file "util.ML"
 ML_file "typing.ML"
-
 ML \<open>
 val _ =
   let

@@ -79,7 +79,7 @@ syntax "_compose" :: "[t, t] \<Rightarrow> t"  (infixr "o" 110)
 parse_translation \<open>
 let fun compose_tr ctxt [g, f] =
   let
-    val [g, f] = [g, f] |> map (Typing.prep_term ctxt)
+    val [g, f] = [g, f] |> map (Util.prep_term ctxt)
     val dom =
       case f of
         Const ("Prod.lam", _) $ T $ _ => T
