@@ -1,6 +1,6 @@
 (********
 Isabelle/HoTT: Dependent product (dependent function)
-Jan 2019
+Feb 2019
 
 ********)
 
@@ -20,13 +20,13 @@ axiomatization
 syntax
   "_Prod"  :: "[idt, t, t] \<Rightarrow> t"  ("(3TT '(_: _')./ _)" 30)
   "_Prod'" :: "[idt, t, t] \<Rightarrow> t"  ("(3TT _: _./ _)" 30)
-  "_lam"   :: "[idt, t, t] \<Rightarrow> t"  ("(3,\\ '(_: _')./ _)" 30)
-  "_lam'"  :: "[idt, t, t] \<Rightarrow> t"  ("(3,\\ _: _./ _)" 30)
+  "_lam"   :: "[idt, t, t] \<Rightarrow> t"  ("(3\<lambda>'(_: _')./ _)" 30)
+  "_lam'"  :: "[idt, t, t] \<Rightarrow> t"  ("(3\<lambda>_: _./ _)" 30)
 translations
-  "TT(x: A). B"  \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
-  "TT x: A. B"   \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
-  ",\\(x: A). b" \<rightleftharpoons> "(CONST lam) A (\<lambda>x. b)"
-  ",\\x: A. b"   \<rightleftharpoons> "(CONST lam) A (\<lambda>x. b)"
+  "TT(x: A). B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
+  "TT x: A. B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
+  "\<lambda>(x: A). b" \<rightleftharpoons> "(CONST lam) A (\<lambda>x. b)"
+  "\<lambda>x: A. b" \<rightleftharpoons> "(CONST lam) A (\<lambda>x. b)"
 
 text \<open>
 The syntax translations above bind the variable @{term x} in the expressions @{term B} and @{term b}.
@@ -40,22 +40,22 @@ where "A \<rightarrow> B \<equiv> TT(_: A). B"
 axiomatization where
 \<comment> \<open>Type rules\<close>
 
-  Prod_form: "\<lbrakk>A: U i; \<And>x. x: A \<Longrightarrow> B x: U i\<rbrakk> \<Longrightarrow> TT x: A. B x: U i" and
+  Prod_form: "\<lbrakk>A: U i; B: A \<leadsto> U i\<rbrakk> \<Longrightarrow> TT x: A. B x: U i" and
 
-  Prod_intro: "\<lbrakk>A: U i; \<And>x. x: A \<Longrightarrow> b x: B x\<rbrakk> \<Longrightarrow> ,\\x: A. b x: TT x: A. B x" and
+  Prod_intro: "\<lbrakk>A: U i; \<And>x. x: A \<Longrightarrow> b x: B x\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x: TT x: A. B x" and
 
   Prod_elim: "\<lbrakk>f: TT x: A. B x; a: A\<rbrakk> \<Longrightarrow> f`a: B a" and
 
-  Prod_cmp: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x: B x; a: A\<rbrakk> \<Longrightarrow> (,\\x: A. b x)`a \<equiv> b a" and
+  Prod_cmp: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x: B x; a: A\<rbrakk> \<Longrightarrow> (\<lambda>x: A. b x)`a \<equiv> b a" and
 
-  Prod_uniq: "f: TT x: A. B x \<Longrightarrow> ,\\x: A. f`x \<equiv> f" and
+  Prod_uniq: "f: TT x: A. B x \<Longrightarrow> \<lambda>x: A. f`x \<equiv> f" and
 
 \<comment> \<open>Congruence rules\<close>
 
   Prod_form_eq: "\<lbrakk>A: U i; B: A \<leadsto> U i; C: A \<leadsto> U i; \<And>x. x: A \<Longrightarrow> B x \<equiv> C x\<rbrakk>
     \<Longrightarrow> TT x: A. B x \<equiv> TT x: A. C x" and
 
-  Prod_intro_eq: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x \<equiv> c x; A: U i\<rbrakk> \<Longrightarrow> ,\\x: A. b x \<equiv> ,\\x: A. c x"
+  Prod_intro_eq: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x \<equiv> c x; A: U i\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x \<equiv> \<lambda>x: A. c x"
 
 text \<open>
 The Pure rules for \<open>\<equiv>\<close> only let us judge strict syntactic equality of object lambda expressions.
@@ -71,23 +71,23 @@ lemmas Prod_cong [cong] = Prod_form_eq Prod_intro_eq
 section \<open>Function composition\<close>
 
 definition compose :: "[t, t, t] \<Rightarrow> t"
-where "compose A g f \<equiv> ,\\x: A. g`(f`x)"
+where "compose A g f \<equiv> \<lambda>x: A. g`(f`x)"
 
 declare compose_def [comp]
 
 syntax "_compose" :: "[t, t] \<Rightarrow> t"  (infixr "o" 110)
-
 parse_translation \<open>
-let fun compose_tr ctxt tms =
+let fun compose_tr ctxt [g, f] =
   let
-    val g :: f :: _ = tms |> map (Typing.tm_of_ptm ctxt)
+    val [g, f] = [g, f] |> map (Typing.prep_term @{context})
     val dom =
       case f of
         Const ("Prod.lam", _) $ T $ _ => T
-      | _ => (case Typing.get_typing f (Typing.typing_assms ctxt) of
+      | Const ("Prod.compose", _) $ T $ _ $ _ => T
+      | _ => (case Typing.get_typing ctxt f of
                SOME (Const ("Prod.Prod", _) $ T $ _) => T
-             | SOME _ => Exn.error "Can't compose with a non-function"
-             | NONE => Exn.error "Cannot infer domain of composition: please state this explicitly")
+             | SOME t => (@{print} t; Exn.error "Can't compose with a non-function")
+             | NONE => Exn.error "Cannot infer domain of composition; please state this explicitly")
   in
     @{const compose} $ dom $ g $ f
   end
@@ -96,16 +96,30 @@ in
 end
 \<close>
 
+text \<open>Pretty-printing switch for composition; hides domain type information.\<close>
+
+ML \<open>val pretty_compose = Attrib.setup_config_bool @{binding "pretty_compose"} (K true)\<close>
+
+print_translation \<open>
+let fun compose_tr' ctxt [A, g, f] =
+  if Config.get ctxt pretty_compose
+  then Syntax.const @{syntax_const "_compose"} $ g $ f
+  else Const ("compose", Syntax.read_typ ctxt "t \<Rightarrow> t \<Rightarrow> t") $ A $ g $ f
+in
+  [(@{const_syntax compose}, compose_tr')]
+end
+\<close>
+
 lemma compose_assoc:
-  assumes "A: U i" "f: A \<rightarrow> B" "g: B \<rightarrow> C" "h: TT x: C. D x"
+  assumes "A: U i" and "f: A \<rightarrow> B" and "g: B \<rightarrow> C" and "h: TT x: C. D x"
   shows "compose A (compose B h g) f \<equiv> compose A h (compose A g f)"
 by (derive lems: assms cong)
 
 lemma compose_comp:
   assumes "A: U i" and "\<And>x. x: A \<Longrightarrow> b x: B" and "\<And>x. x: B \<Longrightarrow> c x: C x"
-  shows "(,\\x: B. c x) o (,\\x: A. b x) \<equiv> ,\\x: A. c (b x)"
+  shows "(\<lambda>x: B. c x) o (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
 by (derive lems: assms cong)
 
-abbreviation id :: "t \<Rightarrow> t" where "id A \<equiv> ,\\x: A. x"
+abbreviation id :: "t \<Rightarrow> t" where "id A \<equiv> \<lambda>x: A. x"
 
 end

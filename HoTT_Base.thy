@@ -1,11 +1,11 @@
 (********
 Isabelle/HoTT: Foundational definitions and notation
-Jan 2019
+Feb 2019
 
 This file is the starting point of the Isabelle/HoTT object logic, and contains the basic setup and definitions.
 Among other things, it:
 
-* Sets up object-level type inference functionality (via typing.ML).
+* Calls the setup of object-level type inference functionality.
 * Defines the universe hierarchy and its governing rules.
 * Defines named theorems for later use by proof methods.
 
@@ -13,19 +13,49 @@ Among other things, it:
 
 theory HoTT_Base
 imports Pure
+keywords "assume_type" "assume_types" :: thy_decl
 
 begin
 
 section \<open>Terms and typing\<close>
 
-declare[[eta_contract=false]]
-
 typedecl t \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
 
 judgment has_type :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
 
+section \<open>Setup non-core logic functionality\<close>
+
+declare[[eta_contract=false]] \<comment> \<open>Do not eta-contract\<close>
+
+text \<open>The following file sets up type assumption and inference functionality.\<close>
+
 ML_file "typing.ML"
 
+ML \<open>
+val _ =
+  let
+    fun store_typing ctxt = Typing.put_declared_typing o (Syntax.read_prop ctxt)
+  in
+    Outer_Syntax.local_theory
+      @{command_keyword "assume_type"}
+      "Declare typing assumptions"
+      (Parse.prop >>
+        (fn prop => fn lthy => Local_Theory.background_theory (store_typing lthy prop) lthy))
+  end
+
+val _ =
+  let
+    val parser = Parse.and_list (Parse.prop)
+    fun store_typings ctxt = fold (Typing.put_declared_typing o (Syntax.read_prop ctxt))
+  in
+    Outer_Syntax.local_theory
+      @{command_keyword "assume_types"}
+      "Declare typing assumptions"
+      (parser >>
+        (fn props => fn lthy => Local_Theory.background_theory (store_typings lthy props) lthy))
+  end
+\<close>
+                                                                                  
 section \<open>Universes\<close>
 
 typedecl ord \<comment> \<open>Type of meta-numerals\<close>
