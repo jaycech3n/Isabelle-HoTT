@@ -79,15 +79,18 @@ syntax "_compose" :: "[t, t] \<Rightarrow> t"  (infixr "o" 110)
 parse_translation \<open>
 let fun compose_tr ctxt [g, f] =
   let
-    val [g, f] = [g, f] |> map (Typing.prep_term @{context})
+    val [g, f] = [g, f] |> map (Typing.prep_term ctxt)
     val dom =
       case f of
         Const ("Prod.lam", _) $ T $ _ => T
       | Const ("Prod.compose", _) $ T $ _ $ _ => T
-      | _ => (case Typing.get_typing ctxt f of
-               SOME (Const ("Prod.Prod", _) $ T $ _) => T
-             | SOME t => (@{print} t; Exn.error "Can't compose with a non-function")
-             | NONE => Exn.error "Cannot infer domain of composition; please state this explicitly")
+      | _ =>
+          case Typing.get_typing ctxt f of
+            SOME (Const ("Prod.Prod", _) $ T $ _) => T
+          | SOME t =>
+              Exn.error ("Can't compose with a non-function " ^ Syntax.string_of_term ctxt f)
+          | NONE =>
+              Exn.error "Cannot infer domain of composition; please state this explicitly"
   in
     @{const compose} $ dom $ g $ f
   end
