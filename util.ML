@@ -11,8 +11,10 @@ sig
   (* Lexical functions *)
   val unmark: string -> string
 
-  (* Functions on terms *)
+  (* Functions on ML terms and types *)
   val prep_term: Proof.context -> term -> term
+  val string_of_typ: typ -> string
+  val string_of_term: term -> string
   
   (* General functions *)
   val get_all_thms: Proof.context -> (string * thm) list
@@ -58,8 +60,9 @@ fun find_thm ctxt name =
 
 (* Get the fact corresponding to the Isar term "this" in the current proof scope *)
 fun get_this ctxt =
-  Proof_Context.get_fact ctxt (Facts.named "local.this")
-  handle ERROR "Undefined fact: \"local.this\"" => (
+  Name_Space.full_name (Proof_Context.naming_of ctxt) (Binding.name Auto_Bind.thisN)
+    |> Proof_Context.lookup_fact ctxt |> the |> #thms
+  handle Option.Option => (
     if (Config.get ctxt trace) then warning "\"this\" undefined in the context" else ();
     []
   )
@@ -98,5 +101,22 @@ fun prep_term ctxt ptm =
   | Const (t, T) => Const (unmark t, T)
   | t => t)
   end
+
+fun string_of_typ typ =
+  case typ of
+    Type (name, typs) => "Type (" ^ name ^ Library.commas (map string_of_typ typs) ^")"
+  | TFree (name, sort) => "TFree (" ^ name ^ Library.commas sort ^ ")"
+  | TVar ((name, idx), sort) =>
+      "TVar ((" ^ name ^ ", " ^ string_of_int idx ^ "), " ^ Library.commas sort ^ ")"
+
+fun string_of_term tm =
+  case tm of
+    Const (name, typ) => "Const (" ^ name ^ ", " ^ string_of_typ typ ^ ")"
+  | Free (name, typ) => "Free (" ^ name ^ ", " ^ string_of_typ typ ^ ")"
+  | Var ((name, idx), typ) =>
+    "Var ((" ^ name ^ ", " ^ string_of_int idx ^ "), " ^ string_of_typ typ ^ ")"
+  | Bound idx => "Bound " ^ string_of_int idx ^ ")"
+  | Abs (_, typ, body) => "Abs (_, " ^ string_of_typ typ ^ ", " ^ string_of_term body ^ ")"
+  | t1 $ t2 => "(" ^ string_of_term t1 ^ ") $ (" ^ string_of_term t2 ^ ")"
 
 end
