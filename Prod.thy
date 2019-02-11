@@ -18,13 +18,13 @@ axiomatization
   \<comment> \<open>Application should bind tighter than abstraction.\<close>
 
 syntax
-  "_Prod"  :: "[idt, t, t] \<Rightarrow> t"  ("(3TT '(_: _')./ _)" 30)
-  "_Prod'" :: "[idt, t, t] \<Rightarrow> t"  ("(3TT _: _./ _)" 30)
+  "_Prod"  :: "[idt, t, t] \<Rightarrow> t"  ("(3\<Prod>'(_: _')./ _)" 30)
+  "_Prod'" :: "[idt, t, t] \<Rightarrow> t"  ("(3\<Prod>_: _./ _)" 30)
   "_lam"   :: "[idt, t, t] \<Rightarrow> t"  ("(3\<lambda>'(_: _')./ _)" 30)
   "_lam'"  :: "[idt, t, t] \<Rightarrow> t"  ("(3\<lambda>_: _./ _)" 30)
 translations
-  "TT(x: A). B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
-  "TT x: A. B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
+  "\<Prod>(x: A). B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
+  "\<Prod>x: A. B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
   "\<lambda>(x: A). b" \<rightleftharpoons> "(CONST lam) A (\<lambda>x. b)"
   "\<lambda>x: A. b" \<rightleftharpoons> "(CONST lam) A (\<lambda>x. b)"
 
@@ -35,25 +35,25 @@ The syntax translations above bind the variable @{term x} in the expressions @{t
 text \<open>Non-dependent functions are a special case:\<close>
 
 abbreviation Fun :: "[t, t] \<Rightarrow> t"  (infixr "\<rightarrow>" 40)
-where "A \<rightarrow> B \<equiv> TT(_: A). B"
+where "A \<rightarrow> B \<equiv> \<Prod>(_: A). B"
 
 axiomatization where
 \<comment> \<open>Type rules\<close>
 
-  Prod_form: "\<lbrakk>A: U i; B: A \<leadsto> U i\<rbrakk> \<Longrightarrow> TT x: A. B x: U i" and
+  Prod_form: "\<lbrakk>A: U i; B: A \<leadsto> U i\<rbrakk> \<Longrightarrow> \<Prod>x: A. B x: U i" and
 
-  Prod_intro: "\<lbrakk>A: U i; \<And>x. x: A \<Longrightarrow> b x: B x\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x: TT x: A. B x" and
+  Prod_intro: "\<lbrakk>A: U i; \<And>x. x: A \<Longrightarrow> b x: B x\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x: \<Prod>x: A. B x" and
 
-  Prod_elim: "\<lbrakk>f: TT x: A. B x; a: A\<rbrakk> \<Longrightarrow> f`a: B a" and
+  Prod_elim: "\<lbrakk>f: \<Prod>x: A. B x; a: A\<rbrakk> \<Longrightarrow> f`a: B a" and
 
   Prod_cmp: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x: B x; a: A\<rbrakk> \<Longrightarrow> (\<lambda>x: A. b x)`a \<equiv> b a" and
 
-  Prod_uniq: "f: TT x: A. B x \<Longrightarrow> \<lambda>x: A. f`x \<equiv> f" and
+  Prod_uniq: "f: \<Prod>x: A. B x \<Longrightarrow> \<lambda>x: A. f`x \<equiv> f" and
 
 \<comment> \<open>Congruence rules\<close>
 
   Prod_form_eq: "\<lbrakk>A: U i; B: A \<leadsto> U i; C: A \<leadsto> U i; \<And>x. x: A \<Longrightarrow> B x \<equiv> C x\<rbrakk>
-    \<Longrightarrow> TT x: A. B x \<equiv> TT x: A. C x" and
+    \<Longrightarrow> \<Prod>x: A. B x \<equiv> \<Prod>x: A. C x" and
 
   Prod_intro_eq: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x \<equiv> c x; A: U i\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x \<equiv> \<lambda>x: A. c x"
 
@@ -107,14 +107,14 @@ print_translation \<open>
 let fun compose_tr' ctxt [A, g, f] =
   if Config.get ctxt pretty_compose
   then Syntax.const @{syntax_const "_compose"} $ g $ f
-  else Const ("compose", Syntax.read_typ ctxt "t \<Rightarrow> t \<Rightarrow> t") $ A $ g $ f
+  else @{const compose} $ A $ g $ f
 in
   [(@{const_syntax compose}, compose_tr')]
 end
 \<close>
 
 lemma compose_assoc:
-  assumes "A: U i" and "f: A \<rightarrow> B" and "g: B \<rightarrow> C" and "h: TT x: C. D x"
+  assumes "A: U i" and "f: A \<rightarrow> B" and "g: B \<rightarrow> C" and "h: \<Prod>x: C. D x"
   shows "compose A (compose B h g) f \<equiv> compose A h (compose A g f)"
 by (derive lems: assms cong)
 
