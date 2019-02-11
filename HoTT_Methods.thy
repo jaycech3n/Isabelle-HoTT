@@ -9,6 +9,7 @@ imports HoTT_Base "HOL-Eisbach.Eisbach" "HOL-Eisbach.Eisbach_Tools"
 
 begin
 
+
 section \<open>Substitution and simplification\<close>
 
 ML_file "~~/src/Tools/misc_legacy.ML"
@@ -24,6 +25,7 @@ Premises of the rule(s) applied are added as new subgoals.
 \<close>
 
 method compute declares comp = (subst comp)
+
 
 section \<open>Handling universes\<close>
 
@@ -46,6 +48,7 @@ method cumulativity declares form = (
   ((elim U_cumulative | (rule U_cumulative, rule form)), provelt)
 )
 
+
 section \<open>Deriving typing judgments\<close>
 
 method routine uses add = (assumption | rule add | rule)+
@@ -53,6 +56,7 @@ method routine uses add = (assumption | rule add | rule)+
 text \<open>
 The method @{method routine} proves typing judgments @{prop "a: A"} using the rules declared @{attribute intro} in the respective theory files, as well as any additional lemmas provided with the modifier @{theory_text add}.
 \<close>
+
 
 section \<open>Derivation search\<close>
 
@@ -62,6 +66,7 @@ It also handles universes using @{method hierarchy} and @{method cumulativity}.
 \<close>
 
 method derive uses lems = (routine add: lems | compute comp: lems | cumulativity form: lems | hierarchy)+
+
 
 section \<open>Induction\<close>
 

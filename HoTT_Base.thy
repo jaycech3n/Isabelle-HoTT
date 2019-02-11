@@ -1,64 +1,21 @@
 (********
-Isabelle/HoTT: Foundational definitions and notation
+Isabelle/HoTT: Basic logical definitions and notation
 Feb 2019
 
-This file is the starting point of the Isabelle/HoTT object logic, and contains the basic setup and definitions.
+This file completes the basic logical and functional setup of the HoTT logic.
 Among other things, it:
 
-* Calls the setup of object-level type inference functionality.
 * Defines the universe hierarchy and its governing rules.
 * Defines named theorems for later use by proof methods.
 
 ********)
 
 theory HoTT_Base
-imports Pure
-keywords "assume_type" "assume_types" :: thy_decl
+imports HoTT_Typing
 
 begin
 
-section \<open>Terms and typing\<close>
 
-typedecl t \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
-
-judgment has_type :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
-
-section \<open>Setup non-core logic functionality\<close>
-
-declare[[eta_contract=false]] \<comment> \<open>Do not eta-contract\<close>
-
-ML \<open>val trace = Attrib.setup_config_bool @{binding "trace"} (K false)\<close>
-  \<comment> \<open>Context attribute for tracing; use declare[[trace=true]] at any point in a theory to turn on.\<close>
-
-text \<open>Set up type assumption and inference functionality:\<close>
-
-ML_file "util.ML"
-ML_file "typing.ML"
-ML \<open>
-val _ =
-  let
-    fun store_typing ctxt = Typing.put_declared_typing o (Syntax.read_prop ctxt)
-  in
-    Outer_Syntax.local_theory
-      @{command_keyword "assume_type"}
-      "Declare typing assumptions"
-      (Parse.prop >>
-        (fn prop => fn lthy => Local_Theory.background_theory (store_typing lthy prop) lthy))
-  end
-
-val _ =
-  let
-    val parser = Parse.and_list (Parse.prop)
-    fun store_typings ctxt = fold (Typing.put_declared_typing o (Syntax.read_prop ctxt))
-  in
-    Outer_Syntax.local_theory
-      @{command_keyword "assume_types"}
-      "Declare typing assumptions"
-      (parser >>
-        (fn props => fn lthy => Local_Theory.background_theory (store_typings lthy props) lthy))
-  end
-\<close>
-                                                                                  
 section \<open>Universes\<close>
 
 typedecl ord \<comment> \<open>Type of meta-numerals\<close>
@@ -92,12 +49,14 @@ Instead use @{method elim}, or instantiate the rules suitably.
 @{thm U_cumulative'} is an alternative rule used by the method @{theory_text cumulativity} in @{file HoTT_Methods.thy}.
 \<close>
 
+
 section \<open>Type families\<close>
 
 abbreviation (input) constraint :: "[t \<Rightarrow> t, t, t] \<Rightarrow> prop"  ("(1_:/ _ \<leadsto> _)")
 where "f: A \<leadsto> B \<equiv> (\<And>x. x: A \<Longrightarrow> f x: B)"
 
 text \<open>We use the notation @{prop "B: A \<leadsto> U i"} to abbreviate type families.\<close>
+
 
 section \<open>Named theorems\<close>
 

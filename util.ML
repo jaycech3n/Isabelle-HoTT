@@ -28,6 +28,7 @@ end
 structure Util: UTIL =
 struct
 
+(* Unmark a name string identifier *)
 fun unmark s =
   Lexicon.unmark_class s
   handle Fail "unprefix" =>
@@ -38,40 +39,6 @@ fun unmark s =
   Lexicon.unmark_fixed s
   handle Fail "unprefix" =>
   s
-
-fun name_and_thm (fact, thm) =
-  ((case fact of
-    Facts.Named ((name, _), _) => name
-  | Facts.Fact name => name),
-  thm)
-
-fun get_all_thms ctxt =
-  let val (_, ref_thms) = Find_Theorems.find_theorems ctxt NONE NONE true []
-  in ref_thms |> (map name_and_thm)
-  end
-
-(* Search all visible theorems (including local assumptions) containing a given name *)
-fun find_thm ctxt name =
-  let val (_, ref_thms) =
-    Find_Theorems.find_theorems ctxt NONE NONE true [(true, Find_Theorems.Name name)]
-  in
-    ref_thms |> (map name_and_thm)
-  end
-
-(* Get the fact corresponding to the Isar term "this" in the current proof scope *)
-fun get_this ctxt =
-  Name_Space.full_name (Proof_Context.naming_of ctxt) (Binding.name Auto_Bind.thisN)
-    |> Proof_Context.lookup_fact ctxt |> the |> #thms
-  handle Option.Option => (
-    if (Config.get ctxt trace) then warning "\"this\" undefined in the context" else ();
-    []
-  )
-
-(* Get all visible assumptions in the current proof scope.
-   This includes the facts introduced in the statement of the goal using "assumes",
-   as well as all facts introduced using "assume" that are visible in the current block.
- *)
-val get_assms = Assumption.all_prems_of
 
 (* Prepare a Pure pre-term, converting it to a (unchecked) term *)
 fun prep_term ctxt ptm =
@@ -118,5 +85,40 @@ fun string_of_term tm =
   | Bound idx => "Bound " ^ string_of_int idx ^ ")"
   | Abs (_, typ, body) => "Abs (_, " ^ string_of_typ typ ^ ", " ^ string_of_term body ^ ")"
   | t1 $ t2 => "(" ^ string_of_term t1 ^ ") $ (" ^ string_of_term t2 ^ ")"
+
+fun name_and_thm (fact, thm) =
+  ((case fact of
+    Facts.Named ((name, _), _) => name
+  | Facts.Fact name => name),
+  thm)
+
+(* Return all visible theorems *)
+fun get_all_thms ctxt =
+  let val (_, ref_thms) = Find_Theorems.find_theorems ctxt NONE NONE true []
+  in ref_thms |> (map name_and_thm)
+  end
+
+(* Search all visible theorems (including local assumptions) containing a given name *)
+fun find_thm ctxt name =
+  let val (_, ref_thms) =
+    Find_Theorems.find_theorems ctxt NONE NONE true [(true, Find_Theorems.Name name)]
+  in
+    ref_thms |> (map name_and_thm)
+  end
+
+(* Get the fact corresponding to the Isar term "this" in the current proof scope *)
+fun get_this ctxt =
+  Name_Space.full_name (Proof_Context.naming_of ctxt) (Binding.name Auto_Bind.thisN)
+    |> Proof_Context.lookup_fact ctxt |> the |> #thms
+  handle Option.Option => (
+    if (Config.get ctxt trace) then warning "\"this\" undefined in the context" else ();
+    []
+  )
+
+(* Get all visible assumptions in the current proof scope.
+   This includes the facts introduced in the statement of the goal using "assumes",
+   as well as all facts introduced using "assume" that are visible in the current block.
+ *)
+val get_assms = Assumption.all_prems_of
 
 end
