@@ -18,8 +18,8 @@ syntax
   "_Sum"  :: "[idt, t, t] \<Rightarrow> t"  ("(3\<Sum>'(_: _')./ _)" 20)
   "_Sum'" :: "[idt, t, t] \<Rightarrow> t"  ("(3\<Sum>_: _./ _)" 20)
 translations
-  "\<Sum>(x: A). B" \<rightleftharpoons> "CONST Sum A (\<lambda>x. B)"
-  "\<Sum>x: A. B" \<rightleftharpoons> "CONST Sum A (\<lambda>x. B)"
+  "\<Sum>(x: A). B" \<rightleftharpoons> "(CONST Sum) A (\<lambda>x. B)"
+  "\<Sum>x: A. B" \<rightleftharpoons> "(CONST Sum) A (\<lambda>x. B)"
 
 abbreviation Pair :: "[t, t] \<Rightarrow> t"  (infixr "\<times>" 50)
   where "A \<times> B \<equiv> \<Sum>_: A. B"

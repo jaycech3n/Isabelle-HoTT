@@ -2,12 +2,33 @@
 Isabelle/HoTT: Proof methods
 Jan 2019
 
+Setup various proof methods and auxiliary functionality.
+
 ********)
 
 theory HoTT_Methods
 imports HoTT_Base "HOL-Eisbach.Eisbach" "HOL-Eisbach.Eisbach_Tools"
 
 begin
+
+
+section \<open>More method combinators\<close>
+
+ML \<open>
+(* Use as "repeat n tac" *)
+fun repeat tac =
+  let
+    fun cparser_of parser (ctxt, toks) = parser toks ||> (fn toks => (ctxt, toks))
+  in
+    cparser_of Args.text >>
+      (fn n => fn ctxt => fn facts =>
+        SIMPLE_METHOD (
+          REPEAT_DETERM_N
+            (the (Int.fromString n))
+            (tac ctxt))
+            facts)
+  end
+\<close>
 
 
 section \<open>Substitution and simplification\<close>
@@ -66,13 +87,5 @@ It also handles universes using @{method hierarchy} and @{method cumulativity}.
 \<close>
 
 method derive uses lems = (routine add: lems | compute comp: lems | cumulativity form: lems | hierarchy)+
-
-
-section \<open>Induction\<close>
-
-text \<open>
-Placeholder section for the automation of induction, i.e. using the type elimination rules.
-At the moment one must directly apply them with @{method rule} or @{method elim}.
-\<close>
 
 end

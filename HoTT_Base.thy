@@ -2,11 +2,11 @@
 Isabelle/HoTT: Basic logical definitions and notation
 Feb 2019
 
-This file completes the basic logical and functional setup of the HoTT logic.
-Among other things, it:
+This file completes the basic logical and functional setup of the HoTT logic. It defines:
 
-* Defines the universe hierarchy and its governing rules.
-* Defines named theorems for later use by proof methods.
+* The universe hierarchy and its governing rules.
+* Some notational abbreviations.
+* Named theorems for later use by proof methods.
 
 ********)
 
@@ -50,12 +50,15 @@ Instead use @{method elim}, or instantiate the rules suitably.
 \<close>
 
 
-section \<open>Type families\<close>
+section \<open>Notation\<close>
 
 abbreviation (input) constraint :: "[t \<Rightarrow> t, t, t] \<Rightarrow> prop"  ("(1_:/ _ \<leadsto> _)")
 where "f: A \<leadsto> B \<equiv> (\<And>x. x: A \<Longrightarrow> f x: B)"
 
 text \<open>We use the notation @{prop "B: A \<leadsto> U i"} to abbreviate type families.\<close>
+
+abbreviation (input) K_combinator :: "'a \<Rightarrow> 'b \<Rightarrow> 'a"  ("^_" [1000])
+where "^A \<equiv> \<lambda>_. A"
 
 
 section \<open>Named theorems\<close>

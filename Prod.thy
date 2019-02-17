@@ -9,6 +9,7 @@ imports HoTT_Base HoTT_Methods
 
 begin
 
+
 section \<open>Basic type definitions\<close>
 
 axiomatization
@@ -35,14 +36,14 @@ The syntax translations above bind the variable @{term x} in the expressions @{t
 text \<open>Non-dependent functions are a special case:\<close>
 
 abbreviation Fun :: "[t, t] \<Rightarrow> t"  (infixr "\<rightarrow>" 40)
-where "A \<rightarrow> B \<equiv> \<Prod>(_: A). B"
+where "A \<rightarrow> B \<equiv> \<Prod>_: A. B"
 
 axiomatization where
 \<comment> \<open>Type rules\<close>
 
   Prod_form: "\<lbrakk>A: U i; B: A \<leadsto> U i\<rbrakk> \<Longrightarrow> \<Prod>x: A. B x: U i" and
 
-  Prod_intro: "\<lbrakk>A: U i; \<And>x. x: A \<Longrightarrow> b x: B x\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x: \<Prod>x: A. B x" and
+  Prod_intro: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x: B x; A: U i\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x: \<Prod>x: A. B x" and
 
   Prod_elim: "\<lbrakk>f: \<Prod>x: A. B x; a: A\<rbrakk> \<Longrightarrow> f`a: B a" and
 
@@ -68,6 +69,25 @@ lemmas Prod_routine [intro] = Prod_form Prod_intro Prod_elim
 lemmas Prod_comp [comp] = Prod_cmp Prod_uniq
 lemmas Prod_cong [cong] = Prod_form_eq Prod_intro_eq
 
+
+section \<open>Universal quantification\<close>
+
+text \<open>
+It will often be useful to convert a proof goal asserting the inhabitation of a dependent product to one that instead uses Pure universal quantification.
+
+Method @{theory_text quantify} converts the goal
+@{text "t: \<Prod>x1: A1. ... \<Prod>xn: An. B x1 ... xn"},
+where @{term B} is not a product, to
+@{text "\<And>x1 ... xn . \<lbrakk>x1: A1; ...; xn: An\<rbrakk> \<Longrightarrow> ?b x1 ... xn: B x1 ... xn"}.
+
+Method @{theory_text "quantify k"} does the same, but only for the first k unknowns.
+\<close>
+
+method_setup quantify = \<open>repeat (fn ctxt => Method.rule_tac ctxt [@{thm Prod_intro}] [] 1)\<close>
+
+method quantify_all = (rule Prod_intro)+
+
+
 section \<open>Function composition\<close>
 
 definition compose :: "[t, t, t] \<Rightarrow> t"
@@ -76,6 +96,7 @@ where "compose A g f \<equiv> \<lambda>x: A. g`(f`x)"
 declare compose_def [comp]
 
 syntax "_compose" :: "[t, t] \<Rightarrow> t"  (infixr "o" 110)
+(*
 parse_translation \<open>
 let fun compose_tr ctxt [g, f] =
   let
@@ -98,6 +119,7 @@ in
   [("_compose", compose_tr)]
 end
 \<close>
+*)
 
 text \<open>Pretty-printing switch for composition; hides domain type information.\<close>
 
@@ -120,7 +142,7 @@ by (derive lems: assms cong)
 
 lemma compose_comp:
   assumes "A: U i" and "\<And>x. x: A \<Longrightarrow> b x: B" and "\<And>x. x: B \<Longrightarrow> c x: C x"
-  shows "(\<lambda>x: B. c x) o (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
+  shows "compose A (\<lambda>x: B. c x) (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
 by (derive lems: assms cong)
 
 abbreviation id :: "t \<Rightarrow> t" where "id A \<equiv> \<lambda>x: A. x"

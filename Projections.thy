@@ -39,7 +39,7 @@ lemma snd_cmp:
   assumes "A: U i" and "B: A \<leadsto> U i" and "a: A" and "b: B a" shows "snd A B <a,b> \<equiv> b"
 unfolding snd_def by (derive lems: assms)
 
-lemmas Proj_types [intro] = fst_type snd_type
-lemmas Proj_comps [comp] = fst_cmp snd_cmp
+lemmas Proj_type [intro] = fst_type snd_type
+lemmas Proj_comp [comp] = fst_cmp snd_cmp
 
 end
