@@ -23,33 +23,33 @@ translations
   "a =[A] b" \<rightleftharpoons> "(CONST Eq) A a b"
 
 axiomatization where
-  Equal_form: "\<lbrakk>A: U i; a: A; b: A\<rbrakk> \<Longrightarrow> a =[A] b: U i" and
+  Eq_form: "\<lbrakk>A: U i; a: A; b: A\<rbrakk> \<Longrightarrow> a =[A] b: U i" and
 
-  Equal_intro: "a: A \<Longrightarrow> (refl a): a =[A] a" and
+  Eq_intro: "a: A \<Longrightarrow> (refl a): a =[A] a" and
 
-  Equal_elim: "\<lbrakk>
+  Eq_elim: "\<lbrakk>
     p: x =[A] y;
-    x: A;
-    y: A;
+    a: A;
+    b: A;
     \<And>x. x: A \<Longrightarrow> f x: C x x (refl x);
-    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C x y: x =[A] y \<leadsto> U i \<rbrakk> \<Longrightarrow> indEq C f x y p : C x y p" and
+    \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C x y: x =[A] y \<leadsto> U i \<rbrakk> \<Longrightarrow> indEq C f a b p : C a b p" and
 
-  Equal_comp: "\<lbrakk>
+  Eq_comp: "\<lbrakk>
     a: A;
     \<And>x. x: A \<Longrightarrow> f x: C x x (refl x);
     \<And>x y. \<lbrakk>x: A; y: A\<rbrakk> \<Longrightarrow> C x y: x =[A] y \<leadsto> U i \<rbrakk> \<Longrightarrow> indEq C f a a (refl a) \<equiv> f a"
 
-lemmas Equal_form [form]
-lemmas Equal_routine [intro] = Equal_form Equal_intro Equal_elim
-lemmas Equal_comp [comp]
+lemmas Eq_form [form]
+lemmas Eq_routine [intro] = Eq_form Eq_intro Eq_elim
+lemmas Eq_comp [comp]
 
 
 section \<open>Path induction\<close>
 
 text \<open>We set up rudimentary automation of path induction:\<close>
 
-method path_ind for x y p :: t =
-  (rule Equal_elim[where ?x=x and ?y=y and ?p=p]; (fact | assumption)?)
+method path_ind for a b p :: t =
+  (rule Eq_elim[where ?a=a and ?b=b and ?p=p]; (fact | assumption)?)
 
 
 section \<open>Properties of equality\<close>
@@ -120,14 +120,13 @@ lemma pathcomp_type:
   shows "pathcomp A x y z p q: x =[A] z"
 unfolding pathcomp_def by (routine add: transitivity assms)
 
-lemma pathcomp_comp:
+lemma pathcomp_cmp:
   assumes "A: U i" and "a: A"
   shows "pathcomp A a a a (refl a) (refl a) \<equiv> refl a"
 unfolding pathcomp_def by (derive lems: assms)
 
-declare
-  pathcomp_type [intro]
-  pathcomp_comp [comp]
+lemmas pathcomp_type [intro]
+lemmas pathcomp_comp [comp] = pathcomp_cmp
 
 
 section \<open>Higher groupoid structure of types\<close>
@@ -148,6 +147,16 @@ proof (path_ind x y p)
   by (derive lems: assms)
 qed (routine add: assms)
 
+schematic_goal pathcomp_invr:
+  assumes "A: U i" "x: A" "y: A" "p: x =[A] y"
+  shows "?a: pathcomp A x y x p (inv A x y p) =[x =[A] x] (refl x)"
+proof (path_ind x y p)
+  show
+    "\<And>x. x: A \<Longrightarrow> refl(refl x):
+      pathcomp A x x x (refl x) (inv A x x (refl x)) =[x =[A] x] (refl x)"
+  by (derive lems: assms)
+qed (routine add: assms)
+
 schematic_goal pathcomp_invl:
   assumes "A: U i" "x: A" "y: A" "p: x =[A] y"
   shows "?a: pathcomp A y x y (inv A x y p) p =[y =[A] y] refl(y)"
@@ -155,16 +164,6 @@ proof (path_ind x y p)
   show
     "\<And>x. x: A \<Longrightarrow> refl(refl x):
       pathcomp A x x x (inv A x x (refl x)) (refl x) =[x =[A] x] (refl x)"
-  by (derive lems: assms)
-qed (routine add: assms)
-
-schematic_goal pathcomp_right_inv:
-  assumes "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?a: pathcomp A x y x p (inv A x y p) =[x =[A] x] (refl x)"
-proof (path_ind x y p)
-  show
-    "\<And>x. x: A \<Longrightarrow> refl(refl x):
-      pathcomp A x x x (refl x) (inv A x x (refl x)) =[x =[A] x] (refl x)"
   by (derive lems: assms)
 qed (routine add: assms)
 
@@ -176,14 +175,45 @@ proof (path_ind x y p)
   by (derive lems: assms)
 qed (routine add: assms)
 
+declare[[pretty_pathcomp=false]]
+
 schematic_goal pathcomp_assoc:
-  fixes x y p
-  assumes "A: U i" "x: A" "y: A" "z: A" "w: A" and "p: x =[A] y" "q: y =[A] z" "r: z =[A] w"
-  shows
-    "?a:
+  assumes "A: U i" "x: A" "y: A" "z: A" "w: A" "p: x =[A] y"
+  shows 
+    "?a: \<Prod>q: y =[A] z. \<Prod>r: z =[A] w.
       pathcomp A x y w p (pathcomp A y z w q r) =[x =[A] w]
         pathcomp A x z w (pathcomp A x y z p q) r"
-proof 
-  fix x y p
+proof (path_ind x y p)
+  oops
+  schematic_goal l:
+    assumes "A: U i" "x: A" "z: A" "w: A" "q: x =[A] z"
+    shows
+      "?a: \<Prod>r: z =[A] w. pathcomp A x x w (refl x) (pathcomp A y z w q r) =[x =[A] w]
+        pathcomp A x z w (pathcomp A x x z (refl x) q) r"
+  proof (path_ind x z q)
+    oops
+    schematic_goal l':
+      assumes "A: U i" "x: A" "w: A" "r: x =[A] w"
+      shows
+        "?a: pathcomp A x x w (refl x) (pathcomp A x x w (refl x) r) =[x =[A] w]
+          pathcomp A x x w (pathcomp A x x x (refl x) (refl x)) r"
+    proof (path_ind x w r)
+      show "\<And>x. x: A \<Longrightarrow> refl(refl x):
+        pathcomp A x x x (refl x) (pathcomp A x x x (refl x) (refl x)) =[x =[A] x]
+          pathcomp A x x x (pathcomp A x x x (refl x) (refl x)) (refl x)"
+      by (derive lems: assms)
+    qed (routine add: assms)
+
+(* Possible todo:
+   implement a custom version of schematic_goal/theorem that exports the derived proof term.
+*)
+
+definition l'_prftm :: "[t, t, t, t] \<Rightarrow> t"
+where "l'_prftm A x w r\<equiv>
+  indEq
+    (\<lambda>a b c. pathcomp A a a b (refl a) (pathcomp A a a b (refl a) c) =[a =[A] b]
+      pathcomp A a a b (pathcomp A a a a (refl a) (refl a)) c)
+    (\<lambda>x. refl (refl x)) x w r"
+
 
 end
