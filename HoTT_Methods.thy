@@ -12,25 +12,6 @@ imports HoTT_Base "HOL-Eisbach.Eisbach" "HOL-Eisbach.Eisbach_Tools"
 begin
 
 
-section \<open>More method combinators\<close>
-
-ML \<open>
-(* Use as "repeat n tac" *)
-fun repeat tac =
-  let
-    fun cparser_of parser (ctxt, toks) = parser toks ||> (fn toks => (ctxt, toks))
-  in
-    cparser_of Args.text >>
-      (fn n => fn ctxt => fn facts =>
-        SIMPLE_METHOD (
-          REPEAT_DETERM_N
-            (the (Int.fromString n))
-            (tac ctxt))
-            facts)
-  end
-\<close>
-
-
 section \<open>Substitution and simplification\<close>
 
 ML_file "~~/src/Tools/misc_legacy.ML"
@@ -52,11 +33,9 @@ section \<open>Handling universes\<close>
 
 text \<open>
 Methods @{theory_text provelt}, @{theory_text hierarchy}, and @{theory_text cumulativity} prove propositions of the form
-
 \<^item> \<open>n < (Suc (... (Suc n) ...))\<close>,
 \<^item> \<open>U i: U (Suc (... (Suc i) ...))\<close>, and
 \<^item> @{prop "A: U i \<Longrightarrow> A: U j"}, where @{prop "i \<le> j"},
-
 respectively.
 \<close>
 
@@ -72,7 +51,7 @@ method cumulativity declares form = (
 
 section \<open>Deriving typing judgments\<close>
 
-method routine uses add = (assumption | rule add | rule)+
+method routine uses add = (rule add | assumption | rule)+
 
 text \<open>
 The method @{method routine} proves typing judgments @{prop "a: A"} using the rules declared @{attribute intro} in the respective theory files, as well as any additional lemmas provided with the modifier @{theory_text add}.
@@ -87,5 +66,23 @@ It also handles universes using @{method hierarchy} and @{method cumulativity}.
 \<close>
 
 method derive uses lems = (routine add: lems | compute comp: lems | cumulativity form: lems | hierarchy)+
+
+
+section \<open>Additional method combinators\<close>
+
+text \<open>
+The ML expression @{ML_text "repeat tac"} below yields a @{ML_type "(Proof.context -> Proof.method) context_parser"}, which may be passed to @{command method_setup} to set up a method that scans for an integer n and executes the tactic returned by @{ML_text tac} n times.
+See the setup of method @{text quantify} in @{file Prod.thy} for an example.
+\<close>
+
+ML \<open>
+fun repeat (tac: Proof.context -> tactic) =
+  let
+    fun cparser_of parser (ctxt, toks) = parser toks ||> (fn toks => (ctxt, toks))
+  in
+    cparser_of Args.text >> (fn n => fn ctxt => fn facts =>
+      SIMPLE_METHOD (REPEAT_DETERM_N (the (Int.fromString n))(tac ctxt)) facts)
+  end
+\<close>
 
 end

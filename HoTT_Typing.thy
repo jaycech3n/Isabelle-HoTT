@@ -27,7 +27,7 @@ section \<open>Terms and typing\<close>
 
 typedecl t \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
 
-judgment has_type :: "[t, t] \<Rightarrow> prop"  ("(3_:/ _)")
+judgment has_type :: "[t, t] \<Rightarrow> prop"  ("(3_ :/ _)")
 
 
 section \<open>Typing functionality\<close>
