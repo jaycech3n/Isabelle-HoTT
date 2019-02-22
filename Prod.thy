@@ -70,23 +70,6 @@ lemmas Prod_comp [comp] = Prod_cmp Prod_uniq
 lemmas Prod_cong [cong] = Prod_form_eq Prod_intro_eq
 
 
-section \<open>Universal quantification\<close>
-
-text \<open>
-It will often be useful to convert a proof goal asserting the inhabitation of a dependent product to one that instead uses Pure universal quantification.
-
-Method @{theory_text quantify_all} converts the goal
-@{text "t: \<Prod>x1: A1. ... \<Prod>xn: An. B x1 ... xn"},
-where @{term B} is not a product, to
-@{text "\<And>x1 ... xn . \<lbrakk>x1: A1; ...; xn: An\<rbrakk> \<Longrightarrow> ?b x1 ... xn: B x1 ... xn"}.
-
-Method @{theory_text "quantify k"} does the same, but only for the first k unknowns.
-\<close>
-
-method quantify_all = (rule Prod_intro)+
-method_setup quantify = \<open>repeat (fn ctxt => Method.rule_tac ctxt [@{thm Prod_intro}] [] 1)\<close>
-
-
 section \<open>Function composition\<close>
 
 definition compose :: "[t, t, t] \<Rightarrow> t"
@@ -145,5 +128,22 @@ lemma compose_comp:
 by (derive lems: assms cong)
 
 abbreviation id :: "t \<Rightarrow> t" where "id A \<equiv> \<lambda>x: A. x"
+
+
+section \<open>Universal quantification\<close>
+
+text \<open>
+It will often be useful to convert a proof goal asserting the inhabitation of a dependent product to one that instead uses Pure universal quantification.
+
+Method @{theory_text quantify_all} converts the goal
+@{text "t: \<Prod>x1: A1. ... \<Prod>xn: An. B x1 ... xn"},
+where @{term B} is not a product, to
+@{text "\<And>x1 ... xn . \<lbrakk>x1: A1; ...; xn: An\<rbrakk> \<Longrightarrow> ?b x1 ... xn: B x1 ... xn"}.
+
+Method @{theory_text "quantify k"} does the same, but only for the first k unknowns.
+\<close>
+
+method quantify_all = (rule Prod_intro)+
+method_setup quantify = \<open>repeat (fn ctxt => Method.rule_tac ctxt [@{thm Prod_intro}] [] 1)\<close>
 
 end

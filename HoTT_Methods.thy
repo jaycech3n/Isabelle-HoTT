@@ -51,7 +51,7 @@ method cumulativity declares form = (
 
 section \<open>Deriving typing judgments\<close>
 
-method routine uses add = (rule add | assumption | rule)+
+method routine uses add = (assumption | rule add | rule)+
 
 text \<open>
 The method @{method routine} proves typing judgments @{prop "a: A"} using the rules declared @{attribute intro} in the respective theory files, as well as any additional lemmas provided with the modifier @{theory_text add}.
@@ -65,7 +65,8 @@ The method @{theory_text derive} combines @{method routine} and @{method compute
 It also handles universes using @{method hierarchy} and @{method cumulativity}.
 \<close>
 
-method derive uses lems = (routine add: lems | compute comp: lems | cumulativity form: lems | hierarchy)+
+method derive uses lems =
+  (routine add: lems | compute comp: lems | cumulativity form: lems | hierarchy)+
 
 
 section \<open>Additional method combinators\<close>

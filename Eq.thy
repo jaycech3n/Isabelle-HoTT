@@ -54,6 +54,9 @@ method path_ind for a b p :: t =
 method path_ind' for C :: "[t, t, t] \<Rightarrow> t" =
   (rule Eq_elim[where ?C=C]; (assumption | fact)?)
 
+syntax "_induct_over" :: "[idt, idt, idt, t] \<Rightarrow> [t, t, t] \<Rightarrow> t"  ("(2{_, _, _}/ _)" 0)
+translations "{x, y, p} C" \<rightleftharpoons> "\<lambda>x y p. C"
+
 
 section \<open>Properties of equality\<close>
 
@@ -180,8 +183,12 @@ qed (routine add: assms)
 
 text \<open>
 We use the proof of associativity of path composition to demonstrate the process of deriving proof terms.
-The proof involves a triply-nested path induction, which is cumbersome to write in a structured style, especially if one does not know the form of the proof term in the first place.
+The proof involves a triply-nested path induction, which is cumbersome to write in a structured style, especially if one does not know the correct form of the proof term in the first place.
 However, using proof scripts the derivation becomes quite easy; we simply give the correct form of the statements to induct over, and prove the simple subgoals returned by the prover.
+
+The proof is sensitive to the order of the quantifiers in the product.
+In particular, changing the order causes unification to fail in the path inductions.
+It seems to be good practice to order the variables in the order over which we will path-induct.
 \<close>
 
 declare[[pretty_pathcomp=false]]
@@ -193,22 +200,22 @@ schematic_goal pathcomp_assoc:
       pathcomp A x y w p (pathcomp A y z w q r) =[x =[A] w]
         pathcomp A x z w (pathcomp A x y z p q) r"
   apply (quantify 3)
-  apply (path_ind'
-    "\<lambda>x y p. \<Prod>(z: A). \<Prod>(q: y =[A] z). \<Prod>(w: A). \<Prod>(r: z =[A] w).
+  apply (path_ind' "{x, y, p}
+    \<Prod>(z: A). \<Prod>(q: y =[A] z). \<Prod>(w: A). \<Prod>(r: z =[A] w).
       Eq.pathcomp A x y w p (Eq.pathcomp A y z w q r) =[x =[A] w]
         Eq.pathcomp A x z w (Eq.pathcomp A x y z p q) r")
   apply (quantify 2)
-  apply (path_ind'
-    "\<lambda>xa z q. \<Prod>(w: A). \<Prod>(r: z =[A] w).
+  apply (path_ind' "{xa, z, q}
+    \<Prod>(w: A). \<Prod>(r: z =[A] w).
       Eq.pathcomp A xa xa w (refl xa) (Eq.pathcomp A xa z w q r) =[xa =[A] w]
         Eq.pathcomp A xa z w (Eq.pathcomp A xa xa z (refl xa) q) r")
   apply (quantify 2)
-  apply (path_ind'
-    "\<lambda>xb w r. Eq.pathcomp A xb xb w (refl xb) (Eq.pathcomp A xb xb w (refl xb) r) =[xb =[A] w]
+  apply (path_ind' "{xb, w, r}
+    Eq.pathcomp A xb xb w (refl xb) (Eq.pathcomp A xb xb w (refl xb) r) =[xb =[A] w]
       Eq.pathcomp A xb xb w (Eq.pathcomp A xb xb xb (refl xb) (refl xb)) r")
-
-  text \<open>\<close>
-
+  
+  text \<open>And now the rest is routine.\<close>
+  
   apply (derive; (rule assms|assumption)?)
   apply (compute, rule assms, assumption)+
   apply (elim Eq_intro, rule Eq_intro, assumption)

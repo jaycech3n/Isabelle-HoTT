@@ -1,49 +1,46 @@
-(*
-Title:  Nat.thy
-Author: Joshua Chen
-Date:   2018
+(********
+Isabelle/HoTT: Natural numbers
+Feb 2019
 
-Natural numbers
-*)
+********)
 
 theory Nat
 imports HoTT_Base
 
 begin
 
-
 axiomatization
-  Nat    :: t  ("\<nat>") and
+  Nat    :: t and
   zero   :: t  ("0") and
   succ   :: "t \<Rightarrow> t" and
-  indNat :: "[[t, t] \<Rightarrow> t, t, t] \<Rightarrow> t"  ("(1ind\<^sub>\<nat>)")
+  indNat :: "[t \<Rightarrow> t, [t, t] \<Rightarrow> t, t, t] \<Rightarrow> t"
 where
-  Nat_form: "\<nat>: U O" and
+  Nat_form: "Nat: U O" and
 
-  Nat_intro_0: "0: \<nat>" and
+  Nat_intro_0: "0: Nat" and
 
-  Nat_intro_succ: "n: \<nat> \<Longrightarrow> succ n: \<nat>" and
+  Nat_intro_succ: "n: Nat \<Longrightarrow> succ n: Nat" and
 
   Nat_elim: "\<lbrakk>
     a: C 0;
-    n: \<nat>;
-    C: \<nat> \<longrightarrow> U i;
-    \<And>n c. \<lbrakk>n: \<nat>; c: C n\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat> f a n: C n" and
+    n: Nat;
+    C: Nat \<leadsto> U i;
+    \<And>n c. \<lbrakk>n: Nat; c: C n\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> indNat C f a n: C n" and
 
-  Nat_comp_0: "\<lbrakk>
+  Nat_cmp_0: "\<lbrakk>
     a: C 0;
-    C: \<nat> \<longrightarrow> U i;
-    \<And>n c. \<lbrakk>n: \<nat>; c: C(n)\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat> f a 0 \<equiv> a" and
+    C: Nat \<leadsto> U i;
+    \<And>n c. \<lbrakk>n: Nat; c: C n\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> indNat C f a 0 \<equiv> a" and
 
-  Nat_comp_succ: "\<lbrakk>
+  Nat_cmp_succ: "\<lbrakk>
     a: C 0;
-    n: \<nat>;
-    C: \<nat> \<longrightarrow> U i;
-    \<And>n c. \<lbrakk>n: \<nat>; c: C n\<rbrakk> \<Longrightarrow> f n c: C (succ n) \<rbrakk> \<Longrightarrow> ind\<^sub>\<nat> f a (succ n) \<equiv> f n (ind\<^sub>\<nat> f a n)"
+    n: Nat;
+    C: Nat \<leadsto> U i;
+    \<And>n c. \<lbrakk>n: Nat; c: C n\<rbrakk> \<Longrightarrow> f n c: C (succ n)
+  \<rbrakk> \<Longrightarrow> indNat C f a (succ n) \<equiv> f n (indNat C f a n)"
 
 lemmas Nat_form [form]
 lemmas Nat_routine [intro] = Nat_form Nat_intro_0 Nat_intro_succ Nat_elim
-lemmas Nat_comps [comp] = Nat_comp_0 Nat_comp_succ
-
+lemmas Nat_comps [comp] = Nat_cmp_0 Nat_cmp_succ
 
 end
