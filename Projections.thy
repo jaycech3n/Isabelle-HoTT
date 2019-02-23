@@ -21,7 +21,7 @@ declare fst_type [intro]
 
 lemma fst_cmp:
   assumes "A: U i" and "B: A \<leadsto> U i" and "a: A" and "b: B a" shows "fst A <a, b> \<equiv> a"
-unfolding fst_def by compute (derive lems: assms)
+unfolding fst_def by (subst comp) (derive lems: assms)
 
 declare fst_cmp [comp]
 
