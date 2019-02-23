@@ -15,14 +15,14 @@ section \<open>Basic type definitions\<close>
 axiomatization
   Prod :: "[t, t \<Rightarrow> t] \<Rightarrow> t" and
   lam  :: "[t, t \<Rightarrow> t] \<Rightarrow> t" and
-  app  :: "[t, t] \<Rightarrow> t"  ("(1_ ` _)" [120, 121] 120)
+  app  :: "[t, t] \<Rightarrow> t"  ("(2_/ ` _)" [120, 121] 120)
   \<comment> \<open>Application should bind tighter than abstraction.\<close>
 
 syntax
-  "_Prod"  :: "[idt, t, t] \<Rightarrow> t"  ("(3\<Prod>'(_: _')./ _)" 30)
-  "_Prod'" :: "[idt, t, t] \<Rightarrow> t"  ("(3\<Prod>_: _./ _)" 30)
-  "_lam"   :: "[idt, t, t] \<Rightarrow> t"  ("(3\<lambda>'(_: _')./ _)" 30)
-  "_lam'"  :: "[idt, t, t] \<Rightarrow> t"  ("(3\<lambda>_: _./ _)" 30)
+  "_Prod"  :: "[idt, t, t] \<Rightarrow> t"  ("(2\<Prod>'(_: _')./ _)" 30)
+  "_Prod'" :: "[idt, t, t] \<Rightarrow> t"  ("(2\<Prod>_: _./ _)" 30)
+  "_lam"   :: "[idt, t, t] \<Rightarrow> t"  ("(2\<lambda>'(_: _')./ _)" 30)
+  "_lam'"  :: "[idt, t, t] \<Rightarrow> t"  ("(2\<lambda>_: _./ _)" 30)
 translations
   "\<Prod>(x: A). B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
   "\<Prod>x: A. B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"

@@ -11,12 +11,12 @@ begin
 
 axiomatization
   Sum    :: "[t, t \<Rightarrow> t] \<Rightarrow> t" and
-  pair   :: "[t, t] \<Rightarrow> t"  ("(1<_,/ _>)") and
+  pair   :: "[t, t] \<Rightarrow> t"  ("(2<_,/ _>)") and
   indSum :: "[t \<Rightarrow> t, [t, t] \<Rightarrow> t, t] \<Rightarrow> t"
 
 syntax
-  "_Sum"  :: "[idt, t, t] \<Rightarrow> t"  ("(3\<Sum>'(_: _')./ _)" 20)
-  "_Sum'" :: "[idt, t, t] \<Rightarrow> t"  ("(3\<Sum>_: _./ _)" 20)
+  "_Sum"  :: "[idt, t, t] \<Rightarrow> t"  ("(2\<Sum>'(_: _')./ _)" 20)
+  "_Sum'" :: "[idt, t, t] \<Rightarrow> t"  ("(2\<Sum>_: _./ _)" 20)
 translations
   "\<Sum>(x: A). B" \<rightleftharpoons> "(CONST Sum) A (\<lambda>x. B)"
   "\<Sum>x: A. B" \<rightleftharpoons> "(CONST Sum) A (\<lambda>x. B)"
