@@ -18,7 +18,7 @@ axiomatization
   indEq :: "[[t, t, t] \<Rightarrow> t, t \<Rightarrow> t, t, t, t] \<Rightarrow> t"
 
 syntax
-  "_Eq" :: "[t, t, t] \<Rightarrow> t"  ("(3_ =[_]/ _)" [101, 0, 101] 100)
+  "_Eq" :: "[t, t, t] \<Rightarrow> t"  ("(2_ =[_]/ _)" [101, 0, 101] 100)
 translations
   "a =[A] b" \<rightleftharpoons> "(CONST Eq) A a b"
 
@@ -191,14 +191,13 @@ In particular, changing the order causes unification to fail in the path inducti
 It seems to be good practice to order the variables in the order over which we will path-induct.
 \<close>
 
-declare[[pretty_pathcomp=false]]
-
 schematic_goal pathcomp_assoc:
   assumes "A: U i"
   shows 
     "?a: \<Prod>x: A. \<Prod>y: A. \<Prod>p: x =[A] y. \<Prod>z: A. \<Prod>q: y =[A] z. \<Prod>w: A. \<Prod>r: z =[A] w.
       pathcomp A x y w p (pathcomp A y z w q r) =[x =[A] w]
         pathcomp A x z w (pathcomp A x y z p q) r"
+
   apply (quantify 3)
   apply (path_ind' "{x, y, p}
     \<Prod>(z: A). \<Prod>(q: y =[A] z). \<Prod>(w: A). \<Prod>(r: z =[A] w).
@@ -213,20 +212,20 @@ schematic_goal pathcomp_assoc:
   apply (path_ind' "{xb, w, r}
     Eq.pathcomp A xb xb w (refl xb) (Eq.pathcomp A xb xb w (refl xb) r) =[xb =[A] w]
       Eq.pathcomp A xb xb w (Eq.pathcomp A xb xb xb (refl xb) (refl xb)) r")
-  
-  text \<open>And now the rest is routine.\<close>
-  
-  apply (derive; (rule assms|assumption)?)
-  apply (compute, rule assms, assumption)+
-  apply (elim Eq_intro, rule Eq_intro, assumption)
-  apply (compute, rule assms, assumption)+
-  apply (elim Eq_intro)
-  apply (compute, rule assms, assumption)+
-  apply (rule Eq_intro, elim Eq_intro)
-  apply (compute, rule assms, assumption)+
-  apply (rule Eq_intro, elim Eq_intro)
-  apply (derive lems: assms)
-done
+
+text \<open>The rest is now routine.\<close>
+
+proof
+  fix x assume *: "x: A"
+  show "pathcomp A x x x (refl x) (pathcomp A x x x (refl x) (refl x)): x =[A] x"
+   and "pathcomp A x x x (pathcomp A x x x (refl x) (refl x)) (refl x): x =[A] x"
+   and "pathcomp A x x x (pathcomp A x x x (refl x) (refl x)) (refl x): x =[A] x"
+   and "refl(refl x): pathcomp A x x x (refl x) (pathcomp A x x x (refl x) (refl x)) =[x =[A] x]
+         pathcomp A x x x (pathcomp A x x x (refl x) (refl x)) (refl x)"
+   and "refl(refl x): pathcomp A x x x (pathcomp A x x x (refl x) (refl x)) (refl x) =[x =[A] x]
+             pathcomp A x x x (pathcomp A x x x (refl x) (refl x)) (refl x)"
+  by (derive lems: * assms)
+qed (derive lems: assms)
 
 (* Possible todo:
    implement a custom version of schematic_goal/theorem that exports the derived proof term.
