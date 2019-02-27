@@ -2,6 +2,8 @@
 Isabelle/HoTT: Equality
 Feb 2019
 
+Intensional equality, path induction, and proofs of various results.
+
 ********)
 
 theory Eq
@@ -57,6 +59,13 @@ method path_ind' for a b p :: t =
 syntax "_induct_over" :: "[idt, idt, idt, t] \<Rightarrow> [t, t, t] \<Rightarrow> t"  ("(2{_, _, _}/ _)" 0)
 translations "{x, y, p} C" \<rightharpoonup> "\<lambda>x y p. C"
 
+text \<open>
+Use "@{method path_ind} @{term "{x, y, p} C x y p"}" to perform path induction for the given type family over the variables @{term x}, @{term y}, and @{term p},
+and "@{method path_ind'} @{term a} @{term b} @{term p}" to let Isabelle try and infer the shape of the type family itself (this doesn't always work!).
+
+Note that @{term "{x, y, p} C x y p"} is just syntactic sugar for @{term "\<lambda>x y p. C x y p"}.
+\<close>
+
 
 section \<open>Properties of equality\<close>
 
@@ -91,6 +100,7 @@ declare
   inv_type [intro]
   inv_comp [comp]
 
+
 subsection \<open>Transitivity (path composition)\<close>
 
 schematic_goal transitivity:
@@ -105,15 +115,13 @@ definition pathcomp :: "[t, t, t, t, t, t] \<Rightarrow> t"
 where
   "pathcomp A x y z p q \<equiv> (indEq
     (\<lambda>x y _. \<Prod>z: A. y =[A] z \<rightarrow> x =[A] z)
-    (\<lambda>x. \<lambda>(z: A). \<lambda>(q: x =[A] z). indEq (\<lambda>x z _. x =[A] z) (\<lambda>x. refl x) x z q)
+    (\<lambda>x. \<lambda>z: A. \<lambda>q: x =[A] z. indEq (\<lambda>x z _. x =[A] z) (\<lambda>x. refl x) x z q)
     x y p)`z`q"
-
 
 syntax "_pathcomp" :: "[t, t] \<Rightarrow> t"  (infixl "*" 110)
 
-text \<open>Pretty-printing switch for path composition:\<close>
-
 ML \<open>val pretty_pathcomp = Attrib.setup_config_bool @{binding "pretty_pathcomp"} (K true)\<close>
+\<comment> \<open>Pretty-printing switch for path composition\<close>
 
 print_translation \<open>
 let fun pathcomp_tr' ctxt [A, x, y, z, p, q] =
@@ -126,80 +134,80 @@ end
 \<close>
 
 lemma pathcomp_type:
-  assumes "A: U i" "x: A" "y: A" "z: A" "p: x =[A] y" "q: y =[A] z"
+  assumes [intro]: "A: U i" "x: A" "y: A" "z: A" "p: x =[A] y" "q: y =[A] z"
   shows "pathcomp A x y z p q: x =[A] z"
-unfolding pathcomp_def by (derive lems: transitivity assms)
+unfolding pathcomp_def by (derive lems: transitivity)
 
-lemma pathcomp_cmp:
-  assumes "A: U i" and "a: A"
+lemma pathcomp_comp:
+  assumes [intro]: "A: U i" "a: A"
   shows "pathcomp A a a a (refl a) (refl a) \<equiv> refl a"
-unfolding pathcomp_def by (derive lems: transitivity assms)
+unfolding pathcomp_def by (derive lems: transitivity)
 
-lemmas pathcomp_type [intro]
-lemmas pathcomp_comp [comp] = pathcomp_cmp
+declare
+  pathcomp_type [intro]
+  pathcomp_comp [comp]
 
 
 section \<open>Higher groupoid structure of types\<close>
 
 schematic_goal pathcomp_idr:
-  assumes "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?a: pathcomp A x y y p (refl y) =[x =[A] y] p"
+  assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
+  shows "?prf: pathcomp A x y y p (refl y) =[x =[A] y] p"
 proof (path_ind' x y p)
   show "\<And>x. x: A \<Longrightarrow> refl(refl x): pathcomp A x x x (refl x) (refl x) =[x =[A] x] (refl x)"
-  by (derive lems: assms)
-qed (routine add: assms)
+  by derive
+qed routine
 
 schematic_goal pathcomp_idl:
-  assumes "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?a: pathcomp A x x y (refl x) p =[x =[A] y] p"
+  assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
+  shows "?prf: pathcomp A x x y (refl x) p =[x =[A] y] p"
 proof (path_ind' x y p)
   show "\<And>x. x: A \<Longrightarrow> refl(refl x): pathcomp A x x x (refl x) (refl x) =[x =[A] x] (refl x)"
-  by (derive lems: assms)
-qed (routine add: assms)
+  by derive
+qed routine
 
 schematic_goal pathcomp_invr:
-  assumes "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?a: pathcomp A x y x p (inv A x y p) =[x =[A] x] (refl x)"
+  assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
+  shows "?prf: pathcomp A x y x p (inv A x y p) =[x =[A] x] (refl x)"
 proof (path_ind' x y p)
   show
     "\<And>x. x: A \<Longrightarrow> refl(refl x):
       pathcomp A x x x (refl x) (inv A x x (refl x)) =[x =[A] x] (refl x)"
-  by (derive lems: assms)
-qed (routine add: assms)
+  by derive
+qed routine
 
 schematic_goal pathcomp_invl:
-  assumes "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?a: pathcomp A y x y (inv A x y p) p =[y =[A] y] refl(y)"
+  assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
+  shows "?prf: pathcomp A y x y (inv A x y p) p =[y =[A] y] refl(y)"
 proof (path_ind' x y p)
   show
     "\<And>x. x: A \<Longrightarrow> refl(refl x):
       pathcomp A x x x (inv A x x (refl x)) (refl x) =[x =[A] x] (refl x)"
-  by (derive lems: assms)
-qed (routine add: assms)
+  by derive
+qed routine
 
 schematic_goal inv_involutive:
-  assumes "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?a: inv A y x (inv A x y p) =[x =[A] y] p"
+  assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
+  shows "?prf: inv A y x (inv A x y p) =[x =[A] y] p"
 proof (path_ind' x y p)
   show "\<And>x. x: A \<Longrightarrow> refl(refl x): inv A x x (inv A x x (refl x)) =[x =[A] x] (refl x)"
-  by (derive lems: assms)
-qed (routine add: assms)
+  by derive
+qed routine
 
 text \<open>
 We use the proof of associativity of path composition to demonstrate the process of deriving proof terms.
 The proof involves a triply-nested path induction, which is cumbersome to write in a structured style, especially if one does not know the correct form of the proof term in the first place.
-However, using proof scripts the derivation becomes quite easy; we simply give the correct form of the statements to induct over, and prove the simple subgoals returned by the prover.
+However, using proof scripts the derivation becomes quite easy: we simply give the correct form of the statements to induct over, and prove the simple subgoals returned by the prover.
 
 The proof is sensitive to the order of the quantifiers in the product.
 In particular, changing the order causes unification to fail in the path inductions.
 It seems to be good practice to order the variables in the order over which we will path-induct.
 \<close>
 
-declare[[pretty_pathcomp=false]]
 schematic_goal pathcomp_assoc:
-  assumes "A: U i"
+  assumes [intro]: "A: U i"
   shows 
-    "?a: \<Prod>x: A. \<Prod>y: A. \<Prod>p: x =[A] y. \<Prod>z: A. \<Prod>q: y =[A] z. \<Prod>w: A. \<Prod>r: z =[A] w.
+    "?prf: \<Prod>x: A. \<Prod>y: A. \<Prod>p: x =[A] y. \<Prod>z: A. \<Prod>q: y =[A] z. \<Prod>w: A. \<Prod>r: z =[A] w.
       pathcomp A x y w p (pathcomp A y z w q r) =[x =[A] w]
         pathcomp A x z w (pathcomp A x y z p q) r"
 
@@ -225,25 +233,39 @@ proof -
     "\<And>x. x: A \<Longrightarrow> refl(refl x):
       pathcomp A x x x (refl x) (pathcomp A x x x (refl x) (refl x)) =[x =[A] x]
         pathcomp A x x x (pathcomp A x x x (refl x) (refl x)) (refl x)"
-  by (derive lems: assms)
-qed (derive lems: assms)
+  by derive
+qed routine
 
 (* Todo, if possible:
    Implement a custom version of schematic_goal/theorem that exports the derived proof term.
 *)
 
 
-section \<open>Functoriality of functions on types\<close>
+section \<open>Functoriality of functions on types under equality\<close>
 
 schematic_goal transfer:
-  assumes
+  assumes [intro]:
     "A: U i" "B: U i" "f: A \<rightarrow> B"
     "x: A" "y: A" "p: x =[A] y"
-  shows "?a: f`x =[B] f`y"
-by (path_ind' x y p, rule Eq_intro, routine add: assms)
+  shows "?prf: f`x =[B] f`y"
+by (path_ind' x y p, rule Eq_routine, routine)
 
 definition ap :: "[t, t, t, t, t] \<Rightarrow> t"
 where "ap B f x y p \<equiv> indEq ({x, y, _} f`x =[B] f`y) (\<lambda>x. refl (f`x)) x y p"
+
+syntax "_ap" :: "[t, t] \<Rightarrow> t"  ("(_{_})" [1000, 0] 1000)
+
+ML \<open>val pretty_ap = Attrib.setup_config_bool @{binding "pretty_ap"} (K true)\<close>
+
+print_translation \<open>
+let fun ap_tr' ctxt [B, f, x, y, p] =
+  if Config.get ctxt pretty_ap
+  then Syntax.const @{syntax_const "_ap"} $ f $ p
+  else @{const ap} $ B $ f $ x $ y $ p
+in
+  [(@{const_syntax ap}, ap_tr')]
+end
+\<close>
 
 lemma ap_type:
   assumes
@@ -252,22 +274,22 @@ lemma ap_type:
   shows "ap B f x y p: f`x =[B] f`y"
 unfolding ap_def using assms by (rule transfer)
 
-lemma ap_cmp:
-  assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "x: A"
+lemma ap_comp:
+  assumes [intro]: "A: U i" "B: U i" "f: A \<rightarrow> B" "x: A"
   shows "ap B f x x (refl x) \<equiv> refl (f`x)"
-unfolding ap_def by (derive lems: assms)
+unfolding ap_def by derive
 
-lemmas ap_type [intro]
-lemmas ap_comp [comp] = ap_cmp
+declare
+  ap_type [intro]
+  ap_comp [comp]
 
 
-schematic_goal ap_func1:
-  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
+schematic_goal ap_func_pathcomp:
+  assumes [intro]: "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows
-    "?a: \<Prod>x: A. \<Prod>y: A. \<Prod>p: x =[A] y. \<Prod>z: A. \<Prod>q: y =[A] z.
+    "?prf: \<Prod>x: A. \<Prod>y: A. \<Prod>p: x =[A] y. \<Prod>z: A. \<Prod>q: y =[A] z.
       ap B f x z (pathcomp A x y z p q) =[f`x =[B] f`z]
         pathcomp B (f`x) (f`y) (f`z) (ap B f x y p) (ap B f y z q)"
-
 apply (quantify 3)
 apply (path_ind "{x, y, p}
   \<Prod>z: A. \<Prod>q: y =[A] z.
@@ -277,12 +299,100 @@ apply (quantify 2)
 apply (path_ind "{x, z, q}
   ap B f x z (pathcomp A x x z (refl x) q) =[f`x =[B] f`z]
     pathcomp B (f`x) (f`x) (f`z) (ap B f x x (refl x)) (ap B f x z q)")
-
 proof -
   show
     "\<And>x. x: A \<Longrightarrow> refl(refl(f`x)): ap B f x x (pathcomp A x x x (refl x) (refl x)) =[f`x =[B] f`x]
       pathcomp B (f`x) (f`x) (f`x) (ap B f x x (refl x)) (ap B f x x (refl x))"
-  by (derive lems: assms)
-qed (derive lems: assms)
+  by derive
+qed derive
+
+
+schematic_goal ap_func_compose:
+  assumes [intro]:
+    "A: U i" "B: U i" "C: U i"
+    "f: A \<rightarrow> B" "g: B \<rightarrow> C"
+  shows
+    "?prf: \<Prod>x: A. \<Prod>y: A. \<Prod>p: x =[A] y.
+      ap C g (f`x) (f`y) (ap B f x y p) =[g`(f`x) =[C] g`(f`y)]
+        ap C (compose A g f) x y p"
+apply (quantify 3)
+apply (path_ind "{x, y, p}
+  ap C g (f`x) (f`y) (ap B f x y p) =[g`(f`x) =[C] g`(f`y)]
+    ap C (compose A g f) x y p")
+proof -
+  show "\<And>x. x: A \<Longrightarrow> refl(refl (g`(f`x))) :
+    ap C g (f`x) (f`x) (ap B f x x (refl x)) =[g`(f`x) =[C] g`(f`x)]
+      ap C (compose A g f) x x (refl x)"
+  unfolding compose_def by derive
+
+  fix x y p assume [intro]: "x: A" "y: A" "p: x =[A] y"
+  show "ap C g (f`x) (f`y) (ap B f x y p) =[g`(f`x) =[C] g`(f`y)] ap C (compose A g f) x y p: U i"
+  proof
+    have
+      "(\<lambda>x: A. g`(f`x))`x =[C] (\<lambda>x: A. g`(f`x))`y \<equiv> g`(f`x) =[C] g`(f`y)" by derive
+    moreover have
+      "ap C (compose A g f) x y p : (\<lambda>x: A. g`(f`x))`x =[C] (\<lambda>x: A. g`(f`x))`y"
+        unfolding compose_def by derive
+    ultimately show
+      "ap C (compose A g f) x y p : g`(f`x) =[C] g`(f`y)" by simp
+  qed derive
+qed routine
+
+
+schematic_goal ap_func_inv:
+  assumes [intro]:
+    "A: U i" "B: U i" "f: A \<rightarrow> B"
+    "x: A" "y: A" "p: x =[A] y"
+  shows "?prf: ap B f y x (inv A x y p) =[f`y =[B] f`x] inv B (f`x) (f`y) (ap B f x y p)"
+proof (path_ind' x y p)
+  show "\<And>x. x: A \<Longrightarrow> refl(refl(f`x)):
+    ap B f x x (inv A x x (refl x)) =[f`x =[B] f`x] inv B (f`x) (f`x) (ap B f x x (refl x))"
+  by derive
+qed routine
+
+schematic_goal ap_func_id:
+  assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
+  shows "?prf: ap A (id A) x y p =[x =[A] y] p"
+proof (path_ind' x y p)
+  fix x assume [intro]: "x: A"
+  show "refl(refl x): ap A (id A) x x (refl x) =[x =[A] x] refl x" by derive
+  
+  fix y p assume [intro]: "y: A" "p: x =[A] y"
+  have "ap A (id A) x y p: (id A)`x =[A] (id A)`y" by derive
+  moreover have "(id A)`x =[A] (id A)`y \<equiv> x =[A] y" by derive
+  ultimately have [intro]: "ap A (id A) x y p: x =[A] y" by simp
+  
+  show "ap A (id A) x y p =[x =[A] y] p: U i" by derive
+qed
+
+
+section \<open>Transport\<close>
+
+schematic_goal transport:
+  assumes [intro]:
+    "A: U i" "P: A \<leadsto> U i"
+    "x: A" "y: A" "p: x =[A] y"
+  shows "?prf: P x \<rightarrow> P y"
+proof (path_ind' x y p)
+  show "\<And>x. x: A \<Longrightarrow> id (P x): P x \<rightarrow> P x" by derive
+qed routine
+
+definition transport :: "[t \<Rightarrow> t, t, t, t] \<Rightarrow> t"
+where "transport P x y p \<equiv> indEq (\<lambda>a b _. P a \<rightarrow> P b) (\<lambda>x. id (P x)) x y p"
+
+lemma transport_type:
+  assumes "A: U i" "P: A \<leadsto> U i" "x: A" "y: A" "p: x =[A] y"
+  shows "transport P x y p: P x \<rightarrow> P y"
+unfolding transport_def using assms by (rule transport)
+
+lemma transport_comp:
+  assumes [intro]: "A: U i" "P: A \<leadsto> U i" "a: A"
+  shows "transport P a a (refl a) \<equiv> id (P a)"
+unfolding transport_def by derive
+
+declare
+  transport_type [intro]
+  transport_comp [comp]
+
 
 end

@@ -15,7 +15,7 @@ section \<open>Basic type definitions\<close>
 axiomatization
   Prod :: "[t, t \<Rightarrow> t] \<Rightarrow> t" and
   lam  :: "[t, t \<Rightarrow> t] \<Rightarrow> t" and
-  app  :: "[t, t] \<Rightarrow> t"  ("(2_/ ` _)" [120, 121] 120)
+  app  :: "[t, t] \<Rightarrow> t"  ("(2_`_)" [120, 121] 120)
   \<comment> \<open>Application should bind tighter than abstraction.\<close>
 
 syntax
@@ -75,33 +75,7 @@ section \<open>Function composition\<close>
 definition compose :: "[t, t, t] \<Rightarrow> t"
 where "compose A g f \<equiv> \<lambda>x: A. g`(f`x)"
 
-declare compose_def [comp]
-
 syntax "_compose" :: "[t, t] \<Rightarrow> t"  (infixr "o" 110)
-(*
-parse_translation \<open>
-let fun compose_tr ctxt [g, f] =
-  let
-    val [g, f] = [g, f] |> map (Util.prep_term ctxt)
-    val dom =
-      case f of
-        Const ("Prod.lam", _) $ T $ _ => T
-      | Const ("Prod.compose", _) $ T $ _ $ _ => T
-      | _ =>
-          case Typing.get_typing ctxt f of
-            SOME (Const ("Prod.Prod", _) $ T $ _) => T
-          | SOME t =>
-              Exn.error ("Can't compose with a non-function " ^ Syntax.string_of_term ctxt f)
-          | NONE =>
-              Exn.error "Cannot infer domain of composition; please state this explicitly"
-  in
-    @{const compose} $ dom $ g $ f
-  end
-in
-  [("_compose", compose_tr)]
-end
-\<close>
-*)
 
 text \<open>Pretty-printing switch for composition; hides domain type information.\<close>
 
@@ -120,12 +94,14 @@ end
 lemma compose_assoc:
   assumes "A: U i" and "f: A \<rightarrow> B" and "g: B \<rightarrow> C" and "h: \<Prod>x: C. D x"
   shows "compose A (compose B h g) f \<equiv> compose A h (compose A g f)"
-by (derive lems: assms cong)
+unfolding compose_def by (derive lems: assms cong)
 
 lemma compose_comp:
   assumes "A: U i" and "\<And>x. x: A \<Longrightarrow> b x: B" and "\<And>x. x: B \<Longrightarrow> c x: C x"
   shows "compose A (\<lambda>x: B. c x) (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
-by (derive lems: assms cong)
+unfolding compose_def by (derive lems: assms cong)
+
+declare compose_comp [comp]
 
 abbreviation id :: "t \<Rightarrow> t" where "id A \<equiv> \<lambda>x: A. x"
 

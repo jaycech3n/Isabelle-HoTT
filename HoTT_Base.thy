@@ -11,9 +11,18 @@ This file completes the basic logical and functional setup of the HoTT logic. It
 ********)
 
 theory HoTT_Base
-imports HoTT_Typing
+imports Pure
 
 begin
+
+
+section \<open>Basic setup\<close>
+
+declare[[eta_contract=false]] \<comment> \<open>Do not eta-contract\<close>
+
+typedecl t \<comment> \<open>Type of object-logic terms (which includes the types)\<close>
+
+judgment has_type :: "[t, t] \<Rightarrow> prop"  ("(2_ :/ _)")
 
 
 section \<open>Universes\<close>
