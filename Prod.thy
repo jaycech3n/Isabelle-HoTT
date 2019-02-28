@@ -75,7 +75,12 @@ section \<open>Function composition\<close>
 definition compose :: "[t, t, t] \<Rightarrow> t"
 where "compose A g f \<equiv> \<lambda>x: A. g`(f`x)"
 
-syntax "_compose" :: "[t, t] \<Rightarrow> t"  (infixr "o" 110)
+syntax "_compose" :: "[t, t, t] \<Rightarrow> t"  ("(2_ o[_]/ _)" [111, 0, 110] 110)
+translations "g o[A] f" \<rightleftharpoons> "(CONST compose) A g f"
+
+text \<open>The composition @{term "g o[A] f"} is annotated with the domain @{term A} of @{term f}.\<close>
+
+syntax "_compose'" :: "[t, t] \<Rightarrow> t"  (infixr "o" 110)
 
 text \<open>Pretty-printing switch for composition; hides domain type information.\<close>
 
@@ -84,7 +89,7 @@ ML \<open>val pretty_compose = Attrib.setup_config_bool @{binding "pretty_compos
 print_translation \<open>
 let fun compose_tr' ctxt [A, g, f] =
   if Config.get ctxt pretty_compose
-  then Syntax.const @{syntax_const "_compose"} $ g $ f
+  then Syntax.const @{syntax_const "_compose'"} $ g $ f
   else @{const compose} $ A $ g $ f
 in
   [(@{const_syntax compose}, compose_tr')]
@@ -93,12 +98,12 @@ end
 
 lemma compose_assoc:
   assumes "A: U i" and "f: A \<rightarrow> B" and "g: B \<rightarrow> C" and "h: \<Prod>x: C. D x"
-  shows "compose A (compose B h g) f \<equiv> compose A h (compose A g f)"
+  shows "(h o[B] g) o[A] f \<equiv> h o[A] g o[A] f"
 unfolding compose_def by (derive lems: assms cong)
 
 lemma compose_comp:
   assumes "A: U i" and "\<And>x. x: A \<Longrightarrow> b x: B" and "\<And>x. x: B \<Longrightarrow> c x: C x"
-  shows "compose A (\<lambda>x: B. c x) (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
+  shows "(\<lambda>x: B. c x) o[A] (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
 unfolding compose_def by (derive lems: assms cong)
 
 declare compose_comp [comp]

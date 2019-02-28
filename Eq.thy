@@ -74,7 +74,10 @@ subsection \<open>Symmetry (path inverse)\<close>
 definition inv :: "[t, t, t, t] \<Rightarrow> t"
 where "inv A x y p \<equiv> indEq (\<lambda>x y. ^(y =[A] x)) (\<lambda>x. refl x) x y p"
 
-syntax "_inv" :: "t \<Rightarrow> t"  ("~_" [1000])
+syntax "_inv" :: "[t, t, t, t] \<Rightarrow> t"  ("(2inv[_, _, _] _)" [0, 0, 0, 1000])
+translations "inv[A, x, y] p" \<rightleftharpoons> "(CONST inv) A x y p"
+
+syntax "_inv'" :: "t \<Rightarrow> t"  ("~_" [1000])
 
 text \<open>Pretty-printing switch for path inverse:\<close>
 
@@ -83,17 +86,17 @@ ML \<open>val pretty_inv = Attrib.setup_config_bool @{binding "pretty_inv"} (K t
 print_translation \<open>
 let fun inv_tr' ctxt [A, x, y, p] =
   if Config.get ctxt pretty_inv
-  then Syntax.const @{syntax_const "_inv"} $ p
-  else @{const inv} $ A $ x $ y $ p
+  then Syntax.const @{syntax_const "_inv'"} $ p
+  else Syntax.const @{syntax_const "_inv"} $ A $ x $ y $ p
 in
   [(@{const_syntax inv}, inv_tr')]
 end
 \<close>
 
-lemma inv_type: "\<lbrakk>A: U i; x: A; y: A; p: x =[A] y\<rbrakk> \<Longrightarrow> inv A x y p: y =[A] x"
+lemma inv_type: "\<lbrakk>A: U i; x: A; y: A; p: x =[A] y\<rbrakk> \<Longrightarrow> inv[A, x, y] p: y =[A] x"
 unfolding inv_def by derive
 
-lemma inv_comp: "\<lbrakk>A: U i; a: A\<rbrakk> \<Longrightarrow> inv A a a (refl a) \<equiv> refl a"
+lemma inv_comp: "\<lbrakk>A: U i; a: A\<rbrakk> \<Longrightarrow> inv[A, a, a] (refl a) \<equiv> refl a"
 unfolding inv_def by derive
 
 declare
@@ -118,7 +121,10 @@ where
     (\<lambda>x. \<lambda>z: A. \<lambda>q: x =[A] z. indEq (\<lambda>x z _. x =[A] z) (\<lambda>x. refl x) x z q)
     x y p)`z`q"
 
-syntax "_pathcomp" :: "[t, t] \<Rightarrow> t"  (infixl "*" 110)
+syntax "_pathcomp" :: "[t, t, t, t, t, t] \<Rightarrow> t"  ("(2pathcomp[_, _, _, _] _ _)" [0, 0, 0, 0, 1000, 1000])
+translations "pathcomp[A, x, y, z] p q" \<rightleftharpoons> "(CONST pathcomp) A x y z p q"
+
+syntax "_pathcomp'" :: "[t, t] \<Rightarrow> t"  (infixl "^" 110)
 
 ML \<open>val pretty_pathcomp = Attrib.setup_config_bool @{binding "pretty_pathcomp"} (K true)\<close>
 \<comment> \<open>Pretty-printing switch for path composition\<close>
@@ -126,8 +132,8 @@ ML \<open>val pretty_pathcomp = Attrib.setup_config_bool @{binding "pretty_pathc
 print_translation \<open>
 let fun pathcomp_tr' ctxt [A, x, y, z, p, q] =
   if Config.get ctxt pretty_pathcomp
-  then Syntax.const @{syntax_const "_pathcomp"} $ p $ q
-  else @{const pathcomp} $ A $ x $ y $ z $ p $ q
+  then Syntax.const @{syntax_const "_pathcomp'"} $ p $ q
+  else Syntax.const @{syntax_const "_pathcomp"} $ A $ x $ y $ z $ p $ q
 in
   [(@{const_syntax pathcomp}, pathcomp_tr')]
 end
@@ -135,12 +141,12 @@ end
 
 lemma pathcomp_type:
   assumes [intro]: "A: U i" "x: A" "y: A" "z: A" "p: x =[A] y" "q: y =[A] z"
-  shows "pathcomp A x y z p q: x =[A] z"
+  shows "pathcomp[A, x, y, z] p q: x =[A] z"
 unfolding pathcomp_def by (derive lems: transitivity)
 
 lemma pathcomp_comp:
   assumes [intro]: "A: U i" "a: A"
-  shows "pathcomp A a a a (refl a) (refl a) \<equiv> refl a"
+  shows "pathcomp[A, a, a, a] (refl a) (refl a) \<equiv> refl a"
 unfolding pathcomp_def by (derive lems: transitivity)
 
 declare
@@ -152,43 +158,43 @@ section \<open>Higher groupoid structure of types\<close>
 
 schematic_goal pathcomp_idr:
   assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?prf: pathcomp A x y y p (refl y) =[x =[A] y] p"
+  shows "?prf: pathcomp[A, x, y, y] p (refl y) =[x =[A] y] p"
 proof (path_ind' x y p)
-  show "\<And>x. x: A \<Longrightarrow> refl(refl x): pathcomp A x x x (refl x) (refl x) =[x =[A] x] (refl x)"
+  show "\<And>x. x: A \<Longrightarrow> refl(refl x): pathcomp[A, x, x, x] (refl x) (refl x) =[x =[A] x] (refl x)"
   by derive
 qed routine
 
 schematic_goal pathcomp_idl:
   assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?prf: pathcomp A x x y (refl x) p =[x =[A] y] p"
+  shows "?prf: pathcomp[A, x, x, y] (refl x) p =[x =[A] y] p"
 proof (path_ind' x y p)
-  show "\<And>x. x: A \<Longrightarrow> refl(refl x): pathcomp A x x x (refl x) (refl x) =[x =[A] x] (refl x)"
+  show "\<And>x. x: A \<Longrightarrow> refl(refl x): pathcomp[A, x, x, x] (refl x) (refl x) =[x =[A] x] (refl x)"
   by derive
 qed routine
 
 schematic_goal pathcomp_invr:
   assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?prf: pathcomp A x y x p (inv A x y p) =[x =[A] x] (refl x)"
+  shows "?prf: pathcomp[A, x, y, x] p (inv[A, x, y] p) =[x =[A] x] (refl x)"
 proof (path_ind' x y p)
   show
     "\<And>x. x: A \<Longrightarrow> refl(refl x):
-      pathcomp A x x x (refl x) (inv A x x (refl x)) =[x =[A] x] (refl x)"
+      pathcomp[A, x, x, x] (refl x) (inv[A, x, x] (refl x)) =[x =[A] x] (refl x)"
   by derive
 qed routine
 
 schematic_goal pathcomp_invl:
   assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?prf: pathcomp A y x y (inv A x y p) p =[y =[A] y] refl(y)"
+  shows "?prf: pathcomp[A, y, x, y] (inv[A, x, y] p) p =[y =[A] y] refl(y)"
 proof (path_ind' x y p)
   show
     "\<And>x. x: A \<Longrightarrow> refl(refl x):
-      pathcomp A x x x (inv A x x (refl x)) (refl x) =[x =[A] x] (refl x)"
+      pathcomp[A, x, x, x] (inv[A, x, x] (refl x)) (refl x) =[x =[A] x] (refl x)"
   by derive
 qed routine
 
 schematic_goal inv_involutive:
   assumes [intro]: "A: U i" "x: A" "y: A" "p: x =[A] y"
-  shows "?prf: inv A y x (inv A x y p) =[x =[A] y] p"
+  shows "?prf: inv[A, y, x] (inv[A, x, y] p) =[x =[A] y] p"
 proof (path_ind' x y p)
   show "\<And>x. x: A \<Longrightarrow> refl(refl x): inv A x x (inv A x x (refl x)) =[x =[A] x] (refl x)"
   by derive
@@ -208,31 +214,31 @@ schematic_goal pathcomp_assoc:
   assumes [intro]: "A: U i"
   shows 
     "?prf: \<Prod>x: A. \<Prod>y: A. \<Prod>p: x =[A] y. \<Prod>z: A. \<Prod>q: y =[A] z. \<Prod>w: A. \<Prod>r: z =[A] w.
-      pathcomp A x y w p (pathcomp A y z w q r) =[x =[A] w]
-        pathcomp A x z w (pathcomp A x y z p q) r"
+      pathcomp[A, x, y, w] p (pathcomp[A, y, z, w] q r) =[x =[A] w]
+        pathcomp[A, x, z, w] (pathcomp[A, x, y, z] p q) r"
 
 apply (quantify 3)
 apply (path_ind "{x, y, p}
   \<Prod>(z: A). \<Prod>(q: y =[A] z). \<Prod>(w: A). \<Prod>(r: z =[A] w).
-    pathcomp A x y w p (pathcomp A y z w q r) =[x =[A] w]
-      pathcomp A x z w (pathcomp A x y z p q) r")
+    pathcomp[A, x, y, w] p (pathcomp[A, y, z, w] q r) =[x =[A] w]
+      pathcomp[A, x, z, w] (pathcomp[A, x, y, z] p q) r")
 apply (quantify 2)
-apply (path_ind "{xa, z, q}
+apply (path_ind "{x, z, q}
   \<Prod>(w: A). \<Prod>(r: z =[A] w).
-    pathcomp A xa xa w (refl xa) (pathcomp A xa z w q r) =[xa =[A] w]
-      pathcomp A xa z w (pathcomp A xa xa z (refl xa) q) r")
+    pathcomp[A, x, x, w] (refl x) (pathcomp[A, x, z, w] q r) =[x =[A] w]
+      pathcomp[A, x, z, w] (pathcomp[A, x, x, z] (refl x) q) r")
 apply (quantify 2)
-apply (path_ind "{xb, w, r}
-  pathcomp A xb xb w (refl xb) (pathcomp A xb xb w (refl xb) r) =[xb =[A] w]
-    pathcomp A xb xb w (pathcomp A xb xb xb (refl xb) (refl xb)) r")
+apply (path_ind "{x, w, r}
+  pathcomp[A, x, x, w] (refl x) (pathcomp[A, x, x, w] (refl x) r) =[x =[A] w]
+    pathcomp[A, x, x, w] (pathcomp[A, x, x, x] (refl x) (refl x)) r")
 
 text \<open>The rest is now routine.\<close>
 
 proof -
   show
     "\<And>x. x: A \<Longrightarrow> refl(refl x):
-      pathcomp A x x x (refl x) (pathcomp A x x x (refl x) (refl x)) =[x =[A] x]
-        pathcomp A x x x (pathcomp A x x x (refl x) (refl x)) (refl x)"
+      pathcomp[A, x, x, x] (refl x) (pathcomp[A, x, x, x] (refl x) (refl x)) =[x =[A] x]
+        pathcomp[A, x, x, x] (pathcomp[A, x, x, x] (refl x) (refl x)) (refl x)"
   by derive
 qed routine
 
@@ -253,15 +259,18 @@ by (path_ind' x y p, rule Eq_routine, routine)
 definition ap :: "[t, t, t, t, t] \<Rightarrow> t"
 where "ap B f x y p \<equiv> indEq ({x, y, _} f`x =[B] f`y) (\<lambda>x. refl (f`x)) x y p"
 
-syntax "_ap" :: "[t, t] \<Rightarrow> t"  ("(_{_})" [1000, 0] 1000)
+syntax "_ap" :: "[t, t, t, t, t] \<Rightarrow> t"  ("(2ap[_, _, _] _ _)" [0, 0, 0, 1000, 1000])
+translations "ap[B, x, y] f p" \<rightleftharpoons> "(CONST ap) B f x y p"
+
+syntax "_ap'" :: "[t, t] \<Rightarrow> t"  ("(_{_})" [1000, 0] 1000)
 
 ML \<open>val pretty_ap = Attrib.setup_config_bool @{binding "pretty_ap"} (K true)\<close>
 
 print_translation \<open>
 let fun ap_tr' ctxt [B, f, x, y, p] =
   if Config.get ctxt pretty_ap
-  then Syntax.const @{syntax_const "_ap"} $ f $ p
-  else @{const ap} $ B $ f $ x $ y $ p
+  then Syntax.const @{syntax_const "_ap'"} $ f $ p
+  else Syntax.const @{syntax_const "_ap"} $ B $ x $ y $ f $ p
 in
   [(@{const_syntax ap}, ap_tr')]
 end
@@ -271,12 +280,12 @@ lemma ap_type:
   assumes
     "A: U i" "B: U i" "f: A \<rightarrow> B"
     "x: A" "y: A" "p: x =[A] y"
-  shows "ap B f x y p: f`x =[B] f`y"
+  shows "ap[B, x, y] f p: f`x =[B] f`y"
 unfolding ap_def using assms by (rule transfer)
 
 lemma ap_comp:
   assumes [intro]: "A: U i" "B: U i" "f: A \<rightarrow> B" "x: A"
-  shows "ap B f x x (refl x) \<equiv> refl (f`x)"
+  shows "ap[B, x, x] f (refl x) \<equiv> refl (f`x)"
 unfolding ap_def by derive
 
 declare
@@ -288,23 +297,24 @@ schematic_goal ap_func_pathcomp:
   assumes [intro]: "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows
     "?prf: \<Prod>x: A. \<Prod>y: A. \<Prod>p: x =[A] y. \<Prod>z: A. \<Prod>q: y =[A] z.
-      ap B f x z (pathcomp A x y z p q) =[f`x =[B] f`z]
-        pathcomp B (f`x) (f`y) (f`z) (ap B f x y p) (ap B f y z q)"
+      ap[B, x, z] f (pathcomp[A, x, y, z] p q) =[f`x =[B] f`z]
+        pathcomp[B, f`x, f`y, f`z] (ap[B, x, y] f p) (ap[B, y, z] f q)"
 apply (quantify 3)
 apply (path_ind "{x, y, p}
   \<Prod>z: A. \<Prod>q: y =[A] z.
-    ap B f x z (pathcomp A x y z p q) =[f`x =[B] f`z]
-      pathcomp B (f`x) (f`y) (f`z) (ap B f x y p) (ap B f y z q)")
+    ap[B, x, z] f (pathcomp[A, x, y, z] p q) =[f`x =[B] f`z]
+      pathcomp[B, f`x, f`y, f`z] (ap[B, x, y] f p) (ap[B, y, z] f q)")
 apply (quantify 2)
 apply (path_ind "{x, z, q}
-  ap B f x z (pathcomp A x x z (refl x) q) =[f`x =[B] f`z]
-    pathcomp B (f`x) (f`x) (f`z) (ap B f x x (refl x)) (ap B f x z q)")
+  ap[B, x, z] f (pathcomp[A, x, x, z] (refl x) q) =[f`x =[B] f`z]
+    pathcomp[B, f`x, f`x, f`z]  (ap[B, x, x] f (refl x)) (ap[B, x, z] f q)")
 proof -
   show
-    "\<And>x. x: A \<Longrightarrow> refl(refl(f`x)): ap B f x x (pathcomp A x x x (refl x) (refl x)) =[f`x =[B] f`x]
-      pathcomp B (f`x) (f`x) (f`x) (ap B f x x (refl x)) (ap B f x x (refl x))"
+    "\<And>x. x: A \<Longrightarrow> refl(refl(f`x)) :
+      ap[B, x, x] f (pathcomp[A, x, x, x] (refl x) (refl x)) =[f`x =[B] f`x]
+        pathcomp[B, f`x, f`x, f`x] (ap[B, x, x] f (refl x)) (ap[B, x, x] f (refl x))"
   by derive
-qed derive
+qed routine
 
 
 schematic_goal ap_func_compose:
@@ -313,40 +323,39 @@ schematic_goal ap_func_compose:
     "f: A \<rightarrow> B" "g: B \<rightarrow> C"
   shows
     "?prf: \<Prod>x: A. \<Prod>y: A. \<Prod>p: x =[A] y.
-      ap C g (f`x) (f`y) (ap B f x y p) =[g`(f`x) =[C] g`(f`y)]
-        ap C (compose A g f) x y p"
+      ap[C, f`x, f`y] g (ap[B, x, y] f p) =[g`(f`x) =[C] g`(f`y)]
+        ap[C, x, y] (g o[A] f) p"
 apply (quantify 3)
 apply (path_ind "{x, y, p}
-  ap C g (f`x) (f`y) (ap B f x y p) =[g`(f`x) =[C] g`(f`y)]
-    ap C (compose A g f) x y p")
+  ap[C, f`x, f`y] g (ap[B, x, y] f p) =[g`(f`x) =[C] g`(f`y)]
+    ap[C, x, y] (g o[A] f) p")
 proof -
   show "\<And>x. x: A \<Longrightarrow> refl(refl (g`(f`x))) :
-    ap C g (f`x) (f`x) (ap B f x x (refl x)) =[g`(f`x) =[C] g`(f`x)]
-      ap C (compose A g f) x x (refl x)"
+    ap[C, f`x, f`x] g (ap[B, x, x] f (refl x)) =[g`(f`x) =[C] g`(f`x)]
+      ap[C, x, x] (g o[A] f) (refl x)"
   unfolding compose_def by derive
 
   fix x y p assume [intro]: "x: A" "y: A" "p: x =[A] y"
-  show "ap C g (f`x) (f`y) (ap B f x y p) =[g`(f`x) =[C] g`(f`y)] ap C (compose A g f) x y p: U i"
+  show "ap[C, f`x, f`y] g (ap[B, x, y] f p) =[g`(f`x) =[C] g`(f`y)] ap[C, x, y] (g o[A] f) p: U i"
   proof
     have
-      "(\<lambda>x: A. g`(f`x))`x =[C] (\<lambda>x: A. g`(f`x))`y \<equiv> g`(f`x) =[C] g`(f`y)" by derive
-    moreover have
-      "ap C (compose A g f) x y p : (\<lambda>x: A. g`(f`x))`x =[C] (\<lambda>x: A. g`(f`x))`y"
+      "ap[C, x, y] (g o[A] f) p: (\<lambda>x: A. g`(f`x))`x =[C] (\<lambda>x: A. g`(f`x))`y"
         unfolding compose_def by derive
+    moreover have
+      "(\<lambda>x: A. g`(f`x))`x =[C] (\<lambda>x: A. g`(f`x))`y \<equiv> g`(f`x) =[C] g`(f`y)" by derive
     ultimately show
-      "ap C (compose A g f) x y p : g`(f`x) =[C] g`(f`y)" by simp
+      "ap[C, x, y] (g o[A] f) p: g`(f`x) =[C] g`(f`y)" by simp
   qed derive
 qed routine
-
-
+declare[[pretty_inv=false, pretty_ap=false]]
 schematic_goal ap_func_inv:
   assumes [intro]:
     "A: U i" "B: U i" "f: A \<rightarrow> B"
     "x: A" "y: A" "p: x =[A] y"
-  shows "?prf: ap B f y x (inv A x y p) =[f`y =[B] f`x] inv B (f`x) (f`y) (ap B f x y p)"
+  shows "?prf: ap[B, y, x] f (inv[A, x, y] p) =[f`y =[B] f`x] inv[B, f`x, f`y] (ap[B, x, y] f p)"
 proof (path_ind' x y p)
   show "\<And>x. x: A \<Longrightarrow> refl(refl(f`x)):
-    ap B f x x (inv A x x (refl x)) =[f`x =[B] f`x] inv B (f`x) (f`x) (ap B f x x (refl x))"
+    ap[B, x, x] f (inv[A, x, x] (refl x)) =[f`x =[B] f`x] inv[B, f`x, f`x] (ap[B, x, x] f (refl x))"
   by derive
 qed routine
 
@@ -355,14 +364,14 @@ schematic_goal ap_func_id:
   shows "?prf: ap A (id A) x y p =[x =[A] y] p"
 proof (path_ind' x y p)
   fix x assume [intro]: "x: A"
-  show "refl(refl x): ap A (id A) x x (refl x) =[x =[A] x] refl x" by derive
+  show "refl(refl x): ap[A, x, x] (id A) (refl x) =[x =[A] x] refl x" by derive
   
   fix y p assume [intro]: "y: A" "p: x =[A] y"
-  have "ap A (id A) x y p: (id A)`x =[A] (id A)`y" by derive
+  have "ap[A, x, y] (id A) p: (id A)`x =[A] (id A)`y" by derive
   moreover have "(id A)`x =[A] (id A)`y \<equiv> x =[A] y" by derive
-  ultimately have [intro]: "ap A (id A) x y p: x =[A] y" by simp
+  ultimately have [intro]: "ap[A, x, y] (id A) p: x =[A] y" by simp
   
-  show "ap A (id A) x y p =[x =[A] y] p: U i" by derive
+  show "ap[A, x, y] (id A) p =[x =[A] y] p: U i" by derive
 qed
 
 
@@ -374,15 +383,29 @@ schematic_goal transport:
     "x: A" "y: A" "p: x =[A] y"
   shows "?prf: P x \<rightarrow> P y"
 proof (path_ind' x y p)
-  show "\<And>x. x: A \<Longrightarrow> id (P x): P x \<rightarrow> P x" by derive
+  show "\<And>x. x: A \<Longrightarrow> id(P x): P x \<rightarrow> P x" by derive
 qed routine
 
-definition transport :: "[t \<Rightarrow> t, t, t, t] \<Rightarrow> t"
-where "transport P x y p \<equiv> indEq (\<lambda>a b _. P a \<rightarrow> P b) (\<lambda>x. id (P x)) x y p"
+definition transport :: "[t \<Rightarrow> t, t, t, t] \<Rightarrow> t"  ("(2transport[_, _, _] _)" [0, 0, 0, 1000])
+where "transport[P, x, y] p \<equiv> indEq (\<lambda>a b _. P a \<rightarrow> P b) (\<lambda>x. id (P x)) x y p"
+
+syntax "_transport'" :: "[t, t] \<Rightarrow> t"  ("(2_*)" [1000])
+
+ML \<open>val pretty_transport = Attrib.setup_config_bool @{binding "pretty_transport"} (K true)\<close>
+
+print_translation \<open>
+let fun transport_tr' ctxt [P, x, y, p] =
+  if Config.get ctxt pretty_transport
+  then Syntax.const @{syntax_const "_transport'"} $ p
+  else @{const transport} $ P $ x $ y $ p
+in
+  [(@{const_syntax transport}, transport_tr')]
+end
+\<close>
 
 lemma transport_type:
   assumes "A: U i" "P: A \<leadsto> U i" "x: A" "y: A" "p: x =[A] y"
-  shows "transport P x y p: P x \<rightarrow> P y"
+  shows "transport[P, x, y] p: P x \<rightarrow> P y"
 unfolding transport_def using assms by (rule transport)
 
 lemma transport_comp:
