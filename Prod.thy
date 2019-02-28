@@ -96,17 +96,26 @@ in
 end
 \<close>
 
-lemma compose_assoc:
-  assumes "A: U i" and "f: A \<rightarrow> B" and "g: B \<rightarrow> C" and "h: \<Prod>x: C. D x"
-  shows "(h o[B] g) o[A] f \<equiv> h o[A] g o[A] f"
-unfolding compose_def by (derive lems: assms cong)
+lemma compose_type:
+  assumes
+    "A: U i" and "B: U i" and "C: B \<leadsto> U i" and
+    "f: A \<rightarrow> B" and "g: \<Prod>x: B. C x"
+  shows "g o[A] f: \<Prod>x: A. C (f`x)"
+unfolding compose_def by (derive lems: assms)
 
 lemma compose_comp:
   assumes "A: U i" and "\<And>x. x: A \<Longrightarrow> b x: B" and "\<And>x. x: B \<Longrightarrow> c x: C x"
   shows "(\<lambda>x: B. c x) o[A] (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
 unfolding compose_def by (derive lems: assms cong)
 
-declare compose_comp [comp]
+declare
+  compose_type [intro]
+  compose_comp [comp]
+
+lemma compose_assoc:
+  assumes "A: U i" and "f: A \<rightarrow> B" and "g: B \<rightarrow> C" and "h: \<Prod>x: C. D x"
+  shows "(h o[B] g) o[A] f \<equiv> h o[A] g o[A] f"
+unfolding compose_def by (derive lems: assms cong)
 
 abbreviation id :: "t \<Rightarrow> t" where "id A \<equiv> \<lambda>x: A. x"
 

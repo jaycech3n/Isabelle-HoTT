@@ -66,8 +66,8 @@ where "f: A \<leadsto> B \<equiv> (\<And>x. x: A \<Longrightarrow> f x: B)"
 
 text \<open>We use the notation @{prop "B: A \<leadsto> U i"} to abbreviate type families.\<close>
 
-abbreviation (input) K_combinator :: "'a \<Rightarrow> 'b \<Rightarrow> 'a"  ("^_" [1000])
-where "^A \<equiv> \<lambda>_. A"
+abbreviation (input) K_combinator :: "'a \<Rightarrow> 'b \<Rightarrow> 'a"  ("&_" [0] 3)
+where "&A \<equiv> \<lambda>_. A"
 
 
 section \<open>Named theorems\<close>
