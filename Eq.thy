@@ -72,9 +72,9 @@ section \<open>Properties of equality\<close>
 subsection \<open>Symmetry (path inverse)\<close>
 
 definition inv :: "[t, t, t, t] \<Rightarrow> t"
-where "inv A x y p \<equiv> indEq (\<lambda>x y. ^(y =[A] x)) (\<lambda>x. refl x) x y p"
+where "inv A x y p \<equiv> indEq (\<lambda>x y. &(y =[A] x)) (\<lambda>x. refl x) x y p"
 
-syntax "_inv" :: "[t, t, t, t] \<Rightarrow> t"  ("(2inv[_, _, _] _)" [0, 0, 0, 1000])
+syntax "_inv" :: "[t, t, t, t] \<Rightarrow> t"  ("(2inv[_, _, _] _)" [0, 0, 0, 1000] 999)
 translations "inv[A, x, y] p" \<rightleftharpoons> "(CONST inv) A x y p"
 
 syntax "_inv'" :: "t \<Rightarrow> t"  ("~_" [1000])
@@ -117,11 +117,12 @@ by
 definition pathcomp :: "[t, t, t, t, t, t] \<Rightarrow> t"
 where
   "pathcomp A x y z p q \<equiv> (indEq
-    (\<lambda>x y _. \<Prod>z: A. y =[A] z \<rightarrow> x =[A] z)
-    (\<lambda>x. \<lambda>z: A. \<lambda>q: x =[A] z. indEq (\<lambda>x z _. x =[A] z) (\<lambda>x. refl x) x z q)
+    (\<lambda>x y. & \<Prod>z: A. y =[A] z \<rightarrow> x =[A] z)
+    (\<lambda>x. \<lambda>z: A. \<lambda>q: x =[A] z. indEq (\<lambda>x z. & x =[A] z) (\<lambda>x. refl x) x z q)
     x y p)`z`q"
 
-syntax "_pathcomp" :: "[t, t, t, t, t, t] \<Rightarrow> t"  ("(2pathcomp[_, _, _, _] _ _)" [0, 0, 0, 0, 1000, 1000])
+syntax "_pathcomp" :: "[t, t, t, t, t, t] \<Rightarrow> t"
+  ("(2pathcomp[_, _, _, _] _ _)" [0, 0, 0, 0, 1000, 1000] 999)
 translations "pathcomp[A, x, y, z] p q" \<rightleftharpoons> "(CONST pathcomp) A x y z p q"
 
 syntax "_pathcomp'" :: "[t, t] \<Rightarrow> t"  (infixl "^" 110)
@@ -139,12 +140,12 @@ in
 end
 \<close>
 
-lemma pathcomp_type:
+corollary pathcomp_type:
   assumes [intro]: "A: U i" "x: A" "y: A" "z: A" "p: x =[A] y" "q: y =[A] z"
   shows "pathcomp[A, x, y, z] p q: x =[A] z"
 unfolding pathcomp_def by (derive lems: transitivity)
 
-lemma pathcomp_comp:
+corollary pathcomp_comp:
   assumes [intro]: "A: U i" "a: A"
   shows "pathcomp[A, a, a, a] (refl a) (refl a) \<equiv> refl a"
 unfolding pathcomp_def by (derive lems: transitivity)
@@ -276,7 +277,7 @@ in
 end
 \<close>
 
-lemma ap_type:
+corollary ap_type:
   assumes
     "A: U i" "B: U i" "f: A \<rightarrow> B"
     "x: A" "y: A" "p: x =[A] y"
@@ -379,15 +380,15 @@ section \<open>Transport\<close>
 
 schematic_goal transport:
   assumes [intro]:
-    "A: U i" "P: A \<leadsto> U i"
+    "A: U i" "P: A \<rightarrow> U j"
     "x: A" "y: A" "p: x =[A] y"
-  shows "?prf: P x \<rightarrow> P y"
+  shows "?prf: P`x \<rightarrow> P`y"
 proof (path_ind' x y p)
-  show "\<And>x. x: A \<Longrightarrow> id(P x): P x \<rightarrow> P x" by derive
+  show "\<And>x. x: A \<Longrightarrow> id(P`x): P`x \<rightarrow> P`x" by derive
 qed routine
 
-definition transport :: "[t \<Rightarrow> t, t, t, t] \<Rightarrow> t"  ("(2transport[_, _, _] _)" [0, 0, 0, 1000])
-where "transport[P, x, y] p \<equiv> indEq (\<lambda>a b _. P a \<rightarrow> P b) (\<lambda>x. id (P x)) x y p"
+definition transport :: "[t, t, t, t] \<Rightarrow> t"  ("(2transport[_, _, _] _)" [0, 0, 0, 1000])
+where "transport[P, x, y] p \<equiv> indEq (\<lambda>a b. & (P`a \<rightarrow> P`b)) (\<lambda>x. id (P`x)) x y p"
 
 syntax "_transport'" :: "[t, t] \<Rightarrow> t"  ("(2_*)" [1000])
 
@@ -403,19 +404,70 @@ in
 end
 \<close>
 
-lemma transport_type:
-  assumes "A: U i" "P: A \<leadsto> U i" "x: A" "y: A" "p: x =[A] y"
-  shows "transport[P, x, y] p: P x \<rightarrow> P y"
+corollary transport_type:
+  assumes "A: U i" "P: A \<rightarrow> U j" "x: A" "y: A" "p: x =[A] y"
+  shows "transport[P, x, y] p: P`x \<rightarrow> P`y"
 unfolding transport_def using assms by (rule transport)
 
 lemma transport_comp:
-  assumes [intro]: "A: U i" "P: A \<leadsto> U i" "a: A"
-  shows "transport P a a (refl a) \<equiv> id (P a)"
+  assumes [intro]: "A: U i" "P: A \<rightarrow> U j" "a: A"
+  shows "transport P a a (refl a) \<equiv> id (P`a)"
 unfolding transport_def by derive
 
 declare
   transport_type [intro]
   transport_comp [comp]
 
+schematic_goal transport_invl:
+  assumes [intro]:
+    "A: U i" "P: A \<rightarrow> U j"
+    "x: A" "y: A" "p: x =[A] y"
+  shows "?prf:
+    (transport[P, y, x] (inv[A, x, y] p)) o[P`x] (transport[P, x, y] p) =[P`x \<rightarrow> P`x] id(P`x)"
+proof (path_ind' x y p)
+  fix x assume [intro]: "x: A"
+  show
+  "refl (id (P`x)) :
+    transport[P, x, x] (inv[A, x, x] (refl x)) o[P`x] (transport[P, x, x] (refl x)) =[P`x \<rightarrow> P`x]
+      id (P`x)"
+  by derive
+  
+  fix y p assume [intro]: "y: A" "p: x =[A] y"
+  have [intro]:
+    "transport[P, y, x] (inv[A, x, y] p) o[P`x] transport[P, x, y] p : P`x \<rightarrow> P`x"
+  proof show "transport[P, x, y] p: P`x \<rightarrow> P`y" by routine qed routine
+  
+  show
+    "transport[P, y, x] (inv[A, x, y] p) o[P`x] transport[P, x, y] p =[P`x \<rightarrow> P`x] id (P`x): U j"
+  by derive
+qed
+
+schematic_goal transport_invr:
+  assumes [intro]:
+    "A: U i" "P: A \<rightarrow> U j"
+    "x: A" "y: A" "p: x =[A] y"
+  shows "?prf:
+    (transport[P, x, y] p) o[P`y] (transport[P, y, x] (inv[A, x, y] p)) =[P`y \<rightarrow> P`y] id(P`y)"
+proof (path_ind' x y p)
+  fix x assume [intro]: "x: A"
+  show
+  "refl (id (P`x)) :
+    (transport[P, x, x] (refl x)) o[P`x] transport[P, x, x] (inv[A, x, x] (refl x)) =[P`x \<rightarrow> P`x]
+      id (P`x)"
+  by derive
+  
+  fix y p assume [intro]: "y: A" "p: x =[A] y"
+  have [intro]:
+    "transport[P, x, y] p o[P`y] transport[P, y, x] (inv[A, x, y] p): P`y \<rightarrow> P`y"
+  proof show "transport[P, x, y] p: P`x \<rightarrow> P`y" by routine qed routine
+  
+  show
+    "transport[P, x, y] p o[P`y] transport[P, y, x] (inv[A, x, y] p) =[P`y \<rightarrow> P`y] id (P`y): U j"
+  by derive
+qed
+
+declare
+  transport_invl [intro]
+  transport_invr [intro]
 
 end
