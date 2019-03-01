@@ -69,35 +69,6 @@ corollary happly_type:
 unfolding happly_def by (derive lems: fun_eq_imp_homotopic)
 
 
-section \<open>Transport and homotopy\<close>
-
-schematic_goal transport_invl_hom:
-  assumes [intro]:
-    "A: U i" "P: A \<rightarrow> U j"
-    "x: A" "y: A" "p: x =[A] y"
-  shows "?prf:
-    (transport[P, y, x] (inv[A, x, y] p)) o[P`x] (transport[P, x, y] p) ~[w: P`x. P`x] id(P`x)"
-proof (rule happly_type[OF transport_invl])
-  show "(transport[P, y, x] (inv[A, x, y] p)) o[P`x] (transport[P, x, y] p): P`x \<rightarrow> P`x"
-  proof show "P`y: U j" by routine qed routine
-qed routine
-
-schematic_goal transport_invr_hom:
-  assumes [intro]:
-    "A: U i" "P: A \<rightarrow> U j"
-    "x: A" "y: A" "p: x =[A] y"
-  shows "?prf:
-    (transport[P, x, y] p) o[P`y] (transport[P, y, x] (inv[A, x, y] p)) ~[w: P`y. P`y] id(P`y)"
-proof (rule happly_type[OF transport_invr])
-  show "(transport[P, x, y] p) o[P`y] (transport[P, y, x] (inv[A, x, y] p)): P`y \<rightarrow> P`y"
-  proof show "P`x: U j" by routine qed routine
-qed routine
-
-declare
-  transport_invl_hom [intro]
-  transport_invr_hom [intro]
-
-
 section \<open>Equivalence\<close>
 
 text \<open>For now, we define equivalence in terms of bi-invertibility.\<close>
@@ -139,73 +110,106 @@ unfolding equivalence_def proof (rule Sum_routine)
 qed (routine add: id_is_biinv)
 
 
-section \<open>Univalence\<close>
+section \<open>Transport, homotopy, and bi-invertibility\<close>
 
-declare[[goals_limit=100, pretty_transport=true]]
+schematic_goal transport_invl_hom:
+  assumes [intro]:
+    "A: U i" "P: A \<rightarrow> U j"
+    "x: A" "y: A" "p: x =[A] y"
+  shows "?prf:
+    (transport[P, y, x] (inv[A, x, y] p)) o[P`x] (transport[P, x, y] p) ~[w: P`x. P`x] id P`x"
+proof (rule happly_type[OF transport_invl])
+  show "(transport[P, y, x] (inv[A, x, y] p)) o[P`x] (transport[P, x, y] p): P`x \<rightarrow> P`x"
+  proof show "P`y: U j" by routine qed routine
+qed routine
 
-lemma lem: "\<And>A. A: U i \<Longrightarrow> (id (U i))`A \<equiv> A" by derive
+schematic_goal transport_invr_hom:
+  assumes [intro]:
+    "A: U i" "P: A \<rightarrow> U j"
+    "x: A" "y: A" "p: x =[A] y"
+  shows "?prf:
+    (transport[P, x, y] p) o[P`y] (transport[P, y, x] (inv[A, x, y] p)) ~[w: P`y. P`y] id P`y"
+proof (rule happly_type[OF transport_invr])
+  show "(transport[P, x, y] p) o[P`y] (transport[P, y, x] (inv[A, x, y] p)): P`y \<rightarrow> P`y"
+  proof show "P`x: U j" by routine qed routine
+qed routine
 
-schematic_goal
-  assumes [intro]: "A: U i" "B: U i" "p: A =[U i] B"
-  shows "?prf: biinv[A, B] (transport[id(U i), A, B] p)"
-apply (path_ind' A B p)
-apply (unfold biinv_def)
-  show "?a : biinv[A, B] (transport[id(U i), A, B] p)"
+declare
+  transport_invl_hom [intro]
+  transport_invr_hom [intro]
 
-oops
+(*
+Next we derive a proof that the transport of an equality @{term p} is bi-invertible, with inverse given by the transport of the inverse @{text "~p"}.
 
-schematic_goal
-  assumes [intro]: "A: U i" "B: U i" "p: A =[U i] B"
-  shows "?prf: biinv[id(U i)`A, id(U i)`B] (transport[id(U i), A, B] p)"
-unfolding biinv_def
+The proof is a challenge for current method automation, for two main reasons:
+1. 
+*)
+
+declare[[pretty_transport=false, goals_limit=100]]
+
+lemma id_expand: "\<And>A. A: U i \<Longrightarrow> A \<equiv> (id U i)`A" by derive
+lemma id_contract: "\<And>A. A: U i \<Longrightarrow> (id U i)`A \<equiv> A" by derive
+
+schematic_goal transport_biinv:
+  assumes [intro]: "p: A =[U i] B" "A: U i" "B: U i"
+  shows "?prf: biinv[A, B] (transport[id U i, A, B] p)"
+apply (subst (0 2) id_expand, unfold biinv_def, fact+)
+  \<comment> \<open>Need to rewrite the first instances of @{term A} and @{term B} in order to
+      use the proofs of @{thm transport_invl_hom} and @{thm transport_invr_hom} later.\<close>
 apply (rule Sum_routine)
-prefer 2 apply (rule Sum_routine)
-prefer 3 apply (rule transport_invl_hom)
-prefer 9 apply (rule Sum_routine)
-prefer 3 apply (rule transport_invr_hom)
+prefer 2
+  apply (rule Sum_routine)
+  prefer 3 apply (rule transport_invl_hom)
+prefer 9
+  apply (rule Sum_routine)
+  prefer 3 apply (rule transport_invr_hom)
+\<comment> \<open>The remaining subgoals can now be handled relatively easily.\<close>
 proof -
-  show "U i: U (Suc i)" by hierarchy
-  show "U i: U (Suc i)" by hierarchy
-  show "\<And>g. g : id (U i)`B \<rightarrow> id (U i)`A \<Longrightarrow> (transport[id(U i), A, B] p) o[id (U i)`B] g ~[x: id (U i)`B. id (U i)`B] id (id (U i)`B) : U i"
-  proof
-    show "id (U i)`B : U i" by derive
-    show "id (U i)`B : U i" by derive
-    show "id (id (U i)`B) : id (U i)`B \<rightarrow> id (U i)`B" by derive
-    show
-      "\<And>g. g : id (U i)`B \<rightarrow> id (U i)`A \<Longrightarrow>
-        (transport[id(U i), A, B] p) o[id (U i)`B] g: id (U i)`B \<rightarrow> id (U i)`B"
-    apply rule
-    prefer 4 apply assumption
-    proof -
-      show "id (U i)`B : U i" by derive
-      show "id (U i)`A : U i" by derive
-      show "id (U i)`B : U i" by derive
-    
-oops
-    
+  show *: "U i: U (Suc i)" by derive
+  show "U i: U (Suc i)" by fact
+
+  fix g assume [intro]: "g: (id U i)`B \<rightarrow> (id U i)`A"
+
+  have
+    "transport (id U i) A B p o[(id U i)`B] g: (id U i)`B \<rightarrow> (id U i)`B"
+      proof show "(id U i)`A: U i" by derive qed derive
+  moreover have
+    "transport[id U i, A, B] p o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
+      apply rule prefer 3 apply (fact, derive) done
+  then show
+    "(transport[id U i, A, B] p) o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
+  by routine
+
+  have
+    "g o[(id U i)`A] transport (id U i) A B p: (id U i)`A \<rightarrow> (id U i)`A"
+      proof show "(id U i)`B: U i" by derive qed derive
+  moreover have
+    "g o[(id U i)`A] transport (id U i) A B p ~[x: (id U i)`A. (id U i)`A] id (id U i)`A: U i"
+      apply rule prefer 3 apply (fact, derive) done
+  then show
+    "g o[(id U i)`A] transport (id U i) A B p ~[x: (id U i)`A. (id U i)`A] id (id U i)`A: U i"
+  by routine
+
+qed
+
+
+section \<open>Univalence\<close>
 
 schematic_goal type_eq_imp_equiv:
   assumes [intro]: "A: U i" "B: U i"
   shows "?prf: (A =[U i] B) \<rightarrow> A \<simeq> B"
 unfolding equivalence_def
 apply (rule Prod_routine, rule Sum_routine)
-prefer 2
-  show *: "\<And>f. f: A \<rightarrow> B \<Longrightarrow> isequiv[A, B] f: U i"
-  unfolding isequiv_def by (derive lems: assms
-
-  show "\<And>p. p: A =[U i] B \<Longrightarrow> transport p: A \<rightarrow> B"
-  by (derive lems: assms transport_type[where ?i="Suc i"]  \<comment> \<open>Instantiate @{thm transport_type} with a suitable universe level here...\<close>
-
-  show "\<And>p. p: A =[U i] B \<Longrightarrow> ind\<^sub>= (\<lambda>_. <<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>) p: isequiv[A, B] (transport p)"
-  proof (elim Equal_elim)
-    show "\<And>T. T: U i \<Longrightarrow> <<id, \<^bold>\<lambda>x. refl x>, <id, \<^bold>\<lambda>x. refl x>>: isequiv[T, T] (transport (refl T))"
-    by (derive lems: transport_comp[where ?i="Suc i" and ?A="U i"] id_isequiv)
-    \<comment> \<open>...and also here.\<close>
-    
-    show "\<And>A B p. \<lbrakk>A: U i; B: U i; p: A =[U i] B\<rbrakk> \<Longrightarrow> isequiv[A, B] (transport p): U i"
-    unfolding isequiv_def by (derive lems: assms transport_type
-  qed fact+
-qed (derive lems: assms
+prefer 3 apply (derive lems: transport_biinv)
+proof -
+  fix p assume [intro]: "p: A =[U i] B"
+  have
+    "transport (id U i) A B p: (id U i)`A \<rightarrow> (id U i)`B"
+  proof show "U i: U(Suc i)" by hierarchy qed derive
+  moreover have [intro]:
+    "(id U i)`A \<rightarrow> (id U i)`B \<equiv> A \<rightarrow> B" by derive
+  ultimately show "transport (id U i) A B p: A \<rightarrow> B" by simp
+qed deriv
 
 (*
 section \<open>The univalence axiom\<close>
