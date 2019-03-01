@@ -380,15 +380,15 @@ section \<open>Transport\<close>
 
 schematic_goal transport:
   assumes [intro]:
-    "A: U i" "P: A \<rightarrow> U j"
+    "P: A \<rightarrow> U j" "A: U i"
     "x: A" "y: A" "p: x =[A] y"
   shows "?prf: P`x \<rightarrow> P`y"
 proof (path_ind' x y p)
-  show "\<And>x. x: A \<Longrightarrow> id(P`x): P`x \<rightarrow> P`x" by derive
+  show "\<And>x. x: A \<Longrightarrow> id P`x: P`x \<rightarrow> P`x" by derive
 qed routine
 
 definition transport :: "[t, t, t, t] \<Rightarrow> t"  ("(2transport[_, _, _] _)" [0, 0, 0, 1000])
-where "transport[P, x, y] p \<equiv> indEq (\<lambda>a b. & (P`a \<rightarrow> P`b)) (\<lambda>x. id (P`x)) x y p"
+where "transport[P, x, y] p \<equiv> indEq (\<lambda>a b. & (P`a \<rightarrow> P`b)) (\<lambda>x. id P`x) x y p"
 
 syntax "_transport'" :: "[t, t] \<Rightarrow> t"  ("(2_*)" [1000])
 
@@ -405,13 +405,13 @@ end
 \<close>
 
 corollary transport_type:
-  assumes "A: U i" "P: A \<rightarrow> U j" "x: A" "y: A" "p: x =[A] y"
+  assumes "P: A \<rightarrow> U j" "A: U i" "x: A" "y: A" "p: x =[A] y"
   shows "transport[P, x, y] p: P`x \<rightarrow> P`y"
 unfolding transport_def using assms by (rule transport)
 
 lemma transport_comp:
   assumes [intro]: "A: U i" "P: A \<rightarrow> U j" "a: A"
-  shows "transport P a a (refl a) \<equiv> id (P`a)"
+  shows "transport P a a (refl a) \<equiv> id P`a"
 unfolding transport_def by derive
 
 declare
@@ -423,13 +423,13 @@ schematic_goal transport_invl:
     "A: U i" "P: A \<rightarrow> U j"
     "x: A" "y: A" "p: x =[A] y"
   shows "?prf:
-    (transport[P, y, x] (inv[A, x, y] p)) o[P`x] (transport[P, x, y] p) =[P`x \<rightarrow> P`x] id(P`x)"
+    (transport[P, y, x] (inv[A, x, y] p)) o[P`x] (transport[P, x, y] p) =[P`x \<rightarrow> P`x] id P`x"
 proof (path_ind' x y p)
   fix x assume [intro]: "x: A"
   show
-  "refl (id (P`x)) :
+  "refl (id P`x) :
     transport[P, x, x] (inv[A, x, x] (refl x)) o[P`x] (transport[P, x, x] (refl x)) =[P`x \<rightarrow> P`x]
-      id (P`x)"
+      id P`x"
   by derive
   
   fix y p assume [intro]: "y: A" "p: x =[A] y"
@@ -438,7 +438,7 @@ proof (path_ind' x y p)
   proof show "transport[P, x, y] p: P`x \<rightarrow> P`y" by routine qed routine
   
   show
-    "transport[P, y, x] (inv[A, x, y] p) o[P`x] transport[P, x, y] p =[P`x \<rightarrow> P`x] id (P`x): U j"
+    "transport[P, y, x] (inv[A, x, y] p) o[P`x] transport[P, x, y] p =[P`x \<rightarrow> P`x] id P`x: U j"
   by derive
 qed
 
@@ -447,13 +447,13 @@ schematic_goal transport_invr:
     "A: U i" "P: A \<rightarrow> U j"
     "x: A" "y: A" "p: x =[A] y"
   shows "?prf:
-    (transport[P, x, y] p) o[P`y] (transport[P, y, x] (inv[A, x, y] p)) =[P`y \<rightarrow> P`y] id(P`y)"
+    (transport[P, x, y] p) o[P`y] (transport[P, y, x] (inv[A, x, y] p)) =[P`y \<rightarrow> P`y] id P`y"
 proof (path_ind' x y p)
   fix x assume [intro]: "x: A"
   show
-  "refl (id (P`x)) :
+  "refl (id P`x) :
     (transport[P, x, x] (refl x)) o[P`x] transport[P, x, x] (inv[A, x, x] (refl x)) =[P`x \<rightarrow> P`x]
-      id (P`x)"
+      id P`x"
   by derive
   
   fix y p assume [intro]: "y: A" "p: x =[A] y"
@@ -462,7 +462,7 @@ proof (path_ind' x y p)
   proof show "transport[P, x, y] p: P`x \<rightarrow> P`y" by routine qed routine
   
   show
-    "transport[P, x, y] p o[P`y] transport[P, y, x] (inv[A, x, y] p) =[P`y \<rightarrow> P`y] id (P`y): U j"
+    "transport[P, x, y] p o[P`y] transport[P, y, x] (inv[A, x, y] p) =[P`y \<rightarrow> P`y] id P`y: U j"
   by derive
 qed
 

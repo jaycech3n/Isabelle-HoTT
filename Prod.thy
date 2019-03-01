@@ -117,7 +117,9 @@ lemma compose_assoc:
   shows "(h o[B] g) o[A] f \<equiv> h o[A] g o[A] f"
 unfolding compose_def by (derive lems: assms cong)
 
-abbreviation id :: "t \<Rightarrow> t" where "id A \<equiv> \<lambda>x: A. x"
+abbreviation id :: "t \<Rightarrow> t"  ("(id _)" [115] 114)  where "id A \<equiv> \<lambda>x: A. x"
+
+lemma id_type [intro]: "\<And>A. A: U i \<Longrightarrow> id A: A \<rightarrow> A" by derive
 
 
 section \<open>Universal quantification\<close>
