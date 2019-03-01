@@ -70,7 +70,6 @@ It also handles universes using @{method hierarchy} and @{method cumulativity}.
 method derive uses lems declares comp =
   (routine add: lems | compute add: lems comp: comp | cumulativity form: lems | hierarchy)+
 
-
 section \<open>Additional method combinators\<close>
 
 text \<open>

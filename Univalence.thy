@@ -163,34 +163,39 @@ prefer 2
 prefer 9
   apply (rule Sum_routine)
   prefer 3 apply (rule transport_invr_hom)
-\<comment> \<open>The remaining subgoals can now be handled relatively easily.\<close>
-proof -
-  show *: "U i: U (Suc i)" by derive
+proof - \<comment> \<open>The remaining subgoals can now be handled relatively easily.\<close>
+  show "U i: U (Suc i)" by derive
   show "U i: U (Suc i)" by fact
-
-  fix g assume [intro]: "g: (id U i)`B \<rightarrow> (id U i)`A"
-
-  have
-    "transport (id U i) A B p o[(id U i)`B] g: (id U i)`B \<rightarrow> (id U i)`B"
+  
+  have "\<And>g. g: (id U i)`B \<rightarrow> (id U i)`A \<Longrightarrow>
+    transport (id U i) A B p o[(id U i)`B] g: (id U i)`B \<rightarrow> (id U i)`B"
       proof show "(id U i)`A: U i" by derive qed derive
-  moreover have
-    "transport[id U i, A, B] p o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
+  have "\<And>g. g: (id U i)`B \<rightarrow> (id U i)`A \<Longrightarrow>
+    transport[id U i, A, B] p o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
       apply rule prefer 3 apply (fact, derive) done
-  then show
-    "(transport[id U i, A, B] p) o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
+  then show "\<And>g. g: (id U i)`B \<rightarrow> (id U i)`A \<Longrightarrow>
+    transport[id U i, A, B] p o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
   by routine
 
+  show "\<Sum>g: (id U i)`B \<rightarrow> (id U i)`A.
+    transport[id U i, A, B] p o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
+  proof
+    show "\<And>g. g : (id U i)`B \<rightarrow> (id U i)`A \<Longrightarrow>
+      Eq.transport (id U i) A B p o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
+    by fact
+  qed derive
+
+  fix g assume [intro]: "g: (id U i)`B \<rightarrow> (id U i)`A"
   have
     "g o[(id U i)`A] transport (id U i) A B p: (id U i)`A \<rightarrow> (id U i)`A"
       proof show "(id U i)`B: U i" by derive qed derive
-  moreover have
+  have
     "g o[(id U i)`A] transport (id U i) A B p ~[x: (id U i)`A. (id U i)`A] id (id U i)`A: U i"
       apply rule prefer 3 apply (fact, derive) done
   then show
     "g o[(id U i)`A] transport (id U i) A B p ~[x: (id U i)`A. (id U i)`A] id (id U i)`A: U i"
   by routine
-
-qed
+qed derive
 
 
 section \<open>Univalence\<close>
@@ -209,7 +214,7 @@ proof -
   moreover have [intro]:
     "(id U i)`A \<rightarrow> (id U i)`B \<equiv> A \<rightarrow> B" by derive
   ultimately show "transport (id U i) A B p: A \<rightarrow> B" by simp
-qed deriv
+qed derive
 
 (*
 section \<open>The univalence axiom\<close>
