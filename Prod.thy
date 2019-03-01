@@ -24,8 +24,8 @@ syntax
   "_lam"   :: "[idt, t, t] \<Rightarrow> t"  ("(2\<lambda>'(_: _')./ _)" 30)
   "_lam'"  :: "[idt, t, t] \<Rightarrow> t"  ("(2\<lambda>_: _./ _)" 30)
 translations
-  "\<Prod>(x: A). B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
   "\<Prod>x: A. B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
+  "\<Prod>(x: A). B" \<rightleftharpoons> "(CONST Prod) A (\<lambda>x. B)"
   "\<lambda>(x: A). b" \<rightleftharpoons> "(CONST lam) A (\<lambda>x. b)"
   "\<lambda>x: A. b" \<rightleftharpoons> "(CONST lam) A (\<lambda>x. b)"
 
