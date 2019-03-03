@@ -51,11 +51,18 @@ where
   U_cumulative: "\<lbrakk>A: U i; i < j\<rbrakk> \<Longrightarrow> A: U j" and
   U_cumulative': "\<lbrakk>A: U i; i \<le> j\<rbrakk> \<Longrightarrow> A: U j"
 
+lemma U_hierarchy': "U i: U (Suc i)" by (fact U_hierarchy[OF lt_Suc])
+
+declare U_hierarchy' [intro!]
+
 text \<open>
 Using method @{method rule} with @{thm U_cumulative} and @{thm U_cumulative'} is unsafe: if applied blindly it will very easily lead to non-termination.
 Instead use @{method elim}, or instantiate the rules suitably.
 
 @{thm U_cumulative'} is an alternative rule used by the method @{theory_text cumulativity} in @{file HoTT_Methods.thy}.
+
+@{thm U_hierarchy'} is declared with safe @{attribute intro} to be used by the method @{theory_text derive} to handle the universe hierarchy.
+Note that @{thm U_hierarchy} is unsafe.
 \<close>
 
 
@@ -68,6 +75,9 @@ text \<open>We use the notation @{prop "B: A \<leadsto> U i"} to abbreviate type
 
 abbreviation (input) K_combinator :: "'a \<Rightarrow> 'b \<Rightarrow> 'a"  ("&_" [0] 3)
 where "&A \<equiv> \<lambda>_. A"
+
+abbreviation (input) Id :: "t \<Rightarrow> t" where "Id \<equiv> \<lambda>x. x"
+\<comment> \<open>NOTE: removing the input attribute causes term evaluations and even theorem attribute declarations to loop! Possible bug?\<close>
 
 
 section \<open>Named theorems\<close>
