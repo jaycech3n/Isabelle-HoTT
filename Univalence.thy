@@ -138,17 +138,15 @@ declare
   transport_invl_hom [intro]
   transport_invr_hom [intro]
 
-(*
+text \<open>
 Next we derive a proof that the transport of an equality @{term p} is bi-invertible, with inverse given by the transport of the inverse @{text "~p"}.
 
-The proof is a challenge for current method automation, for two main reasons:
-1. 
-*)
+The proof is somewhat of a challenge for current method automation.
+\<close>
 
-declare[[pretty_transport=false, goals_limit=100]]
+lemma id_expand: assumes "A: U i" shows "A \<equiv> (id U i)`A" using assms by derive
 
-lemma id_expand: "\<And>A. A: U i \<Longrightarrow> A \<equiv> (id U i)`A" by derive
-lemma id_contract: "\<And>A. A: U i \<Longrightarrow> (id U i)`A \<equiv> A" by derive
+thm transport_invl_hom[where ?P="id U i"]
 
 schematic_goal transport_biinv:
   assumes [intro]: "p: A =[U i] B" "A: U i" "B: U i"
@@ -163,7 +161,8 @@ prefer 2
 prefer 9
   apply (rule Sum_routine)
   prefer 3 apply (rule transport_invr_hom)
-proof - \<comment> \<open>The remaining subgoals can now be handled relatively easily.\<close>
+\<comment> \<open>The remaining subgoals can now be handled relatively easily.\<close>
+proof -
   show "U i: U (Suc i)" by derive
   show "U i: U (Suc i)" by fact
   
@@ -202,7 +201,7 @@ section \<open>Univalence\<close>
 
 schematic_goal type_eq_imp_equiv:
   assumes [intro]: "A: U i" "B: U i"
-  shows "?prf: (A =[U i] B) \<rightarrow> A \<simeq> B"
+  shows "?prf: A =[U i] B \<rightarrow> A \<simeq> B"
 unfolding equivalence_def
 apply (rule Prod_routine, rule Sum_routine)
 prefer 3 apply (derive lems: transport_biinv)
@@ -216,10 +215,48 @@ proof -
   ultimately show "transport (id U i) A B p: A \<rightarrow> B" by simp
 qed derive
 
-(*
-section \<open>The univalence axiom\<close>
-
-axiomatization univalence :: "[t, t] \<Rightarrow> t" where UA: "univalence A B: isequiv[A, B] idtoeqv"
+(* Copy-paste the derived proof term as the definition of idtoeqv for now;
+   should really have some automatic export of proof terms, though.
 *)
+definition idtoeqv :: "[ord, t, t] \<Rightarrow> t"  ("(2idtoeqv[_, _, _])") where "
+idtoeqv[i, A, B] \<equiv>
+  \<lambda>(p: A =[U i] B).
+  < transport (id U i) A B p, <
+      < transport (id U i) B A (inv[U i, A, B] p),
+        happly[x: (id U i)`A. (id U i)`A]
+          ((transport[id U i, B, A] (inv[U i, A, B] p)) o[(id U i)`A] transport[id U i, A, B] p)
+          (id (id U i)`A)
+          (indEq
+            (\<lambda>A B p.
+              (transport[id U i, B, A] (inv[U i, A, B] p)) o[(id U i)`A] transport[id U i, A, B] p
+                =[(id U i)`A \<rightarrow> (id U i)`A] id (id U i)`A)
+            (\<lambda>x. refl (id (id U i)`x)) A B p)
+      >,
+      < transport (id U i) B A (inv[U i, A, B] p),
+        happly[x: (id U i)`B. (id U i)`B]
+          ((transport[id U i, A, B] p) o[(id U i)`B] (transport[id U i, B, A] (inv[U i, A, B] p)))
+          (id (id U i)`B)
+          (indEq
+            (\<lambda>A B p.
+              transport[id U i, A, B] p o[(id U i)`B] (transport[id U i, B, A] (inv[U i, A, B] p))
+                =[(id U i)`B \<rightarrow> (id U i)`B] id (id U i)`B)
+            (\<lambda>x. refl (id (id U i)`x)) A B p)
+      >
+    >
+  >
+"
+
+corollary idtoeqv_type:
+  assumes [intro]: "A: U i" "B: U i" "p: A =[U i] B"
+  shows "idtoeqv[i, A, B]: A =[U i] B \<rightarrow> A \<simeq> B"
+unfolding idtoeqv_def by (derive lems: type_eq_imp_equiv)
+
+declare idtoeqv_type [intro]
+
+(* I'll formalize a more explicit constructor for the inverse equivalence of idtoeqv later;
+   the following is a placeholder for now.
+*)
+axiomatization ua :: "[ord, t, t] \<Rightarrow> t" where univalence: "ua i A B: biinv[A, B] idtoeqv[i, A, B]"
+
 
 end
