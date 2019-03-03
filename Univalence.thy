@@ -5,7 +5,7 @@ Feb 2019
 ********)
 
 theory Univalence
-imports HoTT_Methods Prod Sum Eq
+imports HoTT_Methods Prod Sum Eq Type_Families
 
 begin
 
@@ -114,24 +114,24 @@ section \<open>Transport, homotopy, and bi-invertibility\<close>
 
 schematic_goal transport_invl_hom:
   assumes [intro]:
-    "A: U i" "P: A \<rightarrow> U j"
+    "P: A \<leadsto> U j" "A: U i"
     "x: A" "y: A" "p: x =[A] y"
   shows "?prf:
-    (transport[P, y, x] (inv[A, x, y] p)) o[P`x] (transport[P, x, y] p) ~[w: P`x. P`x] id P`x"
+    (transport[P, y, x] (inv[A, x, y] p)) o[P x] (transport[P, x, y] p) ~[w: P x. P x] id P x"
 proof (rule happly_type[OF transport_invl])
-  show "(transport[P, y, x] (inv[A, x, y] p)) o[P`x] (transport[P, x, y] p): P`x \<rightarrow> P`x"
-  proof show "P`y: U j" by routine qed routine
+  show "(transport[P, y, x] (inv[A, x, y] p)) o[P x] (transport[P, x, y] p): P x \<rightarrow> P x"
+  proof show "P y: U j" by routine qed routine
 qed routine
 
 schematic_goal transport_invr_hom:
   assumes [intro]:
-    "A: U i" "P: A \<rightarrow> U j"
+    "P: A \<leadsto> U j" "A: U i"
     "x: A" "y: A" "p: x =[A] y"
   shows "?prf:
-    (transport[P, x, y] p) o[P`y] (transport[P, y, x] (inv[A, x, y] p)) ~[w: P`y. P`y] id P`y"
+    (transport[P, x, y] p) o[P y] (transport[P, y, x] (inv[A, x, y] p)) ~[w: P y. P y] id P y"
 proof (rule happly_type[OF transport_invr])
-  show "(transport[P, x, y] p) o[P`y] (transport[P, y, x] (inv[A, x, y] p)): P`y \<rightarrow> P`y"
-  proof show "P`x: U j" by routine qed routine
+  show "(transport[P, x, y] p) o[P y] (transport[P, y, x] (inv[A, x, y] p)): P y \<rightarrow> P y"
+  proof show "P x: U j" by routine qed routine
 qed routine
 
 declare
@@ -139,21 +139,14 @@ declare
   transport_invr_hom [intro]
 
 text \<open>
-Next we derive a proof that the transport of an equality @{term p} is bi-invertible, with inverse given by the transport of the inverse @{text "~p"}.
-
-The proof is somewhat of a challenge for current method automation.
+The following result states that the transport of an equality @{term p} is bi-invertible, with inverse given by the transport of the inverse @{text "~p"}.
+It is used in the derivation of @{text idtoeqv} in the next section.
 \<close>
-
-lemma id_expand: assumes "A: U i" shows "A \<equiv> (id U i)`A" using assms by derive
-
-thm transport_invl_hom[where ?P="id U i"]
 
 schematic_goal transport_biinv:
   assumes [intro]: "p: A =[U i] B" "A: U i" "B: U i"
-  shows "?prf: biinv[A, B] (transport[id U i, A, B] p)"
-apply (subst (0 2) id_expand, unfold biinv_def, fact+)
-  \<comment> \<open>Need to rewrite the first instances of @{term A} and @{term B} in order to
-      use the proofs of @{thm transport_invl_hom} and @{thm transport_invr_hom} later.\<close>
+  shows "?prf: biinv[A, B] (transport[Id, A, B] p)"
+unfolding biinv_def
 apply (rule Sum_routine)
 prefer 2
   apply (rule Sum_routine)
@@ -161,40 +154,8 @@ prefer 2
 prefer 9
   apply (rule Sum_routine)
   prefer 3 apply (rule transport_invr_hom)
-\<comment> \<open>The remaining subgoals can now be handled relatively easily.\<close>
-proof -
-  show "U i: U (Suc i)" by derive
-  show "U i: U (Suc i)" by fact
-  
-  have "\<And>g. g: (id U i)`B \<rightarrow> (id U i)`A \<Longrightarrow>
-    transport (id U i) A B p o[(id U i)`B] g: (id U i)`B \<rightarrow> (id U i)`B"
-      proof show "(id U i)`A: U i" by derive qed derive
-  have "\<And>g. g: (id U i)`B \<rightarrow> (id U i)`A \<Longrightarrow>
-    transport[id U i, A, B] p o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
-      apply rule prefer 3 apply (fact, derive) done
-  then show "\<And>g. g: (id U i)`B \<rightarrow> (id U i)`A \<Longrightarrow>
-    transport[id U i, A, B] p o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
-  by routine
-
-  show "\<Sum>g: (id U i)`B \<rightarrow> (id U i)`A.
-    transport[id U i, A, B] p o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
-  proof
-    show "\<And>g. g : (id U i)`B \<rightarrow> (id U i)`A \<Longrightarrow>
-      Eq.transport (id U i) A B p o[(id U i)`B] g ~[x: (id U i)`B. (id U i)`B] id (id U i)`B: U i"
-    by fact
-  qed derive
-
-  fix g assume [intro]: "g: (id U i)`B \<rightarrow> (id U i)`A"
-  have
-    "g o[(id U i)`A] transport (id U i) A B p: (id U i)`A \<rightarrow> (id U i)`A"
-      proof show "(id U i)`B: U i" by derive qed derive
-  have
-    "g o[(id U i)`A] transport (id U i) A B p ~[x: (id U i)`A. (id U i)`A] id (id U i)`A: U i"
-      apply rule prefer 3 apply (fact, derive) done
-  then show
-    "g o[(id U i)`A] transport (id U i) A B p ~[x: (id U i)`A. (id U i)`A] id (id U i)`A: U i"
-  by routine
-qed derive
+\<comment> \<open>The remaining subgoals are now handled easily\<close>
+by derive
 
 
 section \<open>Univalence\<close>
@@ -205,15 +166,7 @@ schematic_goal type_eq_imp_equiv:
 unfolding equivalence_def
 apply (rule Prod_routine, rule Sum_routine)
 prefer 3 apply (derive lems: transport_biinv)
-proof -
-  fix p assume [intro]: "p: A =[U i] B"
-  have
-    "transport (id U i) A B p: (id U i)`A \<rightarrow> (id U i)`B"
-  proof show "U i: U(Suc i)" by hierarchy qed derive
-  moreover have [intro]:
-    "(id U i)`A \<rightarrow> (id U i)`B \<equiv> A \<rightarrow> B" by derive
-  ultimately show "transport (id U i) A B p: A \<rightarrow> B" by simp
-qed derive
+done
 
 (* Copy-paste the derived proof term as the definition of idtoeqv for now;
    should really have some automatic export of proof terms, though.
@@ -221,26 +174,26 @@ qed derive
 definition idtoeqv :: "[ord, t, t] \<Rightarrow> t"  ("(2idtoeqv[_, _, _])") where "
 idtoeqv[i, A, B] \<equiv>
   \<lambda>(p: A =[U i] B).
-  < transport (id U i) A B p, <
-      < transport (id U i) B A (inv[U i, A, B] p),
-        happly[x: (id U i)`A. (id U i)`A]
-          ((transport[id U i, B, A] (inv[U i, A, B] p)) o[(id U i)`A] transport[id U i, A, B] p)
-          (id (id U i)`A)
+  < transport (Id) A B p, <
+      < transport[Id, B, A] (inv[U i, A, B] p),
+        happly[x: A. A]
+          ((transport[Id, B, A] (inv[U i, A, B] p)) o[A] transport[Id, A, B] p)
+          (id A)
           (indEq
             (\<lambda>A B p.
-              (transport[id U i, B, A] (inv[U i, A, B] p)) o[(id U i)`A] transport[id U i, A, B] p
-                =[(id U i)`A \<rightarrow> (id U i)`A] id (id U i)`A)
-            (\<lambda>x. refl (id (id U i)`x)) A B p)
+              (transport[Id, B, A] (inv[U i, A, B] p)) o[A] transport[Id, A, B] p
+                =[A \<rightarrow> A] id A)
+            (\<lambda>x. refl (id x)) A B p)
       >,
-      < transport (id U i) B A (inv[U i, A, B] p),
-        happly[x: (id U i)`B. (id U i)`B]
-          ((transport[id U i, A, B] p) o[(id U i)`B] (transport[id U i, B, A] (inv[U i, A, B] p)))
-          (id (id U i)`B)
+      < transport (Id) B A (inv[U i, A, B] p),
+        happly[x: B. B]
+          ((transport[Id, A, B] p) o[B] (transport[Id, B, A] (inv[U i, A, B] p)))
+          (id B)
           (indEq
             (\<lambda>A B p.
-              transport[id U i, A, B] p o[(id U i)`B] (transport[id U i, B, A] (inv[U i, A, B] p))
-                =[(id U i)`B \<rightarrow> (id U i)`B] id (id U i)`B)
-            (\<lambda>x. refl (id (id U i)`x)) A B p)
+              transport[Id, A, B] p o[B] (transport[Id, B, A] (inv[U i, A, B] p))
+                =[B \<rightarrow> B] id B)
+            (\<lambda>x. refl (id x)) A B p)
       >
     >
   >
@@ -249,7 +202,7 @@ idtoeqv[i, A, B] \<equiv>
 corollary idtoeqv_type:
   assumes [intro]: "A: U i" "B: U i" "p: A =[U i] B"
   shows "idtoeqv[i, A, B]: A =[U i] B \<rightarrow> A \<simeq> B"
-unfolding idtoeqv_def by (derive lems: type_eq_imp_equiv)
+unfolding idtoeqv_def by (routine add: type_eq_imp_equiv)
 
 declare idtoeqv_type [intro]
 
