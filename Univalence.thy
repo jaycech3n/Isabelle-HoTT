@@ -117,22 +117,16 @@ schematic_goal transport_invl_hom:
     "P: A \<leadsto> U j" "A: U i"
     "x: A" "y: A" "p: x =[A] y"
   shows "?prf:
-    (transport[P, y, x] (inv[A, x, y] p)) o[P x] (transport[P, x, y] p) ~[w: P x. P x] id P x"
-proof (rule happly_type[OF transport_invl])
-  show "(transport[P, y, x] (inv[A, x, y] p)) o[P x] (transport[P, x, y] p): P x \<rightarrow> P x"
-  proof show "P y: U j" by routine qed routine
-qed routine
+    (transport[A, P, y, x]`(inv[A, x, y]`p)) o[P x] (transport[A, P, x, y]`p) ~[w: P x. P x] id P x"
+by (rule happly_type[OF transport_invl], derive)
 
 schematic_goal transport_invr_hom:
   assumes [intro]:
-    "P: A \<leadsto> U j" "A: U i"
-    "x: A" "y: A" "p: x =[A] y"
+    "A: U i" "P: A \<leadsto> U j" 
+    "y: A" "x: A" "p: x =[A] y"
   shows "?prf:
-    (transport[P, x, y] p) o[P y] (transport[P, y, x] (inv[A, x, y] p)) ~[w: P y. P y] id P y"
-proof (rule happly_type[OF transport_invr])
-  show "(transport[P, x, y] p) o[P y] (transport[P, y, x] (inv[A, x, y] p)): P y \<rightarrow> P y"
-  proof show "P x: U j" by routine qed routine
-qed routine
+    (transport[A, P, x, y]`p) o[P y] (transport[A, P, y, x]`(inv[A, x, y]`p)) ~[w: P y. P y] id P y"
+by (rule happly_type[OF transport_invr], derive)
 
 declare
   transport_invl_hom [intro]
@@ -145,7 +139,7 @@ It is used in the derivation of @{text idtoeqv} in the next section.
 
 schematic_goal transport_biinv:
   assumes [intro]: "p: A =[U i] B" "A: U i" "B: U i"
-  shows "?prf: biinv[A, B] (transport[Id, A, B] p)"
+  shows "?prf: biinv[A, B] (transport[U i, Id, A, B]`p)"
 unfolding biinv_def
 apply (rule Sum_routine)
 prefer 2
@@ -173,25 +167,25 @@ done
 *)
 definition idtoeqv :: "[ord, t, t] \<Rightarrow> t"  ("(2idtoeqv[_, _, _])") where "
 idtoeqv[i, A, B] \<equiv>
-  \<lambda>(p: A =[U i] B).
-  < transport (Id) A B p, <
-      < transport[Id, B, A] (inv[U i, A, B] p),
+  \<lambda>p: A =[U i] B.
+  < transport[U i, Id, A, B]`p, <
+      < transport[U i, Id, B, A]`(inv[U i, A, B]`p),
         happly[x: A. A]
-          ((transport[Id, B, A] (inv[U i, A, B] p)) o[A] transport[Id, A, B] p)
+          ((transport[U i, Id, B, A]`(inv[U i, A, B]`p)) o[A] transport[U i, Id, A, B]`p)
           (id A)
           (indEq
             (\<lambda>A B p.
-              (transport[Id, B, A] (inv[U i, A, B] p)) o[A] transport[Id, A, B] p
+              (transport[U i, Id, B, A]`(inv[U i, A, B]`p)) o[A] transport[U i, Id, A, B]`p
                 =[A \<rightarrow> A] id A)
             (\<lambda>x. refl (id x)) A B p)
       >,
-      < transport (Id) B A (inv[U i, A, B] p),
+      < transport[U i, Id, B, A]`(inv[U i, A, B]`p),
         happly[x: B. B]
-          ((transport[Id, A, B] p) o[B] (transport[Id, B, A] (inv[U i, A, B] p)))
+          ((transport[U i, Id, A, B]`p) o[B] (transport[U i, Id, B, A]`(inv[U i, A, B]`p)))
           (id B)
           (indEq
             (\<lambda>A B p.
-              transport[Id, A, B] p o[B] (transport[Id, B, A] (inv[U i, A, B] p))
+              transport[U i, Id, A, B]`p o[B] (transport[U i, Id, B, A]`(inv[U i, A, B]`p))
                 =[B \<rightarrow> B] id B)
             (\<lambda>x. refl (id x)) A B p)
       >

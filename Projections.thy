@@ -11,35 +11,33 @@ imports HoTT_Methods Prod Sum
 
 begin
 
-definition fst :: "[t, t] \<Rightarrow> t" where "fst A p \<equiv> indSum (\<lambda>_. A) (\<lambda>x y. x) p"
+definition fst ("(2fst[_, _])")
+where "fst[A, B] \<equiv> \<lambda>(p: \<Sum>x: A. B x). indSum (\<lambda>_. A) (\<lambda>x y. x) p"
+
+definition snd ("(2snd[_, _])")
+where "snd[A, B] \<equiv> \<lambda>(p: \<Sum>x: A. B x). indSum (\<lambda>p. B (fst[A, B]`p)) (\<lambda>x y. y) p"
 
 lemma fst_type:
-  assumes "A: U i" and "p: \<Sum>x: A. B x" shows "fst A p: A"
-unfolding fst_def by (derive lems: assms)
-
-declare fst_type [intro]
+  assumes [intro]: "A: U i" "B: A \<leadsto> U i"
+  shows "fst[A, B]: (\<Sum>x: A. B x) \<rightarrow> A"
+unfolding fst_def by derive
 
 lemma fst_cmp:
-  assumes "A: U i" and "B: A \<leadsto> U i" and "a: A" and "b: B a" shows "fst A <a, b> \<equiv> a"
-unfolding fst_def by (subst comp) (derive lems: assms)
-
-declare fst_cmp [comp]
-
-definition snd :: "[t, t \<Rightarrow> t, t] \<Rightarrow> t" where "snd A B p \<equiv> indSum (\<lambda>p. B (fst A p)) (\<lambda>x y. y) p"
+  assumes [intro]: "A: U i" "B: A \<leadsto> U i" "a: A" "b: B a"
+  shows "fst[A, B]`<a, b> \<equiv> a"
+unfolding fst_def by derive
 
 lemma snd_type:
-  assumes "A: U i" and "B: A \<leadsto> U i" and "p: \<Sum>x: A. B x" shows "snd A B p: B (fst A p)"
-unfolding snd_def proof (routine add: assms)
-  fix x y assume "x: A" and "y: B x"
-  with assms have [comp]: "fst A <x, y> \<equiv> x" by derive
-  note \<open>y: B x\<close> then show "y: B (fst A <x, y>)" by compute
-qed
+  assumes [intro]: "A: U i" "B: A \<leadsto> U i"
+  shows "snd[A, B]: \<Prod>(p: \<Sum>x: A. B x). B (fst[A,B]`p)"
+unfolding snd_def by (derive lems: fst_type comp: fst_cmp)
 
 lemma snd_cmp:
-  assumes "A: U i" and "B: A \<leadsto> U i" and "a: A" and "b: B a" shows "snd A B <a,b> \<equiv> b"
-unfolding snd_def by (derive lems: assms)
+  assumes [intro]: "A: U i" "B: A \<leadsto> U i" "a: A" "b: B a"
+  shows "snd[A, B]`<a, b> \<equiv> b"
+unfolding snd_def proof derive qed (derive lems: assms fst_type comp: fst_cmp)
 
-lemmas Proj_type [intro] = fst_type snd_type
-lemmas Proj_comp [comp] = fst_cmp snd_cmp
+lemmas proj_type [intro] = fst_type snd_type
+lemmas proj_comp [comp] = fst_cmp snd_cmp
 
 end
