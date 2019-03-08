@@ -7,7 +7,7 @@ Projection functions for the dependent sum type.
 ********)
 
 theory Projections
-imports HoTT_Methods Prod Sum
+imports Prod Sum
 
 begin
 

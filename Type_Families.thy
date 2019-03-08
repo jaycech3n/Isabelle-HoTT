@@ -7,7 +7,7 @@ Various results viewing type families as fibrations: transport, path lifting, de
 ********)
 
 theory Type_Families
-imports HoTT_Methods Sum Projections Eq
+imports Eq Projections
 
 begin
 
