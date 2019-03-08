@@ -18,6 +18,7 @@ begin
 
 section \<open>Basic setup\<close>
 
+declare[[names_short]]
 declare[[eta_contract=false]] \<comment> \<open>Do not eta-contract\<close>
 
 typedecl t \<comment> \<open>Type of object-logic terms (which includes the types)\<close>

@@ -64,7 +64,7 @@ where
 
 lemmas Unit_form [form]
 lemmas Unit_routine [intro] = Unit_form Unit_intro Unit_elim
-lemmas Unit_cmp [comp]
+lemmas Unit_comp [comp] = Unit_cmp
 
 
 section \<open>Empty type\<close>

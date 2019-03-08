@@ -41,6 +41,6 @@ where
 
 lemmas Nat_form [form]
 lemmas Nat_routine [intro] = Nat_form Nat_intro_0 Nat_intro_succ Nat_elim
-lemmas Nat_comps [comp] = Nat_cmp_0 Nat_cmp_succ
+lemmas Nat_comp [comp] = Nat_cmp_0 Nat_cmp_succ
 
 end
