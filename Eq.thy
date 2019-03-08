@@ -98,7 +98,7 @@ in
 end
 \<close>
 
-lemma inv_type: "\<lbrakk>A: U i; x: A; y: A; p: x =[A] y\<rbrakk> \<Longrightarrow> inv[A, x, y]`p: y =[A] x"
+lemma inv_type: "\<lbrakk>A: U i; x: A; y: A\<rbrakk> \<Longrightarrow> inv[A, x, y]: x =[A] y \<rightarrow> y =[A] x"
 unfolding inv_def by derive
 
 lemma inv_comp: "\<lbrakk>A: U i; a: A\<rbrakk> \<Longrightarrow> inv[A, a, a]`(refl a) \<equiv> refl a"
@@ -146,8 +146,8 @@ end
 \<close>
 
 corollary pathcomp_type:
-  assumes [intro]: "A: U i" "x: A" "y: A" "z: A" "p: x =[A] y" "q: y =[A] z"
-  shows "pathcomp[A, x, y, z]`p`q: x =[A] z"
+  assumes [intro]: "A: U i" "x: A" "y: A" "z: A"
+  shows "pathcomp[A, x, y, z]: x =[A] y \<rightarrow> y =[A] z \<rightarrow> x =[A] z"
 unfolding pathcomp_def by (derive lems: transitivity)
 
 corollary pathcomp_comp:
@@ -278,21 +278,27 @@ in
 end
 \<close>
 
-corollary ap_type:
+corollary ap_typ:
+  assumes [intro]:
+    "A: U i" "B: U i" "f: A \<rightarrow> B"
+    "x: A" "y: A"
+  shows "ap[f, A, B, x, y]: x =[A] y \<rightarrow> f`x =[B] f`y"
+unfolding ap_def by routine
+
+corollary ap_app_typ:
   assumes [intro]:
     "A: U i" "B: U i" "f: A \<rightarrow> B"
     "x: A" "y: A" "p: x =[A] y"
   shows "ap[f, A, B, x, y]`p: f`x =[B] f`y"
-unfolding ap_def by routine
+by (routine add: ap_typ)
 
 lemma ap_comp:
   assumes [intro]: "A: U i" "B: U i" "f: A \<rightarrow> B" "x: A"
   shows "ap[f, A, B, x, x]`(refl x) \<equiv> refl (f`x)"
 unfolding ap_def by derive
 
-declare
-  ap_type [intro]
-  ap_comp [comp]
+lemmas ap_type [intro] = ap_typ ap_app_typ
+lemmas ap_comp [comp]
 
 
 schematic_goal ap_func_pathcomp:
