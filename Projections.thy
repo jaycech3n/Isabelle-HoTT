@@ -11,10 +11,10 @@ imports Prod Sum
 
 begin
 
-definition fst ("(2fst[_, _])")
+definition fst ("(2fst[_,/ _])")
 where "fst[A, B] \<equiv> \<lambda>(p: \<Sum>x: A. B x). indSum (\<lambda>_. A) (\<lambda>x y. x) p"
 
-definition snd ("(2snd[_, _])")
+definition snd ("(2snd[_,/ _])")
 where "snd[A, B] \<equiv> \<lambda>(p: \<Sum>x: A. B x). indSum (\<lambda>p. B (fst[A, B]`p)) (\<lambda>x y. y) p"
 
 lemma fst_type:

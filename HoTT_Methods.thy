@@ -68,8 +68,8 @@ It also handles universes using @{method cumulativity}.
 The method @{method hierarchy} has been observed to cause looping in previous versions, and is hence no longer part of @{theory_text derive}.
 \<close>
 
-method derive uses lems declares comp =
-  (routine add: lems | compute add: lems comp: comp | cumulativity form: lems)+
+method derive uses lems unfold declares comp =
+  (unfold unfold | routine add: lems | compute add: lems comp: comp | cumulativity form: lems)+
 
 section \<open>Additional method combinators\<close>
 

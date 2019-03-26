@@ -15,7 +15,7 @@ section \<open>Basic type definitions\<close>
 axiomatization
   Prod :: "[t, t \<Rightarrow> t] \<Rightarrow> t" and
   lam  :: "[t, t \<Rightarrow> t] \<Rightarrow> t" and
-  app  :: "[t, t] \<Rightarrow> t"  ("(2_`_)" [120, 121] 120)
+  app  :: "[t, t] \<Rightarrow> t"  ("(2_`/_)" [120, 121] 120)
   \<comment> \<open>Application should bind tighter than abstraction.\<close>
 
 syntax
