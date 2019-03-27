@@ -119,8 +119,36 @@ unfolding compose_def by (derive lems: assms cong)
 
 abbreviation id :: "t \<Rightarrow> t"  ("(id _)" [115] 114)  where "id A \<equiv> \<lambda>x: A. x"
 
-lemma id_type [intro]: "\<And>A. A: U i \<Longrightarrow> id A: A \<rightarrow> A" by derive
+lemma id_type: "\<And>A. A: U i \<Longrightarrow> id A: A \<rightarrow> A" by derive
 
+lemma id_compl:
+  assumes [intro]: "A: U i" "B: U i" "f: A \<rightarrow> B"
+  shows "id B o[A] f \<equiv> f"
+unfolding compose_def proof -
+  {
+  fix x assume [intro]: "x: A"
+  have "(id B)`(f`x) \<equiv> f`x" by derive
+  }
+  hence "\<lambda>x: A. (id B)`(f`x) \<equiv> \<lambda>x: A. f`x" by (derive lems: cong) derive
+  also have "\<lambda>x: A. f`x \<equiv> f" by derive
+  finally show "\<lambda>(x: A). (id B)`(f`x) \<equiv> f" by simp
+qed
+
+lemma id_compr:
+  assumes [intro]: "A: U i" "B: U i" "f: A \<rightarrow> B"
+  shows "f o[A] id A \<equiv> f"
+unfolding compose_def proof -
+  {
+  fix x assume [intro]: "x: A"
+  have "f`((id A)`x) \<equiv> f`x" by derive
+  }
+  hence "\<lambda>x: A. f`((id A)`x) \<equiv> \<lambda>x: A. f`x" by (derive lems: cong) derive
+  also have "\<lambda>x: A. f`x \<equiv> f" by derive
+  finally show "\<lambda>x: A. f`((id A)`x) \<equiv> f" by simp
+qed
+
+declare id_type [intro]
+lemmas id_comp [comp] = id_compl id_compr
 
 section \<open>Universal quantification\<close>
 

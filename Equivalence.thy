@@ -74,9 +74,7 @@ unfolding happly_def by (derive lems: fun_eq_imp_homotopy)
 
 text \<open>Homotopy and function composition:\<close>
 
-declare[[pretty_compose=false]]
-
-schematic_goal composition_homotopyl:
+schematic_goal composition_homl:
   assumes [intro]:
     "H: f ~[x: A. B] g"
     "f: A \<rightarrow> B" "g: A \<rightarrow> B" "h: B \<rightarrow> C"
@@ -84,8 +82,20 @@ schematic_goal composition_homotopyl:
   shows "?prf: h o[A] f ~[x: A. C] h o[A] g"
 unfolding homotopy_def compose_def proof (rule Prod_routine, subst (0 1) comp)
   fix x assume [intro]: "x: A"
-  show "ap[h, B, C, f`x, g`x]`(H`x): h`(f`x) =[C] h`(g`x)" by (derive, fold homotopy_def, fact+)
+  show "ap[h, B, C, f`x, g`x]`(H`x): h`(f`x) =[C] h`(g`x)" by (routine, fold homotopy_def, fact+)
 qed routine
+
+schematic_goal composition_homr:
+  assumes [intro]:
+    "H: f ~[x: B. C] g"
+    "h: A \<rightarrow> B" "f: B \<rightarrow> C" "g: B \<rightarrow> C"
+    "A: U i" "B: U i" "C: U i"
+  shows "?prf: f o[A] h ~[x: A. C] g o[A] h"
+unfolding homotopy_def compose_def proof (rule Prod_routine, subst (0 1) comp)
+  fix x assume [intro]: "x: A"
+  show "H`(h`x): f`(h`x) =[C] g`(h`x)" by (routine, fold homotopy_def, routine)
+qed routine
+
 
 section \<open>Bi-invertibility\<close>
 
@@ -109,10 +119,10 @@ declare biinv_type [intro]
 schematic_goal id_is_biinv:
   assumes [intro]: "A: U i"
   shows "?prf: biinv[A, A] (id A)"
-unfolding biinv_def proof (rule Sum_routine, compute)
+unfolding biinv_def proof (rule Sum_routine)
   show "<id A, \<lambda>x: A. refl x>: \<Sum>(g: A \<rightarrow> A). (g o[A] id A) ~[x: A. A] (id A)" by derive
   show "<id A, \<lambda>x: A. refl x>: \<Sum>(g: A \<rightarrow> A). (id A o[A] g) ~[x: A. A] (id A)" by derive
-qed routine
+qed derive
 
 definition equivalence :: "[t, t] \<Rightarrow> t"  (infix "\<cong>" 100)
 where "A \<cong> B \<equiv> \<Sum>f: A \<rightarrow> B. biinv[A, B] f"
@@ -135,22 +145,43 @@ schematic_goal biinv_imp_qinv:
   assumes [intro]: "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "?prf: (biinv[A, B] f) \<rightarrow> (qinv[A,B] f)"
 proof (rule Prod_routine)
-assume "b: biinv[A, B] f"
-define g H g' H' where
-  "g \<equiv> fst[B \<rightarrow> A, \<lambda>g. g o[A] f ~[x: A. A] id A] `
-    (fst[\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A, &(\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: A. A] id B)] ` b)"
-and
-  "H \<equiv> snd[B \<rightarrow> A, \<lambda>g. g o[A] f ~[x: A. A] id A] `
-    (fst[\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A, &(\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: A. A] id B)] ` b)"
-and
-  "g' \<equiv> fst[B \<rightarrow> A, \<lambda>g. f o[B] g ~[x: B. B] id B] `
-    (snd[\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A, &(\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: A. A] id B)] ` b)"
-and
-  "H' \<equiv> snd[B \<rightarrow> A, \<lambda>g. f o[B] g ~[x: B. B] id B] `
-    (snd[\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A, &(\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: A. A] id B)] ` b)"
 
-have "g o[B] (f o[B] g') \<equiv> g"
-unfolding g_def g'_def proof compute
+assume [intro]: "b: biinv[A, B] f"
+
+text \<open>Components of the witness of biinvertibility of @{term f}:\<close>
+
+let ?fst_of_b =
+  "fst[\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A, &\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: B. B] id B]"
+and ?snd_of_b =
+  "snd[\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A, &\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: B. B] id B]"
+
+define g H g' H' where 
+  "g \<equiv> fst[B \<rightarrow> A, \<lambda>g. g o[A] f ~[x: A. A] id A] ` (?fst_of_b ` b)" and
+  "H \<equiv> snd[B \<rightarrow> A, \<lambda>g. g o[A] f ~[x: A. A] id A] ` (?fst_of_b ` b)" and
+  "g' \<equiv> fst[B \<rightarrow> A, \<lambda>g. f o[B] g ~[x: B. B] id B] ` (?snd_of_b ` b)" and
+  "H' \<equiv> snd[B \<rightarrow> A, \<lambda>g. f o[B] g ~[x: B. B] id B] ` (?snd_of_b ` b)"
+
+have "H: g o[A] f ~[x: A. A] id A"
+unfolding H_def g_def proof standard+
+  have
+    "fst[\<Sum>(g: B \<rightarrow> A). g o[A] f ~[x: A. A] id A, &\<Sum>(g: B \<rightarrow> A). f o[B] g ~[x: B. B] id B] :
+      (biinv[A, B] f) \<rightarrow> (\<Sum>(g: B \<rightarrow> A). g o[A] f ~[g: A. A] id A)" unfolding biinv_def by derive
+  thus
+    "fst[\<Sum>(g: B \<rightarrow> A). g o[A] f ~[x: A. A] id A, &\<Sum>(g: B \<rightarrow> A). f o[B] g ~[x: B. B] id B]`b :
+      \<Sum>(g: B \<rightarrow> A). g o[A] f ~[g: A. A] id A" by derive rule
+qed derive
+
+moreover have "(id A) o[B] g' \<equiv> g'" proof derive
+  show "g': B \<rightarrow> A" unfolding g'_def proof
+    have
+      "snd[\<Sum>(g: B \<rightarrow> A). g o[A] f ~[x: A. A] id A, &\<Sum>(g: B \<rightarrow> A). f o[B] g ~[x: B. B] id B] :
+        (biinv[A, B] f) \<rightarrow> (\<Sum>(g: B \<rightarrow> A). f o[B] g ~[x: B. B] id B)" unfolding biinv_def by derive
+    thus
+      "snd[\<Sum>(g: B \<rightarrow> A). g o[A] f ~[x: A. A] id A, &\<Sum>(g: B \<rightarrow> A). f o[B] g ~[x: B. B] id B]`b :
+        \<Sum>(g: B \<rightarrow> A). f o[B] g ~[x: B. B] id B" by derive rule
+  qed derive
+qed
+
 
 
 section \<open>Transport, homotopy, and bi-invertibility\<close>
