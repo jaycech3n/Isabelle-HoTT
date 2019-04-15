@@ -121,6 +121,33 @@ abbreviation id :: "t \<Rightarrow> t"  ("(id _)" [115] 114)  where "id A \<equi
 
 lemma id_type [intro]: "\<And>A. A: U i \<Longrightarrow> id A: A \<rightarrow> A" by derive
 
+lemma id_comp:
+  assumes "x:A"
+  shows "(id A)`x \<equiv>x" by (derive lems: assms)
+
+lemma compose_id_left:
+  assumes "A:U i" "f:A\<rightarrow>B"
+  shows "id B o[A] f \<equiv> f"
+proof-
+  have A:"id B o[A] f\<equiv> \<lambda>(x:A). (id B)`(f`x)" unfolding compose_def .
+  have "\<And>x. x:A \<Longrightarrow> f`x:B" using Prod_elim[OF assms(2)].
+  then have B:"\<And>x. x:A \<Longrightarrow> (id B)`(f`x) \<equiv> f`x" by derive
+  have "\<lambda>(x: A). (id B)`(f`x) \<equiv> \<lambda>(x: A). f`x" using Prod_intro_eq[of A "\<lambda>x. (id B)`(f`x)" "\<lambda>x. f`x",OF _ assms(1)] B.
+  with A have "id B o[A] f \<equiv>\<lambda>(x: A). f`x" by simp
+  with Prod_uniq[OF assms(2)] show "id B o[A] f \<equiv> f" by simp
+qed
+
+lemma compose_id_right:
+  assumes "A:U i" "f:A\<rightarrow>B"
+  shows "f o[A] id A \<equiv> f"
+proof-
+  have A:"f o[A] (id A) \<equiv> \<lambda>(x:A). f`((id A) `x)" unfolding compose_def .
+  have B:"\<And>x. x:A \<Longrightarrow> f`((id A)`x) \<equiv> f`x" by derive
+  have "\<lambda>(x: A). f`((id A)`x) \<equiv> \<lambda>(x: A). f`x" using Prod_intro_eq[of A "\<lambda>x. f`((id A)`x)" "\<lambda>x. f`x",OF _ assms(1)] B.
+  with A have "f o[A] (id A) \<equiv>\<lambda>(x: A). f`x" by simp
+  with Prod_uniq[OF assms(2)] show "f o[A] id A \<equiv> f" by simp
+qed
+
 
 section \<open>Universal quantification\<close>
 

@@ -75,6 +75,7 @@ unfolding happly_def by (derive lems: fun_eq_imp_homotopy)
 text \<open>Homotopy and function composition:\<close>
 
 declare[[pretty_compose=false]]
+declare[[pretty_ap=false]]
 
 schematic_goal composition_homotopyl:
   assumes [intro]:
@@ -85,6 +86,22 @@ schematic_goal composition_homotopyl:
 unfolding homotopy_def compose_def proof (rule Prod_routine, subst (0 1) comp)
   fix x assume [intro]: "x: A"
   show "ap[h, B, C, f`x, g`x]`(H`x): h`(f`x) =[C] h`(g`x)" by (derive, fold homotopy_def, fact+)
+qed routine
+
+schematic_goal composition_homotopyr:
+  assumes [intro]:
+    "H: f ~[x: A. B] g"
+    "f: A \<rightarrow> B" "g: A \<rightarrow> B" "h: C \<rightarrow> A"
+    "A: U i" "B: U i" "C: U i"
+  shows "?prf: f o[C] h ~[x: C. B] g o[C] h"
+unfolding homotopy_def compose_def proof (rule Prod_routine, subst (0 1) comp)
+  fix x assume [intro]: "x: C"
+  have hx:"h`x:A" using Prod_elim[OF assms(4) `x:C`].
+  have fhx:"f`(h`x):B" and ghx:"g`(h`x):B" using Prod_elim[OF assms(2) hx] Prod_elim[OF assms(3) hx].
+  have Hhx:"H`(h`x):f`(h`x) =[B] g`(h`x)" using Prod_elim[of H A "\<lambda>x. f`x =[B] g`x" "h`x",OF _ hx] assms(1) unfolding homotopy_def.
+  have "ap[id B, B, B, f`(h`x), g`(h`x)]`(H`(h`x)): (id B)`(f`(h`x)) =[B] (id B)`(g`(h`x))"
+    using ap_type(2)[OF assms(6,6) id_type[OF assms(6)], of "f`(h`x)" "g`(h`x)" "H`(h`x)", OF fhx ghx Hhx].
+  then show "ap[id B, B, B, f`(h`x), g`(h`x)]`(H`(h`x)): (f`(h`x)) =[B] (g`(h`x))" using id_comp[OF fhx] id_comp[OF ghx] by simp
 qed routine
 
 section \<open>Bi-invertibility\<close>
@@ -134,23 +151,68 @@ where "qinv[A, B] f \<equiv> \<Sum>g: B \<rightarrow> A. (g o[A] f ~[x: A. A] id
 schematic_goal biinv_imp_qinv:
   assumes [intro]: "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "?prf: (biinv[A, B] f) \<rightarrow> (qinv[A,B] f)"
-proof (rule Prod_routine)
-assume "b: biinv[A, B] f"
-define g H g' H' where
-  "g \<equiv> fst[B \<rightarrow> A, \<lambda>g. g o[A] f ~[x: A. A] id A] `
-    (fst[\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A, &(\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: A. A] id B)] ` b)"
-and
-  "H \<equiv> snd[B \<rightarrow> A, \<lambda>g. g o[A] f ~[x: A. A] id A] `
-    (fst[\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A, &(\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: A. A] id B)] ` b)"
-and
-  "g' \<equiv> fst[B \<rightarrow> A, \<lambda>g. f o[B] g ~[x: B. B] id B] `
-    (snd[\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A, &(\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: A. A] id B)] ` b)"
-and
-  "H' \<equiv> snd[B \<rightarrow> A, \<lambda>g. f o[B] g ~[x: B. B] id B] `
-    (snd[\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A, &(\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: A. A] id B)] ` b)"
-
-have "g o[B] (f o[B] g') \<equiv> g"
-unfolding g_def g'_def proof compute
+  apply (rule Prod_routine) 
+  prefer 2 apply (rule biinv_type) using assms apply simp+ 
+  unfolding qinv_def apply (rule Sum_routine)+ apply (rule homotopy_type) apply (rule assms(1))+
+      apply (rule compose_type[of A i B "\<lambda>_. A" f, OF assms(1,2,1,3)]) apply (assumption)
+     apply (rule id_type) apply (rule assms(1)) apply (rule homotopy_type) apply (rule assms(2))+
+     apply (rule compose_type, rule assms(2), rule assms(1), rule assms(2), assumption, rule assms(3))
+    apply (rule id_type[OF assms(2)]) prefer 2 apply (rule Sum_routine) apply (rule homotopy_type) apply(rule assms(2))+
+      apply (rule compose_type[OF assms(2) assms(1) assms(2)]) prefer 2 apply (rule assms(3)) prefer 2
+  apply (rule id_type[OF assms(2)])
+proof-
+  have BA_type:"B\<rightarrow>A:U i" using Prod_form[OF assms(2,1)].
+  from homotopy_type[OF assms(1,1) compose_type[OF assms(1,2,1,3)] id_type[OF assms(1)]]
+  have homotypeA:"\<And>g. g:B\<rightarrow>A \<Longrightarrow> g o[A] f ~[x: A. A] id A : U i" .
+  from homotopy_type[OF assms(2,2) compose_type[OF assms(2,1,2) _ assms(3)] id_type[OF assms(2)]]
+  have homotypeB:"\<And>g. g:B\<rightarrow>A \<Longrightarrow> f o[B] g ~[x: B. B] id B : U i" .
+  fix b assume b:"b: biinv[A, B] f"
+  let ?pair1="indSum (\<lambda>_. (\<Sum>g: B \<rightarrow> A. g o[A] f ~[x:A. A] id A)) (\<lambda>x y. x) b"
+  let ?pair2="indSum (\<lambda>_. (\<Sum>g: B \<rightarrow> A. f o[B] g ~[x:B. B] id B)) (\<lambda>x y. y) b"
+  let ?fst1="fst[B\<rightarrow>A,  \<lambda>g.  g o[A] f ~[x:A. A] id A]"
+  let ?fst2="fst[B \<rightarrow> A, \<lambda>g.  f o[B] g ~[x: B. B] id B]"
+  let ?snd1="snd[B\<rightarrow>A,  \<lambda>g.  g o[A] f ~[x:A. A] id A]"
+  let ?snd2="snd[B \<rightarrow> A, \<lambda>g.  f o[B] g ~[x: B. B] id B]"
+  let ?g1="?fst1`?pair1"
+  let ?g2="?fst2`?pair2"
+  let ?H1="?snd1`?pair1"
+  let ?H2="?snd2`?pair2"
+  from b have E:"b:(\<Sum>g: B \<rightarrow> A. g o[A] f ~[x:A. A] id A) \<times> (\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: B. B] id B)" unfolding biinv_def.
+  from Sum_elim[OF E, of "\<lambda>_. (\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: B. B] id B)" i "\<lambda>x y. y", OF Sum_form[OF BA_type homotypeB]]
+  have p2:"?pair2:\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: B. B] id B". 
+  from Sum_elim[OF E, of "\<lambda>_. (\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A)" i "\<lambda>x y. x", OF Sum_form[OF BA_type homotypeA]]
+  have p1:"?pair1:\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A".
+  have f1:"?fst1:(\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A) \<rightarrow> (B\<rightarrow>A)" apply (rule fst_type[OF BA_type homotypeA]) .
+  have f2:"?fst2:(\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: B. B] id B) \<rightarrow> (B\<rightarrow>A)" apply (rule fst_type[OF BA_type homotypeB]) .
+  have s1:"?snd1:\<Prod>(p: (\<Sum>g: B \<rightarrow> A. g o[A] f ~[x: A. A] id A)). (\<lambda>g. g o[A] f ~[x: A. A] id A) (fst[B \<rightarrow> A, \<lambda>g.  g o[A] f ~[x:A. A] id A]`p)"
+    apply (rule snd_type[OF BA_type homotypeA]).
+  have s2:"?snd2:\<Prod>(p: (\<Sum>g: B \<rightarrow> A. f o[B] g ~[x: B. B] id B)). (\<lambda>g. f o[B] g ~[x: B. B] id B) (fst[B \<rightarrow> A, \<lambda>g.  f o[B] g ~[x:B. B] id B]`p)"
+    apply (rule snd_type[OF BA_type homotypeB]).
+  from f1 p1 show g1:"?g1:B\<rightarrow>A" by rule
+  from f2 p2 have g2:"?g2:B\<rightarrow>A" by rule
+  from g1 show "?g1:B\<rightarrow>A" .
+  from s1 p1 show h1:"?H1:?g1 o[A] f ~[x: A. A] id A" by rule
+  from s2 p2 have h2:"?H2:f o[B] ?g2 ~[x: B. B] id B" by rule
+  let ?s1="\<lambda>(x: B). ap[id A, A, A,(?g1 o[A] f)`(?g2` x), (id A)`(?g2` x)]`(?H1`(?g2`x))"
+  let ?s2="\<lambda>(x: B). ap[?g1, B, A, (f o[B] ?g2)` x, (id B)`x]` (?H2`x)"
+  from composition_homotopyl[OF h2 compose_type[OF assms(2,1,2) g2 assms(3)] id_type[OF assms(2)] g1 assms(2,2,1)]
+  have "?s2:?g1 o[B](f o[B] ?g2) ~[x: B. A] ?g1 o[B] id B".
+  then have "?s2:(?g1 o[A] f)o[B]?g2 ~[x: B. A] ?g1 o[B] id B" using compose_assoc[OF assms(2) g2 assms(3) g1] by simp
+  then have s2:"?s2:(?g1 o[A] f)o[B]?g2 ~[x: B. A] ?g1" using compose_id_right[OF assms(2) g1] by simp
+  from composition_homotopyr[OF h1 compose_type[OF assms(1,2,1) assms(3) g1] id_type[OF assms(1)] g2 assms(1,1,2)]
+  have "?s1:(?g1 o[A] f)o[B]?g2 ~[x: B. A] id A o[B] ?g2".
+  then have s1:"?s1:(?g1 o[A] f)o[B]?g2 ~[x: B. A] ?g2" using compose_id_left[OF assms(2) g2] by simp
+  let ?s3="hominv[B, &A, (?g1 o[A] f)o[B]?g2, ?g1]`?s2"
+  have s3:"?s3:?g1~[x: B. A](?g1 o[A] f)o[B]?g2" using Prod_elim[OF hominv_type[OF assms(2,1)
+        compose_type[OF assms(2,1,1) g2 compose_type[OF assms(1,2,1,3) g1]] g1] s2].
+  let ?s4="(homcomp[B,&A,?g1,(?g1 o[A] f)o[B]?g2,?g2]`?s3)`?s1"
+  have s4:"?s4:?g1~[x: B. A]?g2" using Prod_elim[OF Prod_elim[OF homcomp_type[OF assms(2,1) g1 compose_type[OF assms(2,1,1) g2 compose_type[OF assms(1,2,1,3) g1]] g2] s3] s1].
+  let ?s5="\<lambda>(x: B). ap[f, A, B, ?g1`x, ?g2`x]`(?s4`x)"
+  from composition_homotopyl[OF s4 g1 g2 assms(3,2,1,2)] have E1:"?s5:f o[B] ?g1 ~[x: B. B] f o[B] ?g2".
+  let ?s6="(homcomp[B,&B,f o[B] ?g1, f o[B]?g2,id B]`?s5)`?H2"
+  from Prod_elim[OF Prod_elim[OF homcomp_type[OF assms(2,2) compose_type[OF assms(2,1,2) g1 assms(3)] compose_type[OF assms(2,1,2) g2 assms(3)] id_type[OF assms(2)]] E1] h2]
+  show "?s6:f o[B] ?g1 ~[x: B. B] id B".
+qed
 
 
 section \<open>Transport, homotopy, and bi-invertibility\<close>
