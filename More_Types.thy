@@ -60,7 +60,7 @@ where
 
   Unit_elim: "\<lbrakk>x: Unit; c: C pt; C: Unit \<leadsto> U i\<rbrakk> \<Longrightarrow> indUnit C c x: C x" and
 
-  Unit_cmp: "\<lbrakk>c: C Unit; C: Unit \<leadsto> U i\<rbrakk> \<Longrightarrow> indUnit C c pt \<equiv> c"
+  Unit_cmp: "\<lbrakk>c: C pt; C: Unit \<leadsto> U i\<rbrakk> \<Longrightarrow> indUnit C c pt \<equiv> c"
 
 lemmas Unit_form [form]
 lemmas Unit_routine [intro] = Unit_form Unit_intro Unit_elim
