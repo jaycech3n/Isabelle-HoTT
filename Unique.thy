@@ -21,4 +21,15 @@ proof-
   show "indUnit (\<lambda>x. x=[Unit] pt) (refl pt) x : x=[Unit] pt".
 qed routine
 
+subsection \<open>No element in empty type\<close>
+
+schematic_goal empty_is_empty:
+  assumes "\<And>x. x:Null \<Longrightarrow> A x:U i"
+  shows "?pr:\<Prod>x: Null. A x"
+  apply (rule Prod_routine) prefer 2 apply (rule Null_form)
+proof-
+  fix x assume x:"x:Null"
+  from Null_elim[OF x, of A, OF assms] show "indNull A x :A x".
+qed
+
 end
