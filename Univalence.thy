@@ -56,8 +56,11 @@ unfolding idtoeqv_def by (routine add: type_eq_imp_equiv)
 
 declare idtoeqv_type [intro]
 
-axiomatization
-where univalence: "idtoeqv[i, A, B]: (A =[U i] B)\<cong>(A \<cong> B) "
+
+text \<open>For now, we use bi-invertibility as our definition of equivalence.\<close>
+
+axiomatization univalance :: "[ord, t, t] \<Rightarrow> t"
+where univalence: "univalence i A B: biinv[A =[U i] B,A \<cong> B] idtoeqv[i, A, B]"
 
 
 end
