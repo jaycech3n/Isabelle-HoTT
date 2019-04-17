@@ -101,6 +101,9 @@ end
 lemma inv_type: "\<lbrakk>A: U i; x: A; y: A\<rbrakk> \<Longrightarrow> inv[A, x, y]: x =[A] y \<rightarrow> y =[A] x"
 unfolding inv_def by derive
 
+lemma inv_app_type:"\<lbrakk>A: U i; x: A; y: A;p:x =[A] y\<rbrakk> \<Longrightarrow> inv[A, x, y]`p: y =[A] x"
+  unfolding inv_def by derive
+
 lemma inv_comp: "\<lbrakk>A: U i; a: A\<rbrakk> \<Longrightarrow> inv[A, a, a]`(refl a) \<equiv> refl a"
 unfolding inv_def by derive
 
@@ -148,6 +151,11 @@ end
 corollary pathcomp_type:
   assumes [intro]: "A: U i" "x: A" "y: A" "z: A"
   shows "pathcomp[A, x, y, z]: x =[A] y \<rightarrow> y =[A] z \<rightarrow> x =[A] z"
+  unfolding pathcomp_def by (derive lems: transitivity)
+
+corollary pathcomp_app_type:
+  assumes [intro]: "A: U i" "x: A" "y: A" "z: A" "p: x =[A] y" "q: y =[A] z"
+  shows "pathcomp[A, x, y, z]`p`q :x =[A] z"
 unfolding pathcomp_def by (derive lems: transitivity)
 
 corollary pathcomp_comp:
