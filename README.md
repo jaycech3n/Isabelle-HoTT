@@ -16,6 +16,7 @@ In its current state it is best viewed as a formalization of HoTT within Isabell
 Work is slowly ongoing to develop the logic into a fully-featured framework in which one can formulate and prove mathematical statements, in the style of the univalent foundations school.
 While Isabelle has provided support for object logics based on Martin-Löf type theory since the beginning, these have largely been ignored in favor of Isabelle/HOL.
 Thus this project is also an experiment in creating a viable framework, based on dependent type theory, inside the simple type theoretic foundations of Isabelle/Pure.
+**Update (15 Oct 2019)**: Framework development currently [here](https://github.com/jaycech3n/Isabelle-Spartan).
 
 ### License
 
