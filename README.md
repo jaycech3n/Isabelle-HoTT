@@ -21,7 +21,7 @@ Work is slowly ongoing to develop the logic into a fully-featured framework in w
 While Isabelle has provided support for object logics based on Martin-Löf type theory since the beginning, these have largely been ignored in favor of Isabelle/HOL.
 Thus this project is also an experiment in creating a viable framework, based on dependent type theory, inside the simple type theoretic foundations of Isabelle/Pure.
 
-A writeup of some theoretical considerations in this implementation is in my [Masters thesis](https://joshchen.io/assets/ms_thesis_submitted.pdf).
+A writeup of some theoretical considerations in this implementation is in my [Masters thesis](https://arxiv.org/abs/1911.00399).
 
 ### License
 
