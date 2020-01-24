@@ -2,8 +2,8 @@
 
 An experimental implementation of [homotopy type theory](https://en.wikipedia.org/wiki/Homotopy_type_theory) in [Isabelle](https://isabelle.in.tum.de/).
 
-### UPDATE, Oct 2019
-Convenience and readability of formalizations in this library is taking a hit as we approach the limit of pre-existing functionality available in Isabelle.
+## Caveat lector
+The convenience and readability of formalizations in this library is taking a hit as we approach the limit of pre-existing functionality available in Isabelle.
 Development has thus, for the moment, moved to [Isabelle/Spartan](https://github.com/jaycech3n/Isabelle-Spartan) to build more automation and improve the framework.
 
 ### Usage
