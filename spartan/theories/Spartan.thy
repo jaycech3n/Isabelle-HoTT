@@ -242,7 +242,7 @@ setup \<open>
     ctxt addSolver (mk_solver "" typechk_tac))
 \<close>
 
-method reduce uses add = (simp add: comps add | subst comps, reduce add: add)+
+method reduce uses add = (simp add: comps add | subst comps)+
 
 
 section \<open>Implicit notations\<close>
@@ -355,23 +355,21 @@ translations "g \<circ> f" \<leftharpoondown> "g \<circ>\<^bsub>A\<^esub> f"
 
 subsection \<open>Identity function\<close>
 
-definition id where "id A \<equiv> \<lambda>x: A. x"
+abbreviation id where "id A \<equiv> \<lambda>x: A. x"
 
 lemma
-  idI [typechk]: "A: U i \<Longrightarrow> id A: A \<rightarrow> A" and
-  id_comp [comps]: "x: A \<Longrightarrow> (id A) x \<equiv> x"
-  unfolding id_def by reduce
+  id_type[typechk]: "A: U i \<Longrightarrow> id A: A \<rightarrow> A" and
+  id_comp [comps]: "x: A \<Longrightarrow> (id A) x \<equiv> x" \<comment> \<open>for the occasional manual rewrite\<close>
+  by reduce
 
 lemma id_left [comps]:
   assumes "f: A \<rightarrow> B" "A: U i" "B: U i"
   shows "(id B) \<circ>\<^bsub>A\<^esub> f \<equiv> f"
-  unfolding id_def
   by (subst eta_exp[of f]) (reduce, rule eta)
 
 lemma id_right [comps]:
   assumes "f: A \<rightarrow> B" "A: U i" "B: U i"
   shows "f \<circ>\<^bsub>A\<^esub> (id A) \<equiv> f"
-  unfolding id_def
   by (subst eta_exp[of f]) (reduce, rule eta)
 
 lemma id_U [typechk]:

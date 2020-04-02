@@ -261,7 +261,7 @@ Lemma transport_comp [comps]:
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> P x: U i"
   shows "trans P (refl a) \<equiv> id (P a)"
-  unfolding transport_def id_def by reduce
+  unfolding transport_def by reduce
 
 \<comment> \<open>TODO: Build transport automation!\<close>
 
