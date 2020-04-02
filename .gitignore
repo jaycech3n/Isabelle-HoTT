@@ -1,12 +1,3 @@
-.directory
-*.thy~
+*~
 \#*.thy#
-
-ex/*.thy~
-ex/\#*.thy#
-
-ex/Hott book/*.thy~
-ex/Hott book/\#*.thy#
-
-tests/*.thy~
-tests/\#*.thy#
+\#*.ML#
