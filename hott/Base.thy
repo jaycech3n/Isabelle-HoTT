@@ -1,7 +1,16 @@
-theory Basic_Types
-imports Spartan
+theory Base
+imports Spartan.Equivalence
 
 begin
+
+
+section \<open>Notation\<close>
+
+syntax "_dollar" :: \<open>logic \<Rightarrow> logic \<Rightarrow> logic\<close> (infixr "$" 3)
+translations "a $ b" \<rightharpoonup> "a (b)"
+
+abbreviation (input) K where "K x \<equiv> \<lambda>_. x"
+
 
 section \<open>Sum type\<close>
 
