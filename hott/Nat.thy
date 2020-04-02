@@ -19,23 +19,23 @@ where
     n: Nat;
     n\<^sub>0: C 0;
     \<And>n. n: Nat \<Longrightarrow> C n: U i;
-    \<And>n c. \<lbrakk>n: Nat; c: C n\<rbrakk> \<Longrightarrow> f n c: C (suc n)
-    \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) n\<^sub>0 (\<lambda>n c. f n c) n: C n" and
+    \<And>k c. \<lbrakk>k: Nat; c: C k\<rbrakk> \<Longrightarrow> f k c: C (suc k)
+    \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) n\<^sub>0 (\<lambda>k c. f k c) n: C n" and
 
   Nat_comp_zero: "\<lbrakk>
     n\<^sub>0: C 0;
-    \<And>n c. \<lbrakk>n: Nat; c: C n\<rbrakk> \<Longrightarrow> f n c: C (suc n);
+    \<And>k c. \<lbrakk>k: Nat; c: C k\<rbrakk> \<Longrightarrow> f k c: C (suc k);
     \<And>n. n: Nat \<Longrightarrow> C n: U i
-    \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) n\<^sub>0 (\<lambda>n c. f n c) 0 \<equiv> n\<^sub>0" and
+    \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) n\<^sub>0 (\<lambda>k c. f k c) 0 \<equiv> n\<^sub>0" and
 
   Nat_comp_suc: "\<lbrakk>
     n: Nat;
     n\<^sub>0: C 0;
-    \<And>n c. \<lbrakk>n: Nat; c: C n\<rbrakk> \<Longrightarrow> f n c: C (suc n);
+    \<And>k c. \<lbrakk>k: Nat; c: C k\<rbrakk> \<Longrightarrow> f k c: C (suc k);
     \<And>n. n: Nat \<Longrightarrow> C n: U i
     \<rbrakk> \<Longrightarrow>
-      NatInd (\<lambda>n. C n) n\<^sub>0 (\<lambda>n c. f n c) (suc n) \<equiv>
-        f n (NatInd (\<lambda>n. C n) n\<^sub>0 (\<lambda>n c. f n c) n)"
+      NatInd (\<lambda>n. C n) n\<^sub>0 (\<lambda>k c. f k c) (suc n) \<equiv>
+        f n (NatInd (\<lambda>n. C n) n\<^sub>0 (\<lambda>k c. f k c) n)"
 
 lemmas
   [intros] = NatF Nat_zero Nat_suc and
@@ -46,7 +46,10 @@ lemmas
 section \<open>Basic arithmetic\<close>
 
 definition add (infixl "+" 50) where
-  [comps]: "m + n \<equiv> NatInd (K Nat) n (K $ \<lambda>n. suc n) m"
+  [comps]: "m + n \<equiv> NatInd (K Nat) n (K suc) m"
+
+definition mul (infixl "*" 55) where
+  [comps]: "m * n \<equiv> NatInd (K Nat) 0 (K $ add n) m"
 
 
 end
