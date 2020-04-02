@@ -63,11 +63,14 @@ axiomatization
   app :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close> ("(1_ `_)" [120, 121] 120)
 
 syntax
-  "_Pi"  :: \<open>idt \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<Prod>_: _./ _)" 30)
-  "_lam" :: \<open>idt \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<lambda>_: _./ _)" 30)
+  "_Pi"   :: \<open>idt \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<Prod>_: _./ _)" 30)
+  "_lam"  :: \<open>pttrns \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<lambda>_: _./ _)" 30)
+  "_lam2" :: \<open>pttrns \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close>
 translations
-  "\<Prod>x: A. B" \<rightleftharpoons> "CONST Pi A (\<lambda>x. B)"
-  "\<lambda>x: A. b" \<rightleftharpoons> "CONST lam A (\<lambda>x. b)"
+  "\<Prod>x: A. B"    \<rightleftharpoons> "CONST Pi A (\<lambda>x. B)"
+  "\<lambda>x xs: A. b" \<rightharpoonup> "CONST lam A (\<lambda>x. _lam2 xs A b)"
+  "_lam2 x A b" \<rightharpoonup> "\<lambda>x: A. b"
+  "\<lambda>x: A. b"    \<rightleftharpoons> "CONST lam A (\<lambda>x. b)"
 
 abbreviation Fn (infixr "\<rightarrow>" 40) where "A \<rightarrow> B \<equiv> \<Prod>_: A. B"
 
