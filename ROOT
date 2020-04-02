@@ -20,5 +20,5 @@ session HoTT in hott = Spartan +
       Available online at https://homotopytypetheory.org/book.
   "
   theories
-    Basic_Types
+    Base
     Nat
