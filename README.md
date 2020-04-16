@@ -8,7 +8,7 @@ Isabelle/HoTT is compatible with Isabelle2020.
 To use, add the Isabelle/HoTT folder path to `.isabelle/Isabelle2020/ROOTS` (on Mac/Linux/cygwin installations):
 
 ```
-echo path/to/Isabelle/HoTT >> ~/.isabelle/Isabelle2020/ROOTS
+$ echo path/to/Isabelle/HoTT >> ~/.isabelle/Isabelle2020/ROOTS
 ```
 
 ### What (and why) is this?
