@@ -84,7 +84,7 @@ fun equality_context_tac fact ctxt =
         THEN ALLGOALS (side_conds_tac ctxt)
       )
   in
-    fn (ctxt, st) => Method.CONTEXT (record_inserts ctxt) (tac st)
+    fn (ctxt, st) => Context_Tactic.TACTIC_CONTEXT (record_inserts ctxt) (tac st)
   end
 
 end

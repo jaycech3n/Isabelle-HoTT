@@ -4,11 +4,11 @@ An experimental implementation of [homotopy type theory](https://en.wikipedia.or
 
 ### Usage
 
-Isabelle/HoTT is compatible with Isabelle2019.
-To use, add the Isabelle/HoTT folder path to `.isabelle/Isabelle2019/ROOTS` (on Mac/Linux/cygwin installations):
+Isabelle/HoTT is compatible with Isabelle2020.
+To use, add the Isabelle/HoTT folder path to `.isabelle/Isabelle2020/ROOTS` (on Mac/Linux/cygwin installations):
 
 ```
-echo <path/to/Isabelle/HoTT> >> ~/.isabelle/Isabelle2019/ROOTS
+echo <path/to/Isabelle/HoTT> >> ~/.isabelle/Isabelle2020/ROOTS
 ```
 
 ### What (and why) is this?
