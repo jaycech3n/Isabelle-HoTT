@@ -2,6 +2,8 @@
 
 An experimental implementation of [homotopy type theory](https://en.wikipedia.org/wiki/Homotopy_type_theory) in [Isabelle](https://isabelle.in.tum.de/).
 
+**This is the Isabelle2019 version of Isabelle/HoTT. Development on this branch will no longer continue, please switch the the Isabelle2020-compatible master branch instead.**
+
 ### Usage
 
 Isabelle/HoTT is compatible with Isabelle2019.
