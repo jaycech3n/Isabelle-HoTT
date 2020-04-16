@@ -10,7 +10,7 @@ Isabelle/HoTT is compatible with Isabelle2019.
 To use, add the Isabelle/HoTT folder path to `.isabelle/Isabelle2019/ROOTS` (on Mac/Linux/cygwin installations):
 
 ```
-echo <path/to/Isabelle/HoTT> >> ~/.isabelle/Isabelle2019/ROOTS
+echo path/to/Isabelle/HoTT >> ~/.isabelle/Isabelle2019/ROOTS
 ```
 
 ### What (and why) is this?
