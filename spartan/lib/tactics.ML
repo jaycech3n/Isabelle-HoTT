@@ -104,8 +104,7 @@ fun intro_tac ctxt = SUBGOAL (fn (_, i) => SIDE_CONDS
 fun intros_tac ctxt = SUBGOAL (fn (_, i) =>
   (CHANGED o REPEAT o CHANGED o intro_tac ctxt) i)
 
-(* Basic elimination tactic *)
-(*Only uses existing type judgments from the context
+(*Basic elimination tactic, only uses existing type judgments from the context
   (performs no type synthesis)*)
 fun elims_tac opt_tm ctxt = case opt_tm of
     NONE => SUBGOAL (fn (_, i) => eresolve_tac ctxt (Elim.rules ctxt) i)

@@ -105,7 +105,7 @@ val schematic_subgoal_cmd = gen_schematic_subgoal Attrib.attribute_cmd
 
 val parser =
   opt_fact_binding
-  -- (Scan.option (\<^keyword>\<open>premises\<close> |-- Parse.!!! opt_fact_binding))
+  -- (Scan.option (\<^keyword>\<open>prems\<close> |-- Parse.!!! opt_fact_binding))
   -- for_params >> (fn ((a, b), c) =>
     Toplevel.proofs (Seq.make_results o Seq.single o #2 o schematic_subgoal_cmd a b c))
 

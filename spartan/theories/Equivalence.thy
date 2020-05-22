@@ -197,7 +197,7 @@ Lemma (derive) funcomp_qinv:
   shows "qinv f \<rightarrow> qinv g \<rightarrow> qinv (g \<circ> f)"
   apply (intros, unfold qinv_def, elims)
   focus
-    premises hyps
+    prems prms
     vars _ _ finv _ ginv _ HfA HfB HgB HgC
 
     apply intro
@@ -246,7 +246,7 @@ Lemma (derive) biinv_imp_qinv:
   apply elims
 
   text \<open>Name the components:\<close>
-  focus premises vars _ _ _ g H1 h H2
+  focus prems vars _ _ _ g H1 h H2
   thm \<open>g:_\<close> \<open>h:_\<close> \<open>H1:_\<close> \<open>H2:_\<close>
 
   text \<open>
@@ -384,14 +384,14 @@ Lemma (derive) id_imp_equiv:
   supply [[auto_typechk=false]]
 
     \<guillemotright> apply (equality \<open>p:_\<close>)
-      \<^item> premises vars A B
+      \<^item> prems vars A B
         apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
         apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
         apply (rule transport, rule U_in_U)
         apply (rule lift_universe_codomain, rule U_in_U)
         apply (typechk, rule U_in_U)
         done
-      \<^item> premises vars A
+      \<^item> prems vars A
         apply (subst transport_comp)
           \<^enum> by (rule U_in_U)
           \<^enum> by reduce (rule lift_universe)

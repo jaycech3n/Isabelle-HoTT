@@ -8,7 +8,7 @@ imports
 keywords
   "Theorem" "Lemma" "Corollary" "Proposition" :: thy_goal_stmt and
   "focus" "\<guillemotright>" "\<^item>" "\<^enum>" "~" :: prf_script_goal % "proof" and
-  "derive" "vars":: quasi_command and
+  "derive" "prems" "vars":: quasi_command and
   "print_coercions" :: thy_decl
 
 begin
@@ -138,9 +138,6 @@ axiomatization where
     \<rbrakk> \<Longrightarrow> \<Sum>x: A. B x \<equiv> \<Sum>x: A. B' x"
 
 
-
-
-
 section \<open>Proof commands\<close>
 
 named_theorems typechk
@@ -152,6 +149,7 @@ ML_file \<open>../lib/focus.ML\<close>
 
 section \<open>Congruence automation\<close>
 
+(*Work in progress*)
 ML_file \<open>../lib/congruence.ML\<close>
 
 
@@ -188,6 +186,7 @@ method_setup elim =
 
 method elims = elim+
 
+(*This could possibly use additional simplification hints via a simp: modifier*)
 method_setup typechk =
   \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (
     CHANGED (ALLGOALS (TRY o typechk_tac ctxt))))\<close>

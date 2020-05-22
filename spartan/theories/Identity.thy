@@ -15,7 +15,7 @@ axiomatization
   refl  :: \<open>o \<Rightarrow> o\<close> and
   IdInd :: \<open>o \<Rightarrow> (o \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o) \<Rightarrow> (o \<Rightarrow> o) \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close>
 
-syntax   "_Id" :: \<open>o \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2_ =\<^bsub>_\<^esub>/ _)" [111, 0, 111] 110)
+syntax "_Id" :: \<open>o \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2_ =\<^bsub>_\<^esub>/ _)" [111, 0, 111] 110)
 
 translations "a =\<^bsub>A\<^esub> b" \<rightleftharpoons> "CONST Id A a b"
 
@@ -71,7 +71,7 @@ Lemma (derive) pathcomp:
   shows
     "x =\<^bsub>A\<^esub> z"
   apply (equality \<open>p:_\<close>)
-    focus premises vars x p
+    focus prems vars x p
       apply (equality \<open>p:_\<close>)
         apply intro
     done
@@ -158,9 +158,9 @@ Lemma (derive) pathcomp_assoc:
     "p: x =\<^bsub>A\<^esub> y" "q: y =\<^bsub>A\<^esub> z" "r: z =\<^bsub>A\<^esub> w"
   shows "p \<bullet> (q \<bullet> r) = p \<bullet> q \<bullet> r"
   apply (equality \<open>p:_\<close>)
-    focus premises vars x p
+    focus prems vars x p
       apply (equality \<open>p:_\<close>)
-        focus premises vars x p
+        focus prems vars x p
           apply (equality \<open>p:_\<close>)
             apply (reduce; intros)
         done
@@ -200,7 +200,7 @@ Lemma (derive) ap_pathcomp:
   shows
     "f[p \<bullet> q] = f[p] \<bullet> f[q]"
   apply (equality \<open>p:_\<close>)
-    focus premises vars x p
+    focus prems vars x p
       apply (equality \<open>p:_\<close>)
         apply (reduce; intro)
     done
@@ -302,7 +302,7 @@ Lemma (derive) transport_pathcomp:
     "p: x =\<^bsub>A\<^esub> y" "q: y =\<^bsub>A\<^esub> z"
   shows "trans P q (trans P p u) = trans P (p \<bullet> q) u"
   apply (equality \<open>p:_\<close>)
-    focus premises vars x p
+    focus prems vars x p
       apply (equality \<open>p:_\<close>)
         apply (reduce; intros)
     done
@@ -429,5 +429,6 @@ Lemma (derive) apd_ap:
     "p: x =\<^bsub>A\<^esub> y"
   shows "apd f p = trans_const B p (f x) \<bullet> f[p]"
   by (equality \<open>p:_\<close>) (reduce; intro)
+
 
 end

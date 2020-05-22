@@ -49,10 +49,53 @@ abbreviation "NatRec C \<equiv> NatInd (K C)"
 
 section \<open>Basic arithmetic\<close>
 
-definition add (infixl "+" 50) where
-  [comps]: "m + n \<equiv> NatRec Nat n (K suc) m"
+definition add (infixl "+" 120) where "m + n \<equiv> NatRec Nat n (K suc) m"
 
-definition mul (infixl "*" 55) where
+lemma add_type [typechk]:
+  assumes "m: Nat" "n: Nat"
+  shows "m + n: Nat"
+  unfolding add_def by typechk
+
+lemma add_rec [comps]:
+  assumes "m: Nat" "n: Nat"
+  shows "suc m + n \<equiv> suc (m + n)"
+  unfolding add_def by reduce
+
+lemma zero_add [comps]:
+  assumes "n: Nat"
+  shows "0 + n \<equiv> n"
+  unfolding add_def by reduce
+
+Lemma (derive) add_zero:
+  assumes "n: Nat"
+  shows "n + 0 = n"
+  apply (elim n)
+    \<guillemotright> by (reduce; intro)
+    \<guillemotright> vars _ IH by reduce (elim IH; intro)
+  done
+
+Lemma (derive) add_assoc:
+  assumes "l: Nat" "m: Nat" "n: Nat"
+  shows "l + (m + n) = (l + m) + n"
+  apply (elim l)
+    \<guillemotright> by reduce intro
+    \<guillemotright> vars _ IH by reduce (elim IH; intro)
+  done
+
+Lemma (derive) add_comm:
+  assumes "m: Nat" "n: Nat"
+  shows "m + n = n + m"
+  apply (elim m)
+    \<guillemotright> by (reduce; rule add_zero[sym])
+    \<guillemotright> vars m p
+      apply (elim n)
+    (*Should also change the `n`s in the premises!*)
+    (*FIXME: Elimination tactic needs to do the same kind of thing as the
+      equality tactic with pushing context premises into the statement, applying
+      the appropriate elimination rule and then pulling back out.*)
+oops
+
+definition mul (infixl "*" 120) where
   [comps]: "m * n \<equiv> NatRec Nat 0 (K $ add n) m"
 
 

@@ -6,6 +6,7 @@ Type elimination automation.
 
 structure Elim = struct
 
+(** Context data **)
 (* Elimination rule data *)
 structure Rules = Generic_Data (
   type T = thm Termtab.table
@@ -29,5 +30,9 @@ val _ = Theory.setup (
   #> Global_Theory.add_thms_dynamic (\<^binding>\<open>elims\<close>,
       fn context => (rules (Context.proof_of context)))
 )
+
+(** General elimination-induction tactic **)
+
+
 
 end
