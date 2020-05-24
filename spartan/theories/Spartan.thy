@@ -160,9 +160,24 @@ ML_file \<open>../lib/elimination.ML\<close> \<comment> \<open>declares the [eli
 named_theorems intros and comps
 lemmas
   [intros] = PiF PiI SigF SigI and
-  [elims] = PiE SigE and
+  [elims "?f"] = PiE and
+  [elims "?p"] = SigE and
   [comps] = beta Sig_comp and
   [cong] = Pi_cong lam_cong Sig_cong
+
+ML \<open>
+val ctxt = @{context};
+val typing = @{term "t: \<Sum>x: A. B x"};
+val insts = [];
+let
+  val (eterm, typing) = Lib.dest_typing typing
+  val (rl, tms) = the (Elim.lookup_rule ctxt (Term.head_of typing))
+in
+  Drule.infer_instantiate @{context}
+    (tms ~~ map (Thm.cterm_of ctxt) (eterm::insts))
+    rl
+end
+\<close>
 
 ML_file \<open>../lib/tactics.ML\<close>
 
@@ -180,25 +195,30 @@ method_setup intro =
 method_setup intros =
   \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (intros_tac ctxt)))\<close>
 
-method_setup elim =
+method_setup elim' =
   \<open>Scan.option Args.term >> (fn tm => fn ctxt =>
     SIMPLE_METHOD' (SIDE_CONDS (elims_tac tm ctxt) ctxt))\<close>
+
+method_setup elim =
+  \<open>Scan.repeat Args.term >> (fn tms => fn ctxt =>
+    SIMPLE_METHOD' (SIDE_CONDS (elim_tac' tms ctxt) ctxt))\<close>
 
 method elims = elim+
 
 (*This could possibly use additional simplification hints via a simp: modifier*)
 method_setup typechk =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (
-    CHANGED (ALLGOALS (TRY o typechk_tac ctxt))))\<close>
+  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (
+    SIDE_CONDS (typechk_tac ctxt) ctxt))
+    (* CHANGED (ALLGOALS (TRY o typechk_tac ctxt)))) *)\<close>
 
 method_setup rule =
   \<open>Attrib.thms >> (fn ths => fn ctxt =>
-    SIMPLE_METHOD (HEADGOAL (rule_tac ths ctxt)))\<close>
+    SIMPLE_METHOD (HEADGOAL (SIDE_CONDS (rule_tac ths ctxt) ctxt)))\<close>
 
 method_setup dest =
   \<open>Scan.lift (Scan.option (Args.parens Parse.int)) -- Attrib.thms
     >> (fn (opt_n, ths) => fn ctxt =>
-        SIMPLE_METHOD (HEADGOAL (dest_tac opt_n ths ctxt)))\<close>
+        SIMPLE_METHOD (HEADGOAL (SIDE_CONDS (dest_tac opt_n ths ctxt) ctxt)))\<close>
 
 subsection \<open>Rewriting\<close>
 

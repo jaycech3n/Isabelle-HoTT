@@ -39,7 +39,7 @@ where
 
 lemmas
   [intros] = NatF Nat_zero Nat_suc and
-  [elims] = NatE and
+  [elims "?n"] = NatE and
   [comps] = Nat_comp_zero Nat_comp_suc
 
 text \<open>Non-dependent recursion\<close>

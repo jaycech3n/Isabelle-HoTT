@@ -276,7 +276,7 @@ Lemma (derive) biinv_imp_qinv:
         ultimately have "g ~ h"
           apply (rewrite to "g \<circ> (id B)" id_right[symmetric])
           apply (rewrite to "(id A) \<circ> h" id_left[symmetric])
-          by (rule homotopy_transitive) (assumption, typechk)
+          by (rule homotopy_transitive) (assumption+, typechk)
 
         then have "f \<circ> g ~ f \<circ> h"
           by (rule homotopy_funcomp_right)

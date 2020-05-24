@@ -40,7 +40,7 @@ axiomatization where
 
 lemmas
   [intros] = IdF IdI and
-  [elims] = IdE and
+  [elims "?p" (*"?x" "?y"*)] = IdE and
   [comps] = Id_comp
 
 
