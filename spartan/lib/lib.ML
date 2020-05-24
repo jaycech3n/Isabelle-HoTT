@@ -78,6 +78,8 @@ val type_of_typing = #2 o dest_typing
 fun mk_Pi v typ body = Const (\<^const_name>\<open>Pi\<close>, dummyT) $ typ $ lambda v body
 
 fun typing_of_term tm = \<^const>\<open>has_type\<close> $ tm $ Var (("*?", 0), \<^typ>\<open>o\<close>)
+(*The above is a bit hacky; basically we need to guarantee that the schematic
+  var is fresh*)
 
 
 (** Goals **)
