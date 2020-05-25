@@ -165,20 +165,6 @@ lemmas
   [comps] = beta Sig_comp and
   [cong] = Pi_cong lam_cong Sig_cong
 
-ML \<open>
-val ctxt = @{context};
-val typing = @{term "t: \<Sum>x: A. B x"};
-val insts = [];
-let
-  val (eterm, typing) = Lib.dest_typing typing
-  val (rl, tms) = the (Elim.lookup_rule ctxt (Term.head_of typing))
-in
-  Drule.infer_instantiate @{context}
-    (tms ~~ map (Thm.cterm_of ctxt) (eterm::insts))
-    rl
-end
-\<close>
-
 ML_file \<open>../lib/tactics.ML\<close>
 
 method_setup assumptions =
@@ -195,13 +181,13 @@ method_setup intro =
 method_setup intros =
   \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (intros_tac ctxt)))\<close>
 
-method_setup elim' =
+method_setup old_elim =
   \<open>Scan.option Args.term >> (fn tm => fn ctxt =>
-    SIMPLE_METHOD' (SIDE_CONDS (elims_tac tm ctxt) ctxt))\<close>
+    SIMPLE_METHOD' (SIDE_CONDS (old_elims_tac tm ctxt) ctxt))\<close>
 
 method_setup elim =
   \<open>Scan.repeat Args.term >> (fn tms => fn ctxt =>
-    SIMPLE_METHOD' (SIDE_CONDS (elim_tac' tms ctxt) ctxt))\<close>
+    CONTEXT_METHOD (K (elim_context_tac tms ctxt 1)))\<close>
 
 method elims = elim+
 

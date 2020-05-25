@@ -16,7 +16,7 @@ val rule_tac: thm list -> Proof.context -> int -> tactic
 val dest_tac: int option -> thm list -> Proof.context -> int -> tactic
 val intro_tac: Proof.context -> int -> tactic
 val intros_tac: Proof.context -> int -> tactic
-val elims_tac: term option -> Proof.context -> int -> tactic
+val old_elims_tac: term option -> Proof.context -> int -> tactic
 
 end *) = struct
 
@@ -101,7 +101,7 @@ fun intros_tac ctxt = SUBGOAL (fn (_, i) =>
 
 (*Basic elimination tactic, only uses existing type judgments from the context
   (performs no type synthesis)*)
-fun elims_tac opt_tm ctxt = case opt_tm of
+fun old_elims_tac opt_tm ctxt = case opt_tm of
     NONE => SUBGOAL (fn (_, i) => eresolve_tac ctxt (map #1 (Elim.rules ctxt)) i)
   | SOME tm => SUBGOAL (fn (goal, i) =>
       let
@@ -151,34 +151,82 @@ fun internalize_fact_tac t =
       THEN SOMEGOAL (known_tac ctxt)
     end)
 
-fun elim_tac' tms ctxt = case tms of
-    [] => SUBGOAL (fn (_, i) => eresolve_tac ctxt (map #1 (Elim.rules ctxt)) i) 
-  | major::_  => SUBGOAL (fn (goal, i) =>
+(*Premises that have already been pushed into the \<Prod>-type*)
+structure Inserts = Proof_Data (
+  type T = term Item_Net.T
+  val init = K (Item_Net.init Term.aconv_untyped single)
+)
+
+local
+
+fun elim_core_tac tms types ctxt = SUBGOAL (K (
+  let
+    val rule_insts = map ((Elim.lookup_rule ctxt) o Term.head_of) types
+    val rules = flat (map
+      (fn rule_inst => case rule_inst of
+          NONE => []
+        | SOME (rl, idxnames) => [Drule.infer_instantiate ctxt
+          (idxnames ~~ map (Thm.cterm_of ctxt) tms) rl])
+      rule_insts)
+  in
+    HEADGOAL (resolve_tac ctxt rules)
+    THEN RANGE (replicate (length tms) (typechk_tac ctxt)) 1
+  end handle Option => no_tac))
+
+in
+
+fun elim_context_tac tms ctxt = case tms of
+    [] => CONTEXT_SUBGOAL (K (Context_Tactic.CONTEXT_TACTIC (HEADGOAL (
+      SIDE_CONDS (eresolve_tac ctxt (map #1 (Elim.rules ctxt))) ctxt))))
+  | major::_  => CONTEXT_SUBGOAL (fn (goal, _) =>
     let
-      val template = Lib.typing_of_term major
       val facts = Proof_Context.facts_of ctxt
       val prems = Logic.strip_assums_hyp goal
+      val template = Lib.typing_of_term major
       val types =
         map (Thm.prop_of o #1) (Facts.could_unify facts template)
         @ filter (fn prem => Term.could_unify (template, prem)) prems
         |> map Lib.type_of_typing
     in case types of
-        [] => no_tac
+        [] => Context_Tactic.CONTEXT_TACTIC no_tac
       | _ =>
         let
-          val rule_insts = map ((Elim.lookup_rule ctxt) o Term.head_of) types
-          val rules = flat (map
-            (fn rule_inst => case rule_inst of
-                NONE => []
-              | SOME (rl, idxnames) => [Drule.infer_instantiate ctxt
-                (idxnames ~~ map (Thm.cterm_of ctxt) tms) rl])
-            rule_insts)
+          val inserts = map (Thm.prop_of o fst) (Facts.props facts) @ prems
+            |> filter Lib.is_typing
+            |> map Lib.dest_typing
+            |> filter_out (fn (t, _) =>
+              Term.aconv (t, major) orelse Item_Net.member (Inserts.get ctxt) t)
+            |> map (fn (t, T) => ((t, T), Lib.subterm_count_distinct tms T))
+            |> filter (fn (_, i) => i > 0)
+            (*`t1: T1` comes before `t2: T2` if T1 contains t2 as subterm.
+              If they are incomparable, then order by decreasing
+              `subterm_count [p, x, y] T`*)
+            |> sort (fn (((t1, _), i), ((_, T2), j)) =>
+                Lib.cond_order (Lib.subterm_order T2 t1) (int_ord (j, i)))
+            |> map (#1 o #1)
+          val record_inserts = Inserts.map (fold Item_Net.update inserts)
+          val tac =
+            (*Push premises having a subterm in `tms` into a \<Prod>*)
+            fold (fn t => fn tac =>
+              tac THEN HEADGOAL (internalize_fact_tac t ctxt))
+              inserts all_tac
+            (*Apply elimination rule*)
+            THEN (HEADGOAL (
+              elim_core_tac tms types ctxt
+              (*Pull pushed premises back out*)
+              THEN_ALL_NEW (SUBGOAL (fn (_, i) =>
+                REPEAT_DETERM_N (length inserts)
+                  (resolve_tac ctxt @{thms PiI} i)))
+            ))
+            (*Side conditions*)
+            THEN ALLGOALS (TRY o side_cond_tac ctxt)
         in
-          resolve_tac ctxt rules i
-          THEN RANGE (replicate (length tms) (typechk_tac ctxt)) 1
-        end handle Option => no_tac
+          fn (ctxt, st) => Context_Tactic.TACTIC_CONTEXT
+            (record_inserts ctxt) (tac st)
+        end
     end)
 
+end
 
 end
 
