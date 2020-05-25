@@ -1,15 +1,23 @@
-session Spartan in "spartan/theories" = Pure +
+session Spartan_Core in "spartan/core" = Pure +
   description "
     Spartan type theory: a minimal dependent type theory based on
     intensional Martin-Löf type theory with cumulative Russell-style universes,
-    Pi, Sigma and identity types.
+    Pi, Sigma and identity types. This session consists only of the very core
+    theory files.
   "
   sessions
     "HOL-Eisbach"
   theories
     Spartan (global)
-    Identity
-    Equivalence
+
+session Spartan in spartan = Spartan_Core +
+  description "
+    Type theory based on Spartan, but with a few more bells and whistles.
+  "
+  directories
+    data
+  theories
+    "data/List"
 
 session HoTT in hott = Spartan +
   description "
@@ -21,5 +29,7 @@ session HoTT in hott = Spartan +
   "
   theories
     Base
+    Identity
+    Equivalence
     Nat
 

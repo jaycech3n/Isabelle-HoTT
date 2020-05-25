@@ -1,5 +1,5 @@
 theory Base
-imports Spartan.Equivalence
+imports Equivalence
 
 begin
 
