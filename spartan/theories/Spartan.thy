@@ -149,7 +149,7 @@ ML_file \<open>../lib/focus.ML\<close>
 
 section \<open>Congruence automation\<close>
 
-(*Work in progress*)
+(*Potential to be retired*)
 ML_file \<open>../lib/congruence.ML\<close>
 
 
@@ -206,6 +206,20 @@ method_setup dest =
     >> (fn (opt_n, ths) => fn ctxt =>
         SIMPLE_METHOD (HEADGOAL (SIDE_CONDS (dest_tac opt_n ths ctxt) ctxt)))\<close>
 
+subsection \<open>Reflexivity\<close>
+
+named_theorems refl
+method refl = (rule refl)
+
+subsection \<open>Trivial proofs modulo typechecking\<close>
+
+method_setup this =
+  \<open>Scan.succeed (fn ctxt => METHOD (
+    EVERY o map (HEADGOAL o
+      (fn ths => SIDE_CONDS (resolve_tac ctxt ths) ctxt) o
+      single)
+    ))\<close>
+
 subsection \<open>Rewriting\<close>
 
 \<comment> \<open>\<open>subst\<close> method\<close>
@@ -234,18 +248,16 @@ lemma imp_cong_eq:
   "(PROP A \<Longrightarrow> (PROP B \<Longrightarrow> PROP C) \<equiv> (PROP B' \<Longrightarrow> PROP C')) \<equiv>
     ((PROP B \<Longrightarrow> PROP A \<Longrightarrow> PROP C) \<equiv> (PROP B' \<Longrightarrow> PROP A \<Longrightarrow> PROP C'))"
   apply (Pure.intro Pure.equal_intr_rule)
-     apply (drule (1) cut_rl; drule Pure.equal_elim_rule1 Pure.equal_elim_rule2; assumption)+
-   apply (drule Pure.equal_elim_rule1 Pure.equal_elim_rule2; assumption)+
+    apply (drule (1) cut_rl; drule Pure.equal_elim_rule1 Pure.equal_elim_rule2;
+      assumption)+
+    apply (drule Pure.equal_elim_rule1 Pure.equal_elim_rule2; assumption)+
   done
 
 ML_file \<open>~~/src/HOL/Library/cconv.ML\<close>
 ML_file \<open>../lib/rewrite.ML\<close>
 
-\<comment> \<open>\<open>reduce\<close> method computes terms via judgmental equalities\<close>
-setup \<open>
-  map_theory_simpset (fn ctxt =>
-    ctxt addSolver (mk_solver "" typechk_tac))
-\<close>
+\<comment> \<open>\<open>reduce\<close> computes terms via judgmental equalities\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt addSolver (mk_solver "" typechk_tac))\<close>
 
 method reduce uses add = (simp add: comps add | subst comps)+
 
