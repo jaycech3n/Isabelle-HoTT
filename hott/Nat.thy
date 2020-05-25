@@ -104,7 +104,7 @@ Lemma (derive) add_comm:
       proof reduce
         have "suc (m + n) = suc (n + m)" by (eq ih) intro
         also have "'' = n + suc m" by (rule add_suc[symmetric])
-        finally show "suc (m + n) = n + suc m" by this reduce
+        finally show "suc (m + n) = n + suc m" by this
       qed
   done
 
