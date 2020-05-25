@@ -71,6 +71,10 @@ definition tail_i ("tail")
 definition map_i ("map")
   where [implicit]: "map \<equiv> List.map ? ?"
 
+translations
+  "tail" \<leftharpoondown> "CONST List.tail A"
+  "map" \<leftharpoondown> "CONST List.map A B"
+
 Lemma tail_type [typechk]:
   assumes "A: U i" "xs: List A"
   shows "tail xs: List A"
