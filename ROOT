@@ -17,7 +17,7 @@ session Spartan in spartan = Spartan_Core +
   directories
     data
   theories
-    "data/List"
+    List
 
 session HoTT in hott = Spartan +
   description "
@@ -28,8 +28,9 @@ session HoTT in hott = Spartan +
       Available online at https://homotopytypetheory.org/book.
   "
   theories
-    Base
+    HoTT (global)
     Identity
     Equivalence
+    More_Types
     Nat
 

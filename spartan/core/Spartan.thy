@@ -18,6 +18,11 @@ section \<open>Preamble\<close>
 
 declare [[eta_contract=false]]
 
+syntax "_dollar" :: \<open>logic \<Rightarrow> logic \<Rightarrow> logic\<close> (infixr "$" 3)
+translations "a $ b" \<rightharpoonup> "a (b)"
+
+abbreviation (input) K where "K x \<equiv> \<lambda>_. x"
+
 
 section \<open>Metatype setup\<close>
 
@@ -118,8 +123,8 @@ axiomatization where
     p: \<Sum>x: A. B x;
     A: U i;
     \<And>x. x : A \<Longrightarrow> B x: U i;
-    \<And>p. p: \<Sum>x: A. B x \<Longrightarrow> C p: U i;
-    \<And>x y. \<lbrakk>x: A; y: B x\<rbrakk> \<Longrightarrow> f x y: C <x, y>
+    \<And>x y. \<lbrakk>x: A; y: B x\<rbrakk> \<Longrightarrow> f x y: C <x, y>;
+    \<And>p. p: \<Sum>x: A. B x \<Longrightarrow> C p: U i
     \<rbrakk> \<Longrightarrow> SigInd A (\<lambda>x. B x) (\<lambda>p. C p) f p: C p" and
 
   Sig_comp: "\<lbrakk>

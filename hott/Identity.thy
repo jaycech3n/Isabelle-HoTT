@@ -30,13 +30,13 @@ axiomatization where
     b: A;
     \<And>x y p. \<lbrakk>p: x =\<^bsub>A\<^esub> y; x: A; y: A\<rbrakk> \<Longrightarrow> C x y p: U i;
     \<And>x. x: A \<Longrightarrow> f x: C x x (refl x)
-    \<rbrakk> \<Longrightarrow> IdInd A (\<lambda>x y p. C x y p) f a b p: C a b p" and
+    \<rbrakk> \<Longrightarrow> IdInd A (\<lambda>x y p. C x y p) (\<lambda>x. f x) a b p: C a b p" and
 
   Id_comp: "\<lbrakk>
     a: A;
     \<And>x y p. \<lbrakk>x: A; y: A; p: x =\<^bsub>A\<^esub> y\<rbrakk> \<Longrightarrow> C x y p: U i;
     \<And>x. x: A \<Longrightarrow> f x: C x x (refl x)
-    \<rbrakk> \<Longrightarrow> IdInd A (\<lambda>x y p. C x y p) f a a (refl a) \<equiv> f a"
+    \<rbrakk> \<Longrightarrow> IdInd A (\<lambda>x y p. C x y p) (\<lambda>x. f x) a a (refl a) \<equiv> f a"
 
 lemmas
   [intros] = IdF IdI and

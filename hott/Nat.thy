@@ -1,5 +1,5 @@
 theory Nat
-imports Base
+imports Equivalence
 
 begin
 
