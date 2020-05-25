@@ -86,7 +86,7 @@ Lemma (derive) commute_homotopy:
   shows "(H x) \<bullet> g[p] = f[p] \<bullet> (H y)"
   \<comment> \<open>Need this assumption unfolded for typechecking:\<close>
   supply assms(8)[unfolded homotopy_def]
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     focus vars x
       apply reduce
         \<comment> \<open>Here it would really be nice to have automation for transport and
@@ -366,7 +366,7 @@ Lemma
   assumes
     "A: U i" "B: U i" "p: A =\<^bsub>U i\<^esub> B"
   shows "A \<simeq> B"
-  by (equality \<open>p:_\<close>) (rule equivalence_refl)
+  by (eq p) (rule equivalence_refl)
 
 text \<open>
   The following proof is wordy because (1) the typechecker doesn't rewrite, and
@@ -383,7 +383,7 @@ Lemma (derive) id_imp_equiv:
   \<comment> \<open>Switch off auto-typechecking, which messes with universe levels\<close>
   supply [[auto_typechk=false]]
 
-    \<guillemotright> apply (equality \<open>p:_\<close>)
+    \<guillemotright> apply (eq p, typechk)
       \<^item> prems vars A B
         apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
         apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])

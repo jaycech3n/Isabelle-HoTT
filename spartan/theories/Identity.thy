@@ -40,16 +40,33 @@ axiomatization where
 
 lemmas
   [intros] = IdF IdI and
-  [elims "?p" (*"?x" "?y"*)] = IdE and
+  [elims "?p" "?a" "?b"] = IdE and
   [comps] = Id_comp
 
 
-section \<open>Induction\<close>
+section \<open>Path induction\<close>
 
-ML_file \<open>../lib/equality.ML\<close>
-
-method_setup equality = \<open>Scan.lift Parse.thm >> (fn (fact, _) => fn ctxt =>
-  CONTEXT_METHOD (K (Equality.equality_context_tac fact ctxt)))\<close>
+method_setup eq = \<open>
+Args.term >> (fn tm => fn ctxt => CONTEXT_METHOD (K (
+  CONTEXT_SUBGOAL (fn (goal, i) =>
+    let
+      val facts = Proof_Context.facts_of ctxt
+      val prems = Logic.strip_assums_hyp goal
+      val template = \<^const>\<open>has_type\<close>
+        $ tm
+        $ (\<^const>\<open>Id\<close> $ Var (("*?A", 0), \<^typ>\<open>o\<close>)
+          $ Var (("*?x", 0), \<^typ>\<open>o\<close>)
+          $ Var (("*?y", 0), \<^typ>\<open>o\<close>))
+      val types =
+        map (Thm.prop_of o #1) (Facts.could_unify facts template)
+        @ filter (fn prem => Term.could_unify (template, prem)) prems
+        |> map Lib.type_of_typing
+    in case types of
+        (\<^const>\<open>Id\<close> $ _ $ x $ y)::_ =>
+          elim_context_tac [tm, x, y] ctxt i
+      | _ => Context_Tactic.CONTEXT_TACTIC no_tac
+    end) 1)))
+\<close>
 
 
 section \<open>Symmetry and transitivity\<close>
@@ -57,7 +74,7 @@ section \<open>Symmetry and transitivity\<close>
 Lemma (derive) pathinv:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "y =\<^bsub>A\<^esub> x"
-  by (equality \<open>p:_\<close>) intro
+  by (eq p) intro
 
 lemma pathinv_comp [comps]:
   assumes "x: A" "A: U i"
@@ -70,9 +87,9 @@ Lemma (derive) pathcomp:
     "p: x =\<^bsub>A\<^esub> y" "q: y =\<^bsub>A\<^esub> z"
   shows
     "x =\<^bsub>A\<^esub> z"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     focus prems vars x p
-      apply (equality \<open>p:_\<close>)
+      apply (eq p)
         apply intro
     done
   done
@@ -81,19 +98,6 @@ lemma pathcomp_comp [comps]:
   assumes "a: A" "A: U i"
   shows "pathcomp A a a a (refl a) (refl a) \<equiv> refl a"
   unfolding pathcomp_def by reduce
-
-text \<open>Set up \<open>sym\<close> attribute for propositional equalities:\<close>
-
-ML \<open>
-structure Id_Sym_Attr = Sym_Attr (
-  struct
-    val name = "sym"
-    val symmetry_rule = @{thm pathinv[rotated 3]}
-  end
-)
-\<close>
-
-setup \<open>Id_Sym_Attr.setup\<close>
 
 
 section \<open>Notation\<close>
@@ -113,42 +117,76 @@ translations
   "p \<bullet> q" \<leftharpoondown> "CONST pathcomp A x y z p q"
 
 
-section \<open>Basic propositional equalities\<close>
+section \<open>Calculational reasoning\<close>
 
-(*TODO: Better integration of equality type directly into reasoning...*)
+consts rhs :: \<open>'a\<close> ("''''")
+
+ML \<open>
+local fun last_rhs ctxt =
+  let
+    val this_name = Name_Space.full_name (Proof_Context.naming_of ctxt)
+      (Binding.name Auto_Bind.thisN)
+    val this = #thms (the (Proof_Context.lookup_fact ctxt this_name))
+      handle Option => []
+    val rhs = case map Thm.prop_of this of
+       [\<^const>\<open>has_type\<close> $ _ $ (\<^const>\<open>Id\<close> $ _ $ _ $ y)] => y
+      | _ => Term.dummy
+  in
+    map_aterms (fn t => case t of Const (\<^const_name>\<open>rhs\<close>, _) => rhs | _ => t)
+  end
+in val _ = Context.>>
+  (Syntax_Phases.term_check 5 "" (fn ctxt => map (last_rhs ctxt)))
+end
+\<close>
+
+text \<open>Set up \<open>sym\<close> attribute for propositional equalities:\<close>
+
+ML \<open>
+structure Id_Sym_Attr = Sym_Attr (
+  struct
+    val name = "sym"
+    val symmetry_rule = @{thm pathinv[rotated 3]}
+  end
+)
+\<close>
+
+setup \<open>Id_Sym_Attr.setup\<close>
+
+
+section \<open>Basic propositional equalities\<close>
 
 Lemma (derive) pathcomp_left_refl:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "(refl x) \<bullet> p = p"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     apply (reduce; intros)
   done
 
 Lemma (derive) pathcomp_right_refl:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "p \<bullet> (refl y) = p"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     apply (reduce; intros)
   done
 
 Lemma (derive) pathcomp_left_inv:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "p\<inverse> \<bullet> p = refl y"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     apply (reduce; intros)
   done
 
 Lemma (derive) pathcomp_right_inv:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "p \<bullet> p\<inverse> = refl x"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     apply (reduce; intros)
   done
 
 Lemma (derive) pathinv_pathinv:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "p\<inverse>\<inverse> = p"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     apply (reduce; intros)
   done
 
@@ -157,11 +195,11 @@ Lemma (derive) pathcomp_assoc:
     "A: U i" "x: A" "y: A" "z: A" "w: A"
     "p: x =\<^bsub>A\<^esub> y" "q: y =\<^bsub>A\<^esub> z" "r: z =\<^bsub>A\<^esub> w"
   shows "p \<bullet> (q \<bullet> r) = p \<bullet> q \<bullet> r"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     focus prems vars x p
-      apply (equality \<open>p:_\<close>)
+      apply (eq p)
         focus prems vars x p
-          apply (equality \<open>p:_\<close>)
+          apply (eq p)
             apply (reduce; intros)
         done
     done
@@ -177,7 +215,7 @@ Lemma (derive) ap:
     "f: A \<rightarrow> B"
     "p: x =\<^bsub>A\<^esub> y"
   shows "f x = f y"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     apply intro
   done
 
@@ -199,9 +237,9 @@ Lemma (derive) ap_pathcomp:
     "p: x =\<^bsub>A\<^esub> y" "q: y =\<^bsub>A\<^esub> z"
   shows
     "f[p \<bullet> q] = f[p] \<bullet> f[q]"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     focus prems vars x p
-      apply (equality \<open>p:_\<close>)
+      apply (eq p)
         apply (reduce; intro)
     done
   done
@@ -213,7 +251,7 @@ Lemma (derive) ap_pathinv:
     "f: A \<rightarrow> B"
     "p: x =\<^bsub>A\<^esub> y"
   shows "f[p\<inverse>] = f[p]\<inverse>"
-  by (equality \<open>p:_\<close>) (reduce; intro)
+  by (eq p) (reduce; intro)
 
 text \<open>The next two proofs currently use some low-level rewriting.\<close>
 
@@ -224,7 +262,7 @@ Lemma (derive) ap_funcomp:
     "f: A \<rightarrow> B" "g: B \<rightarrow> C"
     "p: x =\<^bsub>A\<^esub> y"
   shows "(g \<circ> f)[p] = g[f[p]]"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     apply (simp only: funcomp_apply_comp[symmetric])
     apply (reduce; intro)
   done
@@ -232,7 +270,7 @@ Lemma (derive) ap_funcomp:
 Lemma (derive) ap_id:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "(id A)[p] = p"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     apply (rewrite at "\<hole> = _" id_comp[symmetric])
     apply (rewrite at "_ = \<hole>" id_comp[symmetric])
     apply (reduce; intros)
@@ -248,7 +286,7 @@ Lemma (derive) transport:
     "x: A" "y: A"
     "p: x =\<^bsub>A\<^esub> y"
   shows "P x \<rightarrow> P y"
-  by (equality \<open>p:_\<close>) intro
+  by (eq p) intro
 
 definition transport_i ("trans")
   where [implicit]: "trans P p \<equiv> transport ? P ? ? p"
@@ -282,7 +320,7 @@ Lemma (derive) transport_left_inv:
     "x: A" "y: A"
     "p: x =\<^bsub>A\<^esub> y"
   shows "(trans P p\<inverse>) \<circ> (trans P p) = id (P x)"
-  by (equality \<open>p:_\<close>) (reduce; intro)
+  by (eq p) (reduce; intro)
 
 Lemma (derive) transport_right_inv:
   assumes
@@ -291,7 +329,7 @@ Lemma (derive) transport_right_inv:
     "x: A" "y: A"
     "p: x =\<^bsub>A\<^esub> y"
   shows "(trans P p) \<circ> (trans P p\<inverse>) = id (P y)"
-  by (equality \<open>p:_\<close>) (reduce; intros)
+  by (eq p) (reduce; intros)
 
 Lemma (derive) transport_pathcomp:
   assumes
@@ -301,9 +339,9 @@ Lemma (derive) transport_pathcomp:
     "u: P x"
     "p: x =\<^bsub>A\<^esub> y" "q: y =\<^bsub>A\<^esub> z"
   shows "trans P q (trans P p u) = trans P (p \<bullet> q) u"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     focus prems vars x p
-      apply (equality \<open>p:_\<close>)
+      apply (eq p)
         apply (reduce; intros)
     done
   done
@@ -317,7 +355,7 @@ Lemma (derive) transport_compose_typefam:
     "p: x =\<^bsub>A\<^esub> y"
     "u: P (f x)"
   shows "trans (\<lambda>x. P (f x)) p u = trans P f[p] u"
-  by (equality \<open>p:_\<close>) (reduce; intros)
+  by (eq p) (reduce; intros)
 
 Lemma (derive) transport_function_family:
   assumes
@@ -329,7 +367,7 @@ Lemma (derive) transport_function_family:
     "u: P x"
     "p: x =\<^bsub>A\<^esub> y"
   shows "trans Q p ((f x) u) = (f y) (trans P p u)"
-  by (equality \<open>p:_\<close>) (reduce; intros)
+  by (eq p) (reduce; intros)
 
 Lemma (derive) transport_const:
   assumes
@@ -337,7 +375,7 @@ Lemma (derive) transport_const:
     "x: A" "y: A"
     "p: x =\<^bsub>A\<^esub> y"
   shows "\<Prod>b: B. trans (\<lambda>_. B) p b = b"
-  by (intro, equality \<open>p:_\<close>) (reduce; intro)
+  by (intro, eq p) (reduce; intro)
 
 definition transport_const_i ("trans'_const")
   where [implicit]: "trans_const B p \<equiv> transport_const ? B ? ? p"
@@ -359,7 +397,7 @@ Lemma (derive) pathlift:
     "p: x =\<^bsub>A\<^esub> y"
     "u: P x"
   shows "<x, u> = <y, trans P p u>"
-  by (equality \<open>p:_\<close>) (reduce; intros)
+  by (eq p) (reduce; intros)
 
 definition pathlift_i ("lift")
   where [implicit]: "lift P p u \<equiv> pathlift ? P ? ? p u"
@@ -383,7 +421,7 @@ Lemma (derive) pathlift_fst:
     "u: P x"
     "p: x =\<^bsub>A\<^esub> y"
   shows "fst[lift P p u] = p"
-  apply (equality \<open>p:_\<close>)
+  apply (eq p)
     text \<open>Some rewriting needed here:\<close>
     \<guillemotright> vars x y
       (*Here an automatic reordering tactic would be helpful*)
@@ -405,7 +443,7 @@ Lemma (derive) apd:
     "x: A" "y: A"
     "p: x =\<^bsub>A\<^esub> y"
   shows "trans P p (f x) = f y"
-  by (equality \<open>p:_\<close>) (reduce; intros; typechk)
+  by (eq p) (reduce; intros; typechk)
 
 definition apd_i ("apd")
   where [implicit]: "apd f p \<equiv> Identity.apd ? ? f ? ? p"
@@ -428,7 +466,7 @@ Lemma (derive) apd_ap:
     "x: A" "y: A"
     "p: x =\<^bsub>A\<^esub> y"
   shows "apd f p = trans_const B p (f x) \<bullet> f[p]"
-  by (equality \<open>p:_\<close>) (reduce; intro)
+  by (eq p) (reduce; intro)
 
 
 end
