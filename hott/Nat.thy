@@ -18,8 +18,8 @@ where
   NatE: "\<lbrakk>
     n: Nat;
     c\<^sub>0: C 0;
-    \<And>n. n: Nat \<Longrightarrow> C n: U i;
-    \<And>k c. \<lbrakk>k: Nat; c: C k\<rbrakk> \<Longrightarrow> f k c: C (suc k)
+    \<And>k c. \<lbrakk>k: Nat; c: C k\<rbrakk> \<Longrightarrow> f k c: C (suc k);
+    \<And>n. n: Nat \<Longrightarrow> C n: U i
     \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k c. f k c) n: C n" and
 
   Nat_comp_zero: "\<lbrakk>
@@ -56,14 +56,14 @@ lemma add_type [typechk]:
   shows "m + n: Nat"
   unfolding add_def by typechk
 
-lemma add_rec [comps]:
-  assumes "m: Nat" "n: Nat"
-  shows "suc m + n \<equiv> suc (m + n)"
-  unfolding add_def by reduce
-
 lemma zero_add [comps]:
   assumes "n: Nat"
   shows "0 + n \<equiv> n"
+  unfolding add_def by reduce
+
+lemma suc_add [comps]:
+  assumes "m: Nat" "n: Nat"
+  shows "suc m + n \<equiv> suc (m + n)"
   unfolding add_def by reduce
 
 Lemma (derive) add_zero:
@@ -71,29 +71,42 @@ Lemma (derive) add_zero:
   shows "n + 0 = n"
   apply (elim n)
     \<guillemotright> by (reduce; intro)
-    \<guillemotright> vars _ IH by reduce (elim IH; intro)
+    \<guillemotright> vars _ ih by reduce (eq ih; intro)
   done
+
+Lemma (derive) add_suc:
+  assumes "m: Nat" "n: Nat"
+  shows "m + suc n = suc (m + n)"
+  apply (elim m)
+    \<guillemotright> by reduce intro
+    \<guillemotright> vars _ ih by reduce (eq ih; intro)
+  done
+
+Lemma (derive) suc_monotone:
+  assumes "m: Nat" "n: Nat"
+  shows "p: m = n \<Longrightarrow> suc m = suc n"
+  by (eq p) intro
 
 Lemma (derive) add_assoc:
   assumes "l: Nat" "m: Nat" "n: Nat"
   shows "l + (m + n) = (l + m) + n"
   apply (elim l)
     \<guillemotright> by reduce intro
-    \<guillemotright> vars _ IH by reduce (elim IH; intro)
+    \<guillemotright> vars _ ih by reduce (eq ih; intro)
   done
 
 Lemma (derive) add_comm:
   assumes "m: Nat" "n: Nat"
   shows "m + n = n + m"
   apply (elim m)
-    \<guillemotright> by (reduce; rule add_zero[sym])
-    \<guillemotright> vars m p
-      apply (elim n)
-    (*Should also change the `n`s in the premises!*)
-    (*FIXME: Elimination tactic needs to do the same kind of thing as the
-      equality tactic with pushing context premises into the statement, applying
-      the appropriate elimination rule and then pulling back out.*)
-oops
+    \<guillemotright> by (reduce; rule add_zero[symmetric])
+    \<guillemotright> prems prms vars m ih
+      proof reduce
+        have "suc (m + n) = suc (n + m)" by (eq ih) intro
+        also have "'' = n + suc m" by (rule add_suc[symmetric])
+        finally show "suc (m + n) = n + suc m" by this reduce
+      qed
+  done
 
 definition mul (infixl "*" 120) where
   [comps]: "m * n \<equiv> NatRec Nat 0 (K $ add n) m"
