@@ -20,7 +20,7 @@ Lemma homotopy_type [typechk]:
   shows "f ~ g: U i"
   unfolding homotopy_def by typechk
 
-Lemma (derive) homotopy_refl:
+Lemma (derive) homotopy_refl [refl]:
   assumes
     "A: U i"
     "f: \<Prod>x: A. B x"
@@ -41,21 +41,6 @@ Lemma (derive) hsym:
       \<guillemotright> by typechk
   done
 
-lemmas homotopy_symmetric = hsym[rotated 4]
-
-text \<open>\<open>hsym\<close> attribute for homotopies:\<close>
-
-ML \<open>
-structure HSym_Attr = Sym_Attr (
-  struct
-    val name = "hsym"
-    val symmetry_rule = @{thm homotopy_symmetric}
-  end
-)
-\<close>
-
-setup \<open>HSym_Attr.setup\<close>
-
 Lemma (derive) htrans:
   assumes
     "f: \<Prod>x: A. B x"
@@ -74,7 +59,11 @@ Lemma (derive) htrans:
     \<guillemotright> by typechk
   done
 
-lemmas homotopy_transitive = htrans[rotated 5]
+text \<open>For calculations:\<close>
+
+lemmas
+  homotopy_sym [sym] = hsym[rotated 4] and
+  homotopy_trans [trans] = htrans[rotated 5]
 
 Lemma (derive) commute_homotopy:
   assumes
@@ -266,24 +255,20 @@ Lemma (derive) biinv_imp_qinv:
         block is used to calculate "forward".
       \<close>
       proof -
-        have "g \<circ> (id B) ~ g \<circ> f \<circ> h"
-          by (rule homotopy_funcomp_right) (rule \<open>H2:_\<close>[hsym])
-
-        moreover have "g \<circ> f \<circ> h ~ (id A) \<circ> h"
+        have "g ~ g \<circ> (id B)" by reduce refl
+        also have "g \<circ> (id B) ~ g \<circ> f \<circ> h"
+          by (rule homotopy_funcomp_right) (rule \<open>H2:_\<close>[symmetric])
+        also have "g \<circ> f \<circ> h ~ (id A) \<circ> h"
           by (subst funcomp_assoc[symmetric])
              (rule homotopy_funcomp_left, rule \<open>H1:_\<close>)
+        also have "(id A) \<circ> h ~ h" by reduce refl
+        finally have "g ~ h" by this
 
-        ultimately have "g ~ h"
-          apply (rewrite to "g \<circ> (id B)" id_right[symmetric])
-          apply (rewrite to "(id A) \<circ> h" id_left[symmetric])
-          by (rule homotopy_transitive) (assumption+, typechk)
+        then have "f \<circ> g ~ f \<circ> h" by (rule homotopy_funcomp_right)
 
-        then have "f \<circ> g ~ f \<circ> h"
-          by (rule homotopy_funcomp_right)
-  
         with \<open>H2:_\<close>
         show "f \<circ> g ~ id B"
-          by (rule homotopy_transitive) (assumption+, typechk)
+          by (rule homotopy_trans) (assumption+, typechk)
       qed
     done
   done

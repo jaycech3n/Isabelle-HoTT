@@ -41,7 +41,8 @@ axiomatization where
 lemmas
   [intros] = IdF IdI and
   [elims "?p" "?a" "?b"] = IdE and
-  [comps] = Id_comp
+  [comps] = Id_comp and
+  [refl] = IdI
 
 
 section \<open>Path induction\<close>
