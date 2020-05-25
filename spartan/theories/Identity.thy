@@ -139,18 +139,9 @@ in val _ = Context.>>
 end
 \<close>
 
-text \<open>Set up \<open>sym\<close> attribute for propositional equalities:\<close>
-
-ML \<open>
-structure Id_Sym_Attr = Sym_Attr (
-  struct
-    val name = "sym"
-    val symmetry_rule = @{thm pathinv[rotated 3]}
-  end
-)
-\<close>
-
-setup \<open>Id_Sym_Attr.setup\<close>
+lemmas
+  [sym] = pathinv[rotated 3] and
+  [trans] = pathcomp[rotated 4]
 
 
 section \<open>Basic propositional equalities\<close>
