@@ -1,5 +1,5 @@
 theory More_Types
-imports Equivalence
+imports Spartan
 
 begin
 

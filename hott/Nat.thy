@@ -1,5 +1,5 @@
 theory Nat
-imports Equivalence
+imports Identity
 
 begin
 

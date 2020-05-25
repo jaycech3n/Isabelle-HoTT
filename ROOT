@@ -28,9 +28,8 @@ session HoTT in hott = Spartan +
       Available online at https://homotopytypetheory.org/book.
   "
   theories
-    HoTT (global)
     Identity
     Equivalence
-    More_Types
     Nat
-
+    More_Types
+    More_List
