@@ -11,7 +11,7 @@ structure Defs = Generic_Data (
   type T = (term * term) Symtab.table
   val empty = Symtab.empty
   val extend = I
-  val merge = Symtab.merge (Term.aconv o #1)
+  val merge = Symtab.merge (Term.aconv o apply2 #1)
 )
 
 val implicit_defs = Defs.get o Context.Proof
