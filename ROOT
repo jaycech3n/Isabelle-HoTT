@@ -34,3 +34,4 @@ session HoTT in hott = Spartan +
     Nat
     More_Types
     More_List
+    Eckmann_Hilton

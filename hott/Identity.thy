@@ -143,6 +143,22 @@ Lemma (derive) pathcomp_refl:
     apply (reduce; intros)
   done
 
+definition [implicit]: "ru p \<equiv> pathcomp_refl ? ? ? p"
+definition [implicit]: "lu p \<equiv> refl_pathcomp ? ? ? p"
+translations
+  "CONST ru p" \<leftharpoondown> "CONST pathcomp_refl A x y p"
+  "CONST lu p" \<leftharpoondown> "CONST refl_pathcomp A x y p"
+
+Lemma lu_refl [comps]:
+  assumes "A: U i" "x: A"
+  shows "lu (refl x) \<equiv> refl (refl x)"
+  unfolding refl_pathcomp_def by reduce
+
+Lemma ru_refl [comps]:
+  assumes "A: U i" "x: A"
+  shows "ru (refl x) \<equiv> refl (refl x)"
+  unfolding pathcomp_refl_def by reduce
+
 Lemma (derive) inv_pathcomp:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "p\<inverse> \<bullet> p = refl y"
