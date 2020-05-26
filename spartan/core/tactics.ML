@@ -4,7 +4,7 @@
 General tactics for dependent type theory.
 *)
 
-structure Tactics(* :
+structure Tactics:
 sig
 
 val assumptions_tac: Proof.context -> int -> tactic
@@ -16,9 +16,9 @@ val rule_tac: thm list -> Proof.context -> int -> tactic
 val dest_tac: int option -> thm list -> Proof.context -> int -> tactic
 val intro_tac: Proof.context -> int -> tactic
 val intros_tac: Proof.context -> int -> tactic
-val old_elims_tac: term option -> Proof.context -> int -> tactic
+val elim_context_tac: term list -> Proof.context -> int -> context_tactic
 
-end *) = struct
+end = struct
 
 (*An assumption tactic that only solves typing goals with rigid terms and
   judgmental equalities without schematic variables*)
@@ -99,40 +99,7 @@ fun intro_tac ctxt = SUBGOAL (fn (_, i) => SIDE_CONDS
 fun intros_tac ctxt = SUBGOAL (fn (_, i) =>
   (CHANGED o REPEAT o CHANGED o intro_tac ctxt) i)
 
-(*Basic elimination tactic, only uses existing type judgments from the context
-  (performs no type synthesis)*)
-fun old_elims_tac opt_tm ctxt = case opt_tm of
-    NONE => SUBGOAL (fn (_, i) => eresolve_tac ctxt (map #1 (Elim.rules ctxt)) i)
-  | SOME tm => SUBGOAL (fn (goal, i) =>
-      let
-        fun elim_rule typing =
-          let
-            val hd = head_of (Lib.type_of_typing typing)
-            val opt_rl = Elim.lookup_rule ctxt hd
-          in
-            case opt_rl of
-              NONE => Drule.dummy_thm
-            | SOME (rl, _) => Drule.infer_instantiate' ctxt
-                [SOME (Thm.cterm_of ctxt tm)] rl
-          end
-
-        val template = Lib.typing_of_term tm
-
-        val facts = Proof_Context.facts_of ctxt
-        val candidate_typings = Facts.could_unify facts template
-        val candidate_rules =
-          map (elim_rule o Thm.prop_of o #1) candidate_typings
-
-        val prems = Logic.strip_assums_hyp goal
-        val candidate_typings' =
-          filter (fn prem => Term.could_unify (template, prem)) prems
-        val candidate_rules' = map elim_rule candidate_typings'
-      in
-        (resolve_tac ctxt candidate_rules
-        ORELSE' eresolve_tac ctxt candidate_rules') i
-      end)
-
-(* Revamped general induction/elimination *)
+(* Induction/elimination *)
 
 (*Pushes a context/goal premise typing t:T into a \<Prod>-type*)
 fun internalize_fact_tac t =

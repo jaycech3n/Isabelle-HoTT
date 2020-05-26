@@ -8,8 +8,9 @@ imports
 keywords
   "Theorem" "Lemma" "Corollary" "Proposition" :: thy_goal_stmt and
   "focus" "\<guillemotright>" "\<^item>" "\<^enum>" "~" :: prf_script_goal % "proof" and
-  "derive" "prems" "vars":: quasi_command and
-  "print_coercions" :: thy_decl
+  "congruence" "print_coercions" :: thy_decl and
+  "rhs" "derive" "prems" "vars" :: quasi_command
+  
 
 begin
 
@@ -154,7 +155,8 @@ ML_file \<open>focus.ML\<close>
 
 section \<open>Congruence automation\<close>
 
-(*Potential to be retired*)
+consts "rhs" :: \<open>'a\<close> ("..")
+
 ML_file \<open>congruence.ML\<close>
 
 
@@ -185,10 +187,6 @@ method_setup intro =
 
 method_setup intros =
   \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (intros_tac ctxt)))\<close>
-
-method_setup old_elim =
-  \<open>Scan.option Args.term >> (fn tm => fn ctxt =>
-    SIMPLE_METHOD' (SIDE_CONDS (old_elims_tac tm ctxt) ctxt))\<close>
 
 method_setup elim =
   \<open>Scan.repeat Args.term >> (fn tms => fn ctxt =>
