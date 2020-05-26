@@ -61,6 +61,8 @@ Lemma (derive) htrans:
 
 text \<open>For calculations:\<close>
 
+congruence "f ~ g" rhs g
+
 lemmas
   homotopy_sym [sym] = hsym[rotated 4] and
   homotopy_trans [trans] = htrans[rotated 5]
@@ -81,8 +83,8 @@ Lemma (derive) commute_homotopy:
         \<comment> \<open>Here it would really be nice to have automation for transport and
           propositional equality.\<close>
         apply (rule use_transport[where ?y="H x \<bullet> refl (g x)"])
-          \<guillemotright> by (rule pathcomp_right_refl)
-          \<guillemotright> by (rule pathinv) (rule pathcomp_left_refl)
+          \<guillemotright> by (rule pathcomp_refl)
+          \<guillemotright> by (rule pathinv) (rule refl_pathcomp)
           \<guillemotright> by typechk
     done
   done
@@ -256,12 +258,12 @@ Lemma (derive) biinv_imp_qinv:
       \<close>
       proof -
         have "g ~ g \<circ> (id B)" by reduce refl
-        also have "g \<circ> (id B) ~ g \<circ> f \<circ> h"
+        also have ".. ~ g \<circ> f \<circ> h"
           by (rule homotopy_funcomp_right) (rule \<open>H2:_\<close>[symmetric])
-        also have "g \<circ> f \<circ> h ~ (id A) \<circ> h"
+        also have ".. ~ (id A) \<circ> h"
           by (subst funcomp_assoc[symmetric])
              (rule homotopy_funcomp_left, rule \<open>H1:_\<close>)
-        also have "(id A) \<circ> h ~ h" by reduce refl
+        also have ".. ~ h" by reduce refl
         finally have "g ~ h" by this
 
         then have "f \<circ> g ~ f \<circ> h" by (rule homotopy_funcomp_right)
@@ -348,8 +350,7 @@ text \<open>
 \<close>
 
 Lemma
-  assumes
-    "A: U i" "B: U i" "p: A =\<^bsub>U i\<^esub> B"
+  assumes "A: U i" "B: U i" "p: A =\<^bsub>U i\<^esub> B"
   shows "A \<simeq> B"
   by (eq p) (rule equivalence_refl)
 

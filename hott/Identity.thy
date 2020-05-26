@@ -120,25 +120,7 @@ translations
 
 section \<open>Calculational reasoning\<close>
 
-consts rhs :: \<open>'a\<close> ("''''")
-
-ML \<open>
-local fun last_rhs ctxt =
-  let
-    val this_name = Name_Space.full_name (Proof_Context.naming_of ctxt)
-      (Binding.name Auto_Bind.thisN)
-    val this = #thms (the (Proof_Context.lookup_fact ctxt this_name))
-      handle Option => []
-    val rhs = case map Thm.prop_of this of
-       [\<^const>\<open>has_type\<close> $ _ $ (\<^const>\<open>Id\<close> $ _ $ _ $ y)] => y
-      | _ => Term.dummy
-  in
-    map_aterms (fn t => case t of Const (\<^const_name>\<open>rhs\<close>, _) => rhs | _ => t)
-  end
-in val _ = Context.>>
-  (Syntax_Phases.term_check 5 "" (fn ctxt => map (last_rhs ctxt)))
-end
-\<close>
+congruence "x = y" rhs y
 
 lemmas
   [sym] = pathinv[rotated 3] and
@@ -147,28 +129,28 @@ lemmas
 
 section \<open>Basic propositional equalities\<close>
 
-Lemma (derive) pathcomp_left_refl:
+Lemma (derive) refl_pathcomp:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "(refl x) \<bullet> p = p"
   apply (eq p)
     apply (reduce; intros)
   done
 
-Lemma (derive) pathcomp_right_refl:
+Lemma (derive) pathcomp_refl:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "p \<bullet> (refl y) = p"
   apply (eq p)
     apply (reduce; intros)
   done
 
-Lemma (derive) pathcomp_left_inv:
+Lemma (derive) inv_pathcomp:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "p\<inverse> \<bullet> p = refl y"
   apply (eq p)
     apply (reduce; intros)
   done
 
-Lemma (derive) pathcomp_right_inv:
+Lemma (derive) pathcomp_inv:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
   shows "p \<bullet> p\<inverse> = refl x"
   apply (eq p)

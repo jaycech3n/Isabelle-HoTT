@@ -44,7 +44,7 @@ lemmas
 
 text \<open>Non-dependent recursion\<close>
 
-abbreviation "NatRec C \<equiv> NatInd (K C)"
+abbreviation "NatRec C \<equiv> NatInd (\<lambda>_. C)"
 
 
 section \<open>Basic arithmetic\<close>
@@ -100,10 +100,10 @@ Lemma (derive) add_comm:
   shows "m + n = n + m"
   apply (elim m)
     \<guillemotright> by (reduce; rule add_zero[symmetric])
-    \<guillemotright> prems prms vars m ih
+    \<guillemotright> prems vars m ih
       proof reduce
         have "suc (m + n) = suc (n + m)" by (eq ih) intro
-        also have "'' = n + suc m" by (rule add_suc[symmetric])
+        also have ".. = n + suc m" by (rule add_suc[symmetric])
         finally show "suc (m + n) = n + suc m" by this
       qed
   done
