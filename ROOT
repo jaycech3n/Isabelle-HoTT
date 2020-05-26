@@ -17,6 +17,7 @@ session Spartan in spartan = Spartan_Core +
   directories
     data
   theories
+    Maybe
     List
 
 session HoTT in hott = Spartan +
