@@ -1,5 +1,5 @@
 theory List
-imports Spartan
+imports Maybe
 
 begin
 
@@ -17,7 +17,7 @@ where
 
   List_nil: "A: U i \<Longrightarrow> nil A: List A" and
 
-  List_cons: "\<lbrakk>x: A; l: List A\<rbrakk> \<Longrightarrow> cons A x l: List A" and
+  List_cons: "\<lbrakk>x: A; xs: List A\<rbrakk> \<Longrightarrow> cons A x xs: List A" and
 
   ListE: "\<lbrakk>
     xs: List A;
@@ -46,24 +46,78 @@ lemmas
   [elims "?xs"] = ListE and
   [comps] = List_comp_nil List_comp_cons
 
-abbreviation "ListRec A C \<equiv> ListInd A (K C)"
-
-
-section \<open>Implicit notation\<close>
+abbreviation "ListRec A C \<equiv> ListInd A (\<lambda>_. C)"
 
 definition nil_i ("[]")
   where [implicit]: "[] \<equiv> nil ?"
 
 definition cons_i (infixr "#" 50)
-  where [implicit]: "x # l \<equiv> cons ? x l"
+  where [implicit]: "x # xs \<equiv> cons ? x xs"
+
+translations
+  "[]" \<leftharpoondown> "CONST List.nil A"
+  "x # xs" \<leftharpoondown> "CONST List.cons A x xs"
+
+
+section \<open>List notation\<close>
+
+syntax
+  "_list" :: \<open>args \<Rightarrow> o\<close> ("[_]")
+translations
+  "[x, xs]" \<rightleftharpoons> "x # [xs]"
+  "[x]" \<rightleftharpoons> "x # []"
 
 
 section \<open>Standard functions\<close>
 
-definition "tail A \<equiv> \<lambda>xs: List A. ListRec A (List A) (nil A) (\<lambda>x xs _. xs) xs"
+\<comment> \<open>
+definition "head A \<equiv> \<lambda>xs: List A.
+  ListRec A (Maybe A) (Maybe.none A) (\<lambda>x _ _. Maybe.some A x) xs"
+\<close>
 
+Lemma (derive) head:
+  assumes "A: U i" "xs: List A"
+  shows "Maybe A"
+proof (elim xs)
+  show "none: Maybe A" by intro
+  show "\<And>x. x: A \<Longrightarrow> some x: Maybe A" by intro
+qed
+
+thm head_def \<comment> \<open>head ?A ?xs \<equiv> ListRec ?A (Maybe ?A) none (\<lambda>x xs c. some x) ?xs\<close>
+
+\<comment> \<open>
+definition "tail A \<equiv> \<lambda>xs: List A. ListRec A (List A) (nil A) (\<lambda>x xs _. xs) xs"
+\<close>
+
+Lemma (derive) tail:
+  assumes "A: U i" "xs: List A"
+  shows "List A"
+proof (elim xs)
+  show "[]: List A" by intro
+  show "\<And>xs. xs: List A \<Longrightarrow> xs: List A" .
+qed
+
+thm tail_def
+
+\<comment> \<open>
 definition "map A B \<equiv> \<lambda>f: A \<rightarrow> B. \<lambda>xs: List A.
   ListRec A (List B) (nil B) (\<lambda>x _ c. cons B (f `x) c) xs"
+\<close>
+
+Lemma (derive) map:
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
+  shows "List B"
+proof (elim xs)
+  show "[]: List B" by intro
+  next fix x xs ys
+    assume "x: A" "xs: List A" "ys: List B"
+  show "f x # ys: List B" by typechk
+qed
+
+thm map_def
+
+definition head_i ("head")
+  where [implicit]: "head xs \<equiv> List.head ? xs"
 
 definition tail_i ("tail")
   where [implicit]: "tail xs \<equiv> List.tail ? xs"
@@ -72,8 +126,14 @@ definition map_i ("map")
   where [implicit]: "map \<equiv> List.map ? ?"
 
 translations
+  "head" \<leftharpoondown> "CONST List.head A"
   "tail" \<leftharpoondown> "CONST List.tail A"
   "map" \<leftharpoondown> "CONST List.map A B"
+
+Lemma head_type [typechk]:
+  assumes "A: U i" "xs: List A"
+  shows "head xs: Maybe A"
+  unfolding head_def by typechk
 
 Lemma tail_type [typechk]:
   assumes "A: U i" "xs: List A"
