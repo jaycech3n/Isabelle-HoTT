@@ -17,6 +17,7 @@ session Spartan in spartan = Spartan_Core +
   directories
     data
   theories
+    More_Types
     Maybe
     List
 
@@ -32,6 +33,5 @@ session HoTT in hott = Spartan +
     Identity
     Equivalence
     Nat
-    More_Types
     More_List
     Eckmann_Hilton
