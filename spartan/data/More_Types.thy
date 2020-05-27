@@ -44,7 +44,7 @@ axiomatization where
 
 lemmas
   [intros] = SumF Sum_inl Sum_inr and
-  [elims] = SumE and
+  [elims ?s] = SumE and
   [comps] = Sum_comp_inl Sum_comp_inr
 
 
@@ -75,7 +75,8 @@ and
 
 lemmas
   [intros] = TopF TopI BotF and
-  [elims] = TopE BotE and
+  [elims ?a] = TopE and
+  [elims ?x] = BotE and
   [comps] = Top_comp
 
 
