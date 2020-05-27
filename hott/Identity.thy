@@ -145,6 +145,7 @@ Lemma (derive) pathcomp_refl:
 
 definition [implicit]: "ru p \<equiv> pathcomp_refl ? ? ? p"
 definition [implicit]: "lu p \<equiv> refl_pathcomp ? ? ? p"
+
 translations
   "CONST ru p" \<leftharpoondown> "CONST pathcomp_refl A x y p"
   "CONST lu p" \<leftharpoondown> "CONST refl_pathcomp A x y p"

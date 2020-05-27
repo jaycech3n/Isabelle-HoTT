@@ -31,8 +31,6 @@ Lemma (derive) left_whisker:
     qed
   done
 
-text \<open>Some notation, or the proofs start getting unwieldy.\<close>
-
 definition right_whisker_i (infix "\<bullet>\<^sub>r\<^bsub>_\<^esub>" 121)
   where [implicit]: "\<alpha> \<bullet>\<^sub>r\<^bsub>a\<^esub> r \<equiv> right_whisker ? a ? ? ? ? r \<alpha>"
 
@@ -84,9 +82,6 @@ begin
     show "\<alpha>: p = q \<Longrightarrow> .. = q \<bullet> s" by (rule right_whisker)
   qed typechk
 
-  thm horiz_pathcomp_def (* horiz_pathcomp ?\<alpha> ?\<beta> \<equiv> ?\<alpha> \<bullet>\<^sub>r\<^bsub>a\<^esub> r \<bullet> (q \<bullet>\<^sub>l\<^bsub>c\<^esub> ?\<beta>) *)
-  thm horiz_pathcomp'_def (* horiz_pathcomp' ?\<alpha> ?\<beta> \<equiv> p \<bullet>\<^sub>l\<^bsub>c\<^esub> ?\<beta> \<bullet> (?\<alpha> \<bullet>\<^sub>r\<^bsub>a\<^esub> s) *)
-
   abbreviation horiz_pathcomp_abbr :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close> (infix "\<star>" 121)
     where "\<alpha> \<star> \<beta> \<equiv> horiz_pathcomp \<alpha> \<beta>"
 
@@ -99,7 +94,7 @@ begin
     unfolding horiz_pathcomp_def horiz_pathcomp'_def
     apply (eq \<alpha>, eq \<beta>)
       focus vars p apply (eq p)
-        \<guillemotright> vars _ q by (eq q) (reduce; refl)
+        focus vars _ q by (eq q) (reduce; refl)
       done
     done
 
@@ -117,7 +112,6 @@ Lemma \<Omega>2_alt_def:
 
 
 section \<open>Eckmann-Hilton\<close>
-
 
 context
 fixes A a
@@ -183,7 +177,7 @@ begin
     using assms[unfolded \<Omega>2_alt_def]
     proof -
       have "\<alpha> \<bullet> \<beta> = \<alpha> \<star> \<beta>" by (rule pathcomp_eq_horiz_pathcomp)
-      also have ".. = \<alpha> \<star>' \<beta>" by (rule \<Omega>2.horiz_pathcomp_eq_horiz_pathcomp'[simplified pathcomp_comp])
+      also have ".. = \<alpha> \<star>' \<beta>" by (rule \<Omega>2.horiz_pathcomp_eq_horiz_pathcomp'[simplified comps])
       also have ".. = \<beta> \<bullet> \<alpha>" by (rule pathcomp_eq_horiz_pathcomp')
       finally show "\<alpha> \<bullet> \<beta> = \<beta> \<bullet> \<alpha>" by this (reduce add: \<Omega>2.horiz_pathcomp_def \<Omega>2.horiz_pathcomp'_def)
     qed
