@@ -1,3 +1,5 @@
+chapter \<open>Lists\<close>
+
 theory List
 imports Maybe
 
@@ -22,24 +24,24 @@ where
   ListE: "\<lbrakk>
     xs: List A;
     c\<^sub>0: C (nil A);
-    \<And>x xs c. \<lbrakk>x: A; xs: List A; c: C xs\<rbrakk> \<Longrightarrow> f x xs c: C (cons A x xs);
+    \<And>x xs rec. \<lbrakk>x: A; xs: List A; rec: C xs\<rbrakk> \<Longrightarrow> f x xs rec: C (cons A x xs);
     \<And>xs. xs: List A \<Longrightarrow> C xs: U i
-    \<rbrakk> \<Longrightarrow> ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs c. f x xs c) xs: C xs" and
+    \<rbrakk> \<Longrightarrow> ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs rec. f x xs rec) xs: C xs" and
 
   List_comp_nil: "\<lbrakk>
     c\<^sub>0: C (nil A);
-    \<And>x xs c. \<lbrakk>x: A; xs: List A; c: C xs\<rbrakk> \<Longrightarrow> f x xs c: C (cons A x xs);
+    \<And>x xs rec. \<lbrakk>x: A; xs: List A; rec: C xs\<rbrakk> \<Longrightarrow> f x xs rec: C (cons A x xs);
     \<And>xs. xs: List A \<Longrightarrow> C xs: U i
-    \<rbrakk> \<Longrightarrow> ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs c. f x xs c) (nil A) \<equiv> c\<^sub>0" and
+    \<rbrakk> \<Longrightarrow> ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs rec. f x xs rec) (nil A) \<equiv> c\<^sub>0" and
 
   List_comp_cons: "\<lbrakk>
     xs: List A;
     c\<^sub>0: C (nil A);
-    \<And>x xs c. \<lbrakk>x: A; xs: List A; c: C xs\<rbrakk> \<Longrightarrow> f x xs c: C (cons A x xs);
+    \<And>x xs rec. \<lbrakk>x: A; xs: List A; rec: C xs\<rbrakk> \<Longrightarrow> f x xs rec: C (cons A x xs);
     \<And>xs. xs: List A \<Longrightarrow> C xs: U i
     \<rbrakk> \<Longrightarrow>
-      ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs c. f x xs c) (cons A x xs) \<equiv>
-        f x xs (ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs c. f x xs c) xs)"
+      ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs rec. f x xs rec) (cons A x xs) \<equiv>
+        f x xs (ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs rec. f x xs rec) xs)"
 
 lemmas
   [intros] = ListF List_nil List_cons and
@@ -70,11 +72,6 @@ translations
 
 section \<open>Standard functions\<close>
 
-\<comment> \<open>
-definition "head A \<equiv> \<lambda>xs: List A.
-  ListRec A (Maybe A) (Maybe.none A) (\<lambda>x _ _. Maybe.some A x) xs"
-\<close>
-
 Lemma (derive) head:
   assumes "A: U i" "xs: List A"
   shows "Maybe A"
@@ -83,11 +80,8 @@ proof (elim xs)
   show "\<And>x. x: A \<Longrightarrow> some x: Maybe A" by intro
 qed
 
-thm head_def \<comment> \<open>head ?A ?xs \<equiv> ListRec ?A (Maybe ?A) none (\<lambda>x xs c. some x) ?xs\<close>
-
-\<comment> \<open>
-definition "tail A \<equiv> \<lambda>xs: List A. ListRec A (List A) (nil A) (\<lambda>x xs _. xs) xs"
-\<close>
+thm head_def
+  \<comment> \<open>head ?A ?xs \<equiv> ListRec ?A (Maybe ?A) none (\<lambda>x xs c. some x) ?xs\<close>
 
 Lemma (derive) tail:
   assumes "A: U i" "xs: List A"
@@ -98,11 +92,7 @@ proof (elim xs)
 qed
 
 thm tail_def
-
-\<comment> \<open>
-definition "map A B \<equiv> \<lambda>f: A \<rightarrow> B. \<lambda>xs: List A.
-  ListRec A (List B) (nil B) (\<lambda>x _ c. cons B (f `x) c) xs"
-\<close>
+  \<comment> \<open>tail ?A ?xs \<equiv> ListRec ?A (List ?A) [] (\<lambda>x xs c. xs) ?xs\<close>
 
 Lemma (derive) map:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
@@ -115,6 +105,7 @@ proof (elim xs)
 qed
 
 thm map_def
+  \<comment> \<open>map ?A ?B ?f ?xs \<equiv> ListRec ?A (List ?B) [] (\<lambda>x xs. cons ?B (?f x)) ?xs\<close>
 
 definition head_i ("head")
   where [implicit]: "head xs \<equiv> List.head ? xs"

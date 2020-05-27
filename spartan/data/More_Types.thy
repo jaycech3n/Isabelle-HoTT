@@ -1,8 +1,9 @@
+chapter \<open>Some standard types\<close>
+
 theory More_Types
 imports Spartan
 
 begin
-
 
 section \<open>Sum type\<close>
 

@@ -1,7 +1,11 @@
+chapter \<open>Maybe type\<close>
+
 theory Maybe
 imports More_Types
 
 begin
+
+text \<open>Defined as a sum.\<close>
 
 definition "Maybe A \<equiv> A \<or> \<top>"
 definition "none A \<equiv> inr A \<top> tt"

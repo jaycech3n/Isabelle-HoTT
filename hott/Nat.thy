@@ -18,24 +18,24 @@ where
   NatE: "\<lbrakk>
     n: Nat;
     c\<^sub>0: C 0;
-    \<And>k c. \<lbrakk>k: Nat; c: C k\<rbrakk> \<Longrightarrow> f k c: C (suc k);
+    \<And>k rec. \<lbrakk>k: Nat; rec: C k\<rbrakk> \<Longrightarrow> f k rec: C (suc k);
     \<And>n. n: Nat \<Longrightarrow> C n: U i
-    \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k c. f k c) n: C n" and
+    \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k rec. f k rec) n: C n" and
 
   Nat_comp_zero: "\<lbrakk>
     c\<^sub>0: C 0;
-    \<And>k c. \<lbrakk>k: Nat; c: C k\<rbrakk> \<Longrightarrow> f k c: C (suc k);
+    \<And>k rec. \<lbrakk>k: Nat; rec: C k\<rbrakk> \<Longrightarrow> f k rec: C (suc k);
     \<And>n. n: Nat \<Longrightarrow> C n: U i
-    \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k c. f k c) 0 \<equiv> c\<^sub>0" and
+    \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k rec. f k rec) 0 \<equiv> c\<^sub>0" and
 
   Nat_comp_suc: "\<lbrakk>
     n: Nat;
     c\<^sub>0: C 0;
-    \<And>k c. \<lbrakk>k: Nat; c: C k\<rbrakk> \<Longrightarrow> f k c: C (suc k);
+    \<And>k rec. \<lbrakk>k: Nat; rec: C k\<rbrakk> \<Longrightarrow> f k rec: C (suc k);
     \<And>n. n: Nat \<Longrightarrow> C n: U i
     \<rbrakk> \<Longrightarrow>
-      NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k c. f k c) (suc n) \<equiv>
-        f n (NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k c. f k c) n)"
+      NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k rec. f k rec) (suc n) \<equiv>
+        f n (NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k rec. f k rec) n)"
 
 lemmas
   [intros] = NatF Nat_zero Nat_suc and
