@@ -85,32 +85,26 @@ section \<open>Standard functions\<close>
 Lemma (derive) head:
   assumes "A: U i" "xs: List A"
   shows "Maybe A"
-proof (elim xs)
+proof (cases xs)
   show "none: Maybe A" by intro
   show "\<And>x. x: A \<Longrightarrow> some x: Maybe A" by intro
 qed
 
-thm head_def
-  \<comment> \<open>head ?A ?xs \<equiv> ListRec ?A (Maybe ?A) none (\<lambda>x xs c. some x) ?xs\<close>
-
 Lemma (derive) tail:
   assumes "A: U i" "xs: List A"
   shows "List A"
-proof (elim xs)
+proof (cases xs)
   show "[]: List A" by intro
   show "\<And>xs. xs: List A \<Longrightarrow> xs: List A" .
 qed
-
-thm tail_def
-  \<comment> \<open>tail ?A ?xs \<equiv> ListRec ?A (List ?A) [] (\<lambda>x xs c. xs) ?xs\<close>
 
 Lemma (derive) map:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
   shows "List B"
 proof (elim xs)
   show "[]: List B" by intro
-  next fix x xs ys
-    assume "x: A" "xs: List A" "ys: List B"
+  next fix x ys
+    assume "x: A" "ys: List B"
   show "f x # ys: List B" by typechk
 qed
 
@@ -136,10 +130,20 @@ Lemma head_type [typechk]:
   shows "head xs: Maybe A"
   unfolding head_def by typechk
 
+Lemma head_of_cons [comps]:
+  assumes "A: U i" "x: A" "xs: List A"
+  shows "head (x # xs) \<equiv> some x"
+  unfolding head_def ListCase_def by reduce
+
 Lemma tail_type [typechk]:
   assumes "A: U i" "xs: List A"
   shows "tail xs: List A"
   unfolding tail_def by typechk
+
+Lemma tail_of_cons [comps]:
+  assumes "A: U i" "x: A" "xs: List A"
+  shows "tail (x # xs) \<equiv> xs"
+  unfolding tail_def ListCase_def by reduce
 
 Lemma map_type [typechk]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
