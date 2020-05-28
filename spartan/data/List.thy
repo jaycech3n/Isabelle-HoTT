@@ -50,19 +50,29 @@ lemmas
 
 abbreviation "ListRec A C \<equiv> ListInd A (\<lambda>_. C)"
 
+Lemma (derive) ListCase:
+  assumes
+    "A: U i" "\<And>xs. xs: List A \<Longrightarrow> C xs: U i" and
+    nil_case: "c\<^sub>0: C (nil A)" and
+    cons_case: "\<And>x xs. \<lbrakk>x: A; xs: List A\<rbrakk> \<Longrightarrow> f x xs: C (cons A x xs)" and
+    "xs: List A"
+  shows "?List_cases A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs. f x xs) xs: C xs"
+  by (elim xs) (fact nil_case, rule cons_case)
+
+lemmas List_cases [cases] = ListCase[rotated 4]
+
+
+section \<open>Notation\<close>
+
 definition nil_i ("[]")
   where [implicit]: "[] \<equiv> nil ?"
 
-definition cons_i (infixr "#" 50)
+definition cons_i (infixr "#" 120)
   where [implicit]: "x # xs \<equiv> cons ? x xs"
 
 translations
   "[]" \<leftharpoondown> "CONST List.nil A"
   "x # xs" \<leftharpoondown> "CONST List.cons A x xs"
-
-
-section \<open>List notation\<close>
-
 syntax
   "_list" :: \<open>args \<Rightarrow> o\<close> ("[_]")
 translations

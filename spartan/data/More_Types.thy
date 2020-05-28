@@ -48,6 +48,9 @@ lemmas
   [elims ?s] = SumE and
   [comps] = Sum_comp_inl Sum_comp_inr
 
+method left = rule Sum_inl
+method right = rule Sum_inr
+
 
 section \<open>Empty and unit types\<close>
 

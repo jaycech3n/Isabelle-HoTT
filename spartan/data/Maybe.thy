@@ -55,8 +55,10 @@ Lemma Maybe_comp_some:
 
 lemmas
   [intros] = MaybeF Maybe_none Maybe_some and
-  MaybeE [elims "?m"] = MaybeInd and
-  [comps] = Maybe_comp_none Maybe_comp_some
+  [comps] = Maybe_comp_none Maybe_comp_some and
+  MaybeE [elims "?m"] = MaybeInd[rotated 4]
+lemmas
+  Maybe_cases [cases] = MaybeE
 
 abbreviation "MaybeRec A C \<equiv> MaybeInd A (K C)"
 
