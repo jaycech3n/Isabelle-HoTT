@@ -17,6 +17,7 @@ val dest_tac: int option -> thm list -> Proof.context -> int -> tactic
 val intro_tac: Proof.context -> int -> tactic
 val intros_tac: Proof.context -> int -> tactic
 val elim_context_tac: term list -> Proof.context -> int -> context_tactic
+val cases_tac: term -> Proof.context -> int -> tactic
 
 end = struct
 
@@ -192,6 +193,26 @@ fun elim_context_tac tms ctxt = case tms of
             (record_inserts ctxt) (tac st)
         end
     end)
+
+fun cases_tac tm ctxt = SUBGOAL (fn (goal, i) =>
+  let
+    val facts = Proof_Context.facts_of ctxt
+    val prems = Logic.strip_assums_hyp goal
+    val template = Lib.typing_of_term tm
+    val types =
+      map (Thm.prop_of o #1) (Facts.could_unify facts template)
+      @ filter (fn prem => Term.could_unify (template, prem)) prems
+      |> map Lib.type_of_typing
+    val res = (case types of
+        [typ] => Drule.infer_instantiate' ctxt [SOME (Thm.cterm_of ctxt tm)]
+          (the (Case.lookup_rule ctxt (Term.head_of typ)))
+      | [] => raise Option
+      | _ => raise error (Syntax.string_of_term ctxt tm ^ "not uniquely typed"))
+      handle Option => error ("no case rule known for "
+        ^ (Syntax.string_of_term ctxt tm))
+  in
+    SIDE_CONDS (resolve_tac ctxt [res]) ctxt i
+  end)
 
 end
 

@@ -162,7 +162,8 @@ ML_file \<open>lib/congruence.ML\<close>
 
 section \<open>Methods\<close>
 
-ML_file \<open>lib/elimination.ML\<close> \<comment> \<open>declares the [elims] attribute\<close>
+ML_file \<open>lib/elimination.ML\<close> \<comment> \<open>elimination rules\<close>
+ML_file \<open>lib/cases.ML\<close> \<comment> \<open>case reasoning rules\<close>
 
 named_theorems intros and comps
 lemmas
@@ -193,6 +194,9 @@ method_setup elim =
     CONTEXT_METHOD (K (elim_context_tac tms ctxt 1)))\<close>
 
 method elims = elim+
+
+method_setup cases =
+  \<open>Args.term >> (fn tm => fn ctxt => SIMPLE_METHOD' (cases_tac tm ctxt))\<close>
 
 (*This could possibly use additional simplification hints via a simp: modifier*)
 method_setup typechk =
