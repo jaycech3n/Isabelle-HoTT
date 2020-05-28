@@ -112,7 +112,7 @@ syntax "_Sum" :: \<open>idt \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<clo
 
 translations "\<Sum>x: A. B" \<rightleftharpoons> "CONST Sig A (\<lambda>x. B)"
 
-abbreviation Prod (infixl "\<times>" 50)
+abbreviation Prod (infixl "\<times>" 60)
   where "A \<times> B \<equiv> \<Sum>_: A. B"
 
 axiomatization where
@@ -148,21 +148,21 @@ section \<open>Proof commands\<close>
 
 named_theorems typechk
 
-ML_file \<open>lib.ML\<close>
-ML_file \<open>goals.ML\<close>
-ML_file \<open>focus.ML\<close>
+ML_file \<open>lib/lib.ML\<close>
+ML_file \<open>lib/goals.ML\<close>
+ML_file \<open>lib/focus.ML\<close>
 
 
 section \<open>Congruence automation\<close>
 
 consts "rhs" :: \<open>'a\<close> ("..")
 
-ML_file \<open>congruence.ML\<close>
+ML_file \<open>lib/congruence.ML\<close>
 
 
 section \<open>Methods\<close>
 
-ML_file \<open>elimination.ML\<close> \<comment> \<open>declares the [elims] attribute\<close>
+ML_file \<open>lib/elimination.ML\<close> \<comment> \<open>declares the [elims] attribute\<close>
 
 named_theorems intros and comps
 lemmas
@@ -172,7 +172,7 @@ lemmas
   [comps] = beta Sig_comp and
   [cong] = Pi_cong lam_cong Sig_cong
 
-ML_file \<open>tactics.ML\<close>
+ML_file \<open>lib/tactics.ML\<close>
 
 method_setup assumptions =
   \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (
@@ -226,11 +226,11 @@ method_setup this =
 subsection \<open>Rewriting\<close>
 
 \<comment> \<open>\<open>subst\<close> method\<close>
-ML_file "~~/src/Tools/misc_legacy.ML"
-ML_file "~~/src/Tools/IsaPlanner/isand.ML"
-ML_file "~~/src/Tools/IsaPlanner/rw_inst.ML"
-ML_file "~~/src/Tools/IsaPlanner/zipper.ML"
-ML_file "eqsubst.ML"
+ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/isand.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/rw_inst.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/zipper.ML\<close>
+ML_file \<open>lib/eqsubst.ML\<close>
 
 \<comment> \<open>\<open>rewrite\<close> method\<close>
 consts rewrite_HOLE :: "'a::{}"  ("\<hole>")
@@ -257,7 +257,7 @@ lemma imp_cong_eq:
   done
 
 ML_file \<open>~~/src/HOL/Library/cconv.ML\<close>
-ML_file \<open>rewrite.ML\<close>
+ML_file \<open>lib/rewrite.ML\<close>
 
 \<comment> \<open>\<open>reduce\<close> computes terms via judgmental equalities\<close>
 setup \<open>map_theory_simpset (fn ctxt => ctxt addSolver (mk_solver "" typechk_tac))\<close>
@@ -276,7 +276,7 @@ consts
   iarg :: \<open>'a\<close> ("?")
   hole :: \<open>'b\<close> ("{}")
 
-ML_file \<open>implicits.ML\<close>
+ML_file \<open>lib/implicits.ML\<close>
 
 attribute_setup implicit = \<open>Scan.succeed Implicits.implicit_defs_attr\<close>
 
