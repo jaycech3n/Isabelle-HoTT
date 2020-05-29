@@ -75,7 +75,7 @@ Lemma (derive) commute_homotopy:
     "f: A \<rightarrow> B" "g: A \<rightarrow> B"
     "H: homotopy A (\<lambda>_. B) f g"
   shows "(H x) \<bullet> g[p] = f[p] \<bullet> (H y)"
-  \<comment> \<open>Need this assumption unfolded for typechecking:\<close>
+  \<comment> \<open>Need this assumption unfolded for typechecking\<close>
   supply assms(8)[unfolded homotopy_def]
   apply (eq p)
     focus vars x
@@ -167,8 +167,8 @@ Lemma (derive) id_qinv:
   unfolding qinv_def
   apply intro defer
     apply intro defer
-      apply (rule homotopy_id_right)
-      apply (rule homotopy_id_left)
+      apply htpy_id
+      apply id_htpy
   done
 
 Lemma (derive) quasiinv_qinv:
@@ -176,14 +176,14 @@ Lemma (derive) quasiinv_qinv:
   shows "prf: qinv f \<Longrightarrow> qinv (fst prf)"
   unfolding qinv_def
   apply intro
-    \<guillemotright> by (rule \<open>f:_\<close>)
-    \<guillemotright> apply (elim "prf")
-        focus vars g HH
-          apply intro
-            \<^item> by reduce (snd HH)
-            \<^item> by reduce (fst HH)
-        done
-      done
+  \<guillemotright> by (rule \<open>f:_\<close>)
+  \<guillemotright> apply (elim "prf")
+    focus vars g HH
+      apply intro
+        \<^item> by reduce (snd HH)
+        \<^item> by reduce (fst HH)
+    done
+    done
   done
 
 Lemma (derive) funcomp_qinv:
@@ -272,7 +272,7 @@ Lemma (derive) biinv_imp_qinv:
         also have ".. ~ (id A) \<circ> h" by (subst funcomp_assoc[symmetric]) (htpy_o, fact)
         also have ".. ~ h" by reduce refl
         finally have "g ~ h" by this
-        then have "f \<circ> g ~ f \<circ> h" by (rule homotopy_funcomp_right)
+        then have "f \<circ> g ~ f \<circ> h" by o_htpy
         also note \<open>H2:_\<close>
         finally show "f \<circ> g ~ id B" by this
       qed
@@ -281,7 +281,7 @@ Lemma (derive) biinv_imp_qinv:
 
 Lemma (derive) id_biinv:
   "A: U i \<Longrightarrow> biinv (id A)"
-    by (rule qinv_imp_biinv) (rule id_qinv)
+  by (rule qinv_imp_biinv) (rule id_qinv)
 
 Lemma (derive) funcomp_biinv:
   assumes
@@ -290,9 +290,8 @@ Lemma (derive) funcomp_biinv:
   shows "biinv f \<rightarrow> biinv g \<rightarrow> biinv (g \<circ> f)"
   apply intros
   focus vars biinv\<^sub>f biinv\<^sub>g
-
-  text \<open>Follows from \<open>funcomp_qinv\<close>.\<close>
-oops
+    by (rule qinv_imp_biinv) (rule funcomp_qinv; rule biinv_imp_qinv)
+  done
 
 
 section \<open>Equivalence\<close>
@@ -343,9 +342,13 @@ Lemma (derive) equivalence_transitive:
   shows "A \<simeq> B \<rightarrow> B \<simeq> C \<rightarrow> A \<simeq> C"
   apply intros
   unfolding equivalence_def
-
-  text \<open>Use \<open>funcomp_biinv\<close>.\<close>
-oops
+    focus vars p q apply (elim p, elim q)
+      focus vars f biinv\<^sub>f g biinv\<^sub>g apply intro
+        \<guillemotright> apply (rule funcompI) defer by assumption known
+        \<guillemotright> by (rule funcomp_biinv)
+      done
+    done
+  done
 
 text \<open>
   Equal types are equivalent. We give two proofs: the first by induction, and
