@@ -33,4 +33,3 @@ session HoTT in hott = Spartan +
     Equivalence
     Nat
     More_List
-    Eckmann_Hilton

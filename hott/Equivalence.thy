@@ -138,6 +138,11 @@ Lemma homotopy_funcomp_right:
       apply (rule ap, assumption)
   done
 
+method id_htpy = (rule homotopy_id_left)
+method htpy_id = (rule homotopy_id_right)
+method htpy_o = (rule homotopy_funcomp_left)
+method o_htpy = (rule homotopy_funcomp_right)
+
 
 section \<open>Quasi-inverse and bi-invertibility\<close>
 
@@ -187,15 +192,20 @@ Lemma (derive) funcomp_qinv:
     "f: A \<rightarrow> B" "g: B \<rightarrow> C"
   shows "qinv f \<rightarrow> qinv g \<rightarrow> qinv (g \<circ> f)"
   apply (intros, unfold qinv_def, elims)
-  focus
-    prems prms
-    vars _ _ finv _ ginv _ HfA HfB HgB HgC
+  focus prems vars _ _ finv _ ginv
+    apply (intro, rule funcompI[where ?f=ginv and ?g=finv])
+    proof (reduce, intro)
+      have "finv \<circ> ginv \<circ> g \<circ> f ~ finv \<circ> (ginv \<circ> g) \<circ> f" by reduce refl
+      also have ".. ~ finv \<circ> id B \<circ> f" by (o_htpy, htpy_o) fact
+      also have ".. ~ id A" by reduce fact
+      finally show "finv \<circ> ginv \<circ> g \<circ> f ~ id A" by this
 
-    apply intro
-    apply (rule funcompI[where ?f=ginv and ?g=finv])
-
-    text \<open>Now a whole bunch of rewrites and we're done.\<close>
-oops
+      have "g \<circ> f \<circ> finv \<circ> ginv ~ g \<circ> (f \<circ> finv) \<circ> ginv" by reduce refl
+      also have ".. ~ g \<circ> id B \<circ> ginv" by (o_htpy, htpy_o) fact
+      also have ".. ~ id C" by reduce fact
+      finally show "g \<circ> f \<circ> finv \<circ> ginv ~ id C" by this
+    qed
+  done
 
 subsection \<open>Bi-invertible maps\<close>
 
@@ -246,10 +256,10 @@ Lemma (derive) biinv_imp_qinv:
   \<close>
   unfolding qinv_def
   apply intro
-    \<guillemotright> by (rule \<open>g: _\<close>)
+    \<guillemotright> by (fact \<open>g: _\<close>)
     \<guillemotright> apply intro
       text \<open>The first part \<^prop>\<open>?H1: g \<circ> f ~ id A\<close> is given by \<^term>\<open>H1\<close>.\<close>
-      apply (rule \<open>H1: _\<close>)
+      apply (fact \<open>H1: _\<close>)
 
       text \<open>
         It remains to prove \<^prop>\<open>?H2: f \<circ> g ~ id B\<close>. First show that \<open>g ~ h\<close>,
@@ -258,19 +268,13 @@ Lemma (derive) biinv_imp_qinv:
       \<close>
       proof -
         have "g ~ g \<circ> (id B)" by reduce refl
-        also have ".. ~ g \<circ> f \<circ> h"
-          by (rule homotopy_funcomp_right) (rule \<open>H2:_\<close>[symmetric])
-        also have ".. ~ (id A) \<circ> h"
-          by (subst funcomp_assoc[symmetric])
-             (rule homotopy_funcomp_left, rule \<open>H1:_\<close>)
+        also have ".. ~ g \<circ> f \<circ> h" by o_htpy (rule \<open>H2:_\<close>[symmetric])
+        also have ".. ~ (id A) \<circ> h" by (subst funcomp_assoc[symmetric]) (htpy_o, fact)
         also have ".. ~ h" by reduce refl
         finally have "g ~ h" by this
-
         then have "f \<circ> g ~ f \<circ> h" by (rule homotopy_funcomp_right)
-
-        with \<open>H2:_\<close>
-        show "f \<circ> g ~ id B"
-          by (rule homotopy_trans) (assumption+, typechk)
+        also note \<open>H2:_\<close>
+        finally show "f \<circ> g ~ id B" by this
       qed
     done
   done
