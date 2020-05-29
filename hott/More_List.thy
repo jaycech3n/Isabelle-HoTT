@@ -16,7 +16,7 @@ definition [implicit]:
   "len \<equiv> ListRec ? Nat 0 (\<lambda>_ _ n. suc n)"
 
 experiment begin
-  Lemma "len [] \<equiv> 0" by reduce
+  Lemma "len [] \<equiv> ?n" by (subst comps)+
   Lemma "len [0, suc 0, suc (suc 0)] \<equiv> ?n" by (subst comps)+
 end
 
