@@ -92,10 +92,10 @@ axiomatization where
   eta: "f: \<Prod>x: A. B x \<Longrightarrow> \<lambda>x: A. f `x \<equiv> f" and
 
   Pi_cong: "\<lbrakk>
+    \<And>x. x: A \<Longrightarrow> B x \<equiv> B' x;
     A: U i;
     \<And>x. x: A \<Longrightarrow> B x: U i;
-    \<And>x. x: A \<Longrightarrow> B' x: U i;
-    \<And>x. x: A \<Longrightarrow> B x \<equiv> B' x
+    \<And>x. x: A \<Longrightarrow> B' x: U i
     \<rbrakk> \<Longrightarrow> \<Prod>x: A. B x \<equiv> \<Prod>x: A. B' x" and
 
   lam_cong: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x \<equiv> c x; A: U i\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x \<equiv> \<lambda>x: A. c x"
