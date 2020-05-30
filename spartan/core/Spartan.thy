@@ -294,8 +294,8 @@ val _ = Context.>>
 
 text \<open>Automatically insert inhabitation judgments where needed:\<close>
 
-consts inhabited :: \<open>o \<Rightarrow> prop\<close> ("(_)")
-translations "CONST inhabited A" \<rightharpoonup> "CONST has_type {} A"
+syntax inhabited :: \<open>o \<Rightarrow> prop\<close> ("(_)")
+translations "inhabited A" \<rightharpoonup> "CONST has_type {} A"
 
 
 section \<open>Lambda coercion\<close>
