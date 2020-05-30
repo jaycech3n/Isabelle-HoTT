@@ -304,6 +304,8 @@ Lemma use_transport:
   shows "trans P p\<inverse> u: P y"
   by typechk
 
+method transport uses eq = (rule use_transport[OF eq])
+
 Lemma (derive) transport_left_inv:
   assumes
     "A: U i"
