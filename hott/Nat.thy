@@ -49,6 +49,8 @@ abbreviation "NatRec C \<equiv> NatInd (\<lambda>_. C)"
 
 section \<open>Basic arithmetic\<close>
 
+subsection \<open>Addition\<close>
+
 definition add (infixl "+" 120) where "m + n \<equiv> NatRec Nat n (K suc) m"
 
 lemma add_type [typechk]:
@@ -82,7 +84,7 @@ Lemma (derive) add_suc:
     \<guillemotright> vars _ ih by reduce (eq ih; intro)
   done
 
-Lemma (derive) suc_monotone:
+Lemma (derive) suc_eq:
   assumes "m: Nat" "n: Nat"
   shows "p: m = n \<Longrightarrow> suc m = suc n"
   by (eq p) intro
@@ -107,6 +109,8 @@ Lemma (derive) add_comm:
         finally show "suc (m + n) = n + suc m" by this
       qed
   done
+
+subsection \<open>Multiplication\<close>
 
 definition mul (infixl "*" 120) where
   [comps]: "m * n \<equiv> NatRec Nat 0 (K $ add n) m"
