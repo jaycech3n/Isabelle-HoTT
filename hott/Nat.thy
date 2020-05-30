@@ -42,11 +42,8 @@ lemmas
   [elims "?n"] = NatE and
   [comps] = Nat_comp_zero Nat_comp_suc
 
-text \<open>Non-dependent recursion\<close>
-
 abbreviation "NatRec C \<equiv> NatInd (\<lambda>_. C)"
 
-text \<open>Manual notation for now:\<close>
 abbreviation one   ("1") where "1 \<equiv> suc 0"
 abbreviation two   ("2") where "2 \<equiv> suc 1"
 abbreviation three ("3") where "3 \<equiv> suc 2"
@@ -102,7 +99,7 @@ Lemma (derive) suc_eq:
 
 Lemma (derive) add_assoc:
   assumes "l: Nat" "m: Nat" "n: Nat"
-  shows "l + (m + n) = (l + m) + n"
+  shows "l + (m + n) = l + m+ n"
   apply (elim n)
     \<guillemotright> by reduce intro
     \<guillemotright> vars _ ih by reduce (eq ih; intro)
@@ -116,8 +113,8 @@ Lemma (derive) add_comm:
     \<guillemotright> prems vars n ih
       proof reduce
         have "suc (m + n) = suc (n + m)" by (eq ih) intro
-        also have ".. = suc n + m" by (rule suc_add[symmetric])
-        finally show "suc (m + n) = suc n + m" by this
+        also have ".. = suc n + m" by (transport eq: suc_add) refl
+        finally show "{}" by this
       qed
   done
 
@@ -144,5 +141,74 @@ lemma mul_suc [comps]:
   assumes "m: Nat" "n: Nat"
   shows "m * suc n \<equiv> m + m * n"
   unfolding mul_def by reduce
+
+Lemma (derive) zero_mul:
+  assumes "n: Nat"
+  shows "0 * n = 0"
+  apply (elim n)
+  \<guillemotright> by reduce refl
+  \<guillemotright> prems vars n ih
+    proof reduce
+      have "0 + 0 * n = 0 + 0 " by (eq ih) refl
+      also have ".. = 0" by reduce refl
+      finally show "0 + 0 * n = 0" by this
+    qed
+  done
+
+Lemma (derive) suc_mul:
+  assumes "m: Nat" "n: Nat"
+  shows "suc m * n = m * n + n"
+  apply (elim n)
+  \<guillemotright> by reduce refl
+  \<guillemotright> prems vars n ih
+    proof (reduce, transport eq: \<open>ih:_\<close>)
+      have "suc m + (m * n + n) = suc (m + {})" by (rule suc_add)
+      also have ".. = suc (m + m * n + n)" by (transport eq: add_assoc) refl
+      finally show "{}" by this
+    qed
+  done
+
+Lemma (derive) mul_dist_add:
+  assumes "l: Nat" "m: Nat" "n: Nat"
+  shows "l * (m + n) = l * m + l * n"
+  apply (elim n)
+  \<guillemotright> by reduce refl
+  \<guillemotright> prems prms vars n ih
+    proof reduce
+      have "l + l * (m + n) = l + (l * m + l * n)" by (eq ih) refl
+      also have ".. = l + l * m + l * n" by (rule add_assoc)
+      also have ".. = l * m + l + l * n" by (transport eq: add_comm) refl
+      also have ".. = l * m + (l + l * n)" by (transport eq: add_assoc) refl
+      finally show "{}" by this
+    qed
+  done
+
+Lemma (derive) mul_assoc:
+  assumes "l: Nat" "m: Nat" "n: Nat"
+  shows "l * (m * n) = l * m * n"
+  apply (elim n)
+  \<guillemotright> by reduce refl
+  \<guillemotright> prems vars n ih
+    proof reduce
+      have "l * (m + m * n) = l * m + l * (m * n)" by (rule mul_dist_add)
+      also have ".. = l * m + l * m * n" by (transport eq: \<open>ih:_\<close>) refl
+      finally show "{}" by this
+    qed
+  done
+
+Lemma (derive) mul_comm:
+  assumes "m: Nat" "n: Nat"
+  shows "m * n = n * m"
+  apply (elim n)
+  \<guillemotright> by reduce (transport eq: zero_mul, refl)
+  \<guillemotright> prems vars n ih
+    proof (reduce, rule pathinv)
+      have "suc n * m = n * m + m" by (rule suc_mul)
+      also have ".. = m + m * n"
+        by (transport eq: \<open>ih:_\<close>, transport eq: add_comm) refl
+      finally show "{}" by this
+    qed
+  done
+
 
 end
