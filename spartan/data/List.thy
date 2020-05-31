@@ -98,6 +98,32 @@ proof (cases xs)
   show "\<And>xs. xs: List A \<Longrightarrow> xs: List A" .
 qed
 
+Lemma (derive) app:
+  assumes "A: U i" "xs: List A" "ys: List A"
+  shows "List A"
+  apply (elim xs)
+  \<guillemotright> by (fact \<open>ys:_\<close>)
+  \<guillemotright> prems vars x _ rec
+    proof - show "x # rec: List A" by typechk qed
+  done
+
+definition head_i ("head")
+  where [implicit]: "head xs \<equiv> List.head ? xs"
+
+definition tail_i ("tail")
+  where [implicit]: "tail xs \<equiv> List.tail ? xs"
+
+definition app_i ("app")
+  where [implicit]: "app xs ys \<equiv> List.app ? xs ys"
+
+Lemma (derive) rev:
+  assumes "A: U i" "xs: List A"
+  shows "List A"
+  apply (elim xs)
+  \<guillemotright> by (rule List_nil)
+  \<guillemotright> prems vars x _ rec proof - show "app rec [x]: List A" by typechk qed
+  done
+
 Lemma (derive) map:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
   shows "List B"
@@ -108,14 +134,8 @@ proof (elim xs)
   show "f x # ys: List B" by typechk
 qed
 
-thm map_def
-  \<comment> \<open>map ?A ?B ?f ?xs \<equiv> ListRec ?A (List ?B) [] (\<lambda>x xs. cons ?B (?f x)) ?xs\<close>
-
-definition head_i ("head")
-  where [implicit]: "head xs \<equiv> List.head ? xs"
-
-definition tail_i ("tail")
-  where [implicit]: "tail xs \<equiv> List.tail ? xs"
+definition rev_i ("rev")
+  where [implicit]: "rev \<equiv> List.rev ?"
 
 definition map_i ("map")
   where [implicit]: "map \<equiv> List.map ? ?"
