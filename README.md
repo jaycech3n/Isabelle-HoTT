@@ -27,4 +27,5 @@ In no particular order. Some of the following might require changes to the Isabe
       Will need an elaborator integrated into Isabelle's syntax checking.
 - [ ] Inductive type definitions.
 - [ ] Recursive function definitions.
+- [ ] Higher inductive type definitions.
 
