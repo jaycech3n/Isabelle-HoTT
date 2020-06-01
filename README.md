@@ -1,6 +1,11 @@
 # Isabelle/HoTT
 
-An experimental implementation of [homotopy type theory](https://en.wikipedia.org/wiki/Homotopy_type_theory) in [Isabelle](https://isabelle.in.tum.de/).
+Isabelle/HoTT is an experimental implementation of [homotopy type theory](https://en.wikipedia.org/wiki/Homotopy_type_theory) in the [Isabelle](https://isabelle.in.tum.de/) interactive theorem prover.
+It largely follows the development of the theory in the [Homotopy Type Theory book](https://homotopytypetheory.org/book/), but aims to be general enough to support cubical and other kinds of homotopy type theories.
+
+Work is slowly ongoing to develop the logic into a fully-featured framework in which one can formulate and prove mathematical statements, in the style of the univalent foundations school.
+While Isabelle has provided support for object logics based on Martin-Löf type theory since the beginning, these have largely been ignored in favor of Isabelle/HOL.
+Thus this project is also an experiment in creating a viable framework, based on dependent type theory, inside the simple type theoretic foundations of Isabelle/Pure.
 
 ### Usage
 
@@ -11,12 +16,14 @@ To use, add the Isabelle/HoTT folder path to `.isabelle/Isabelle2020/ROOTS` (on 
 $ echo path/to/Isabelle/HoTT >> ~/.isabelle/Isabelle2020/ROOTS
 ```
 
-### What (and why) is this?
+### To-do list
 
-Isabelle/HoTT is a first attempt at bringing [homotopy type theory](https://en.wikipedia.org/wiki/Homotopy_type_theory) to the [Isabelle](https://isabelle.in.tum.de/) interactive theorem prover.
-It largely follows the development of the theory in the [Homotopy Type Theory book](https://homotopytypetheory.org/book/).
+In no particular order. Some of the following might require changes to the Isabelle prover itself.
 
-Work is slowly ongoing to develop the logic into a fully-featured framework in which one can formulate and prove mathematical statements, in the style of the univalent foundations school.
-While Isabelle has provided support for object logics based on Martin-Löf type theory since the beginning, these have largely been ignored in favor of Isabelle/HOL.
-Thus this project is also an experiment in creating a viable framework, based on dependent type theory, inside the simple type theoretic foundations of Isabelle/Pure.
+[ ] Typing information is implicit in context facts, and the collection must be searched every time we need a type for a term.
+    For performance, should probably implement dedicated tables.
+[ ] Tactic-based term elaboration has (at least) two problems: 1. `assume(s)` clauses don't accept schematic vars, and 2. it often results in overly-flexible subgoals that the typechecker doesn't solve.
+    Will likely need an elaborator integrated into Isabelle's syntax checking.
+[ ] Inductive type definitions.
+[ ] Recursive function definitions.
 
