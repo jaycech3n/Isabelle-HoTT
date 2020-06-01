@@ -313,7 +313,7 @@ Lemma (derive) transport_left_inv:
     "x: A" "y: A"
     "p: x =\<^bsub>A\<^esub> y"
   shows "(trans P p\<inverse>) \<circ> (trans P p) = id (P x)"
-  by (eq p) (reduce; intro)
+  by (eq p) (reduce; refl)
 
 Lemma (derive) transport_right_inv:
   assumes
@@ -632,8 +632,8 @@ Lemma (derive) eckmann_hilton:
   proof -
     have "\<alpha> \<bullet> \<beta> = \<alpha> \<star> \<beta>"
       by (rule pathcomp_eq_horiz_pathcomp)
-    also have ".. = \<alpha> \<star>' \<beta>"
-      by (rule \<Omega>2.horiz_pathcomp_eq_horiz_pathcomp'[simplified comps])
+    also have [simplified comps]: ".. = \<alpha> \<star>' \<beta>"
+      by (transport eq: \<Omega>2.horiz_pathcomp_eq_horiz_pathcomp') refl
     also have ".. = \<beta> \<bullet> \<alpha>"
       by (rule pathcomp_eq_horiz_pathcomp')
     finally show "\<alpha> \<bullet> \<beta> = \<beta> \<bullet> \<alpha>"

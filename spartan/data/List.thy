@@ -82,6 +82,8 @@ translations
 
 section \<open>Standard functions\<close>
 
+subsection \<open>Head and tail\<close>
+
 Lemma (derive) head:
   assumes "A: U i" "xs: List A"
   shows "Maybe A"
@@ -98,52 +100,12 @@ proof (cases xs)
   show "\<And>xs. xs: List A \<Longrightarrow> xs: List A" .
 qed
 
-Lemma (derive) app:
-  assumes "A: U i" "xs: List A" "ys: List A"
-  shows "List A"
-  apply (elim xs)
-  \<guillemotright> by (fact \<open>ys:_\<close>)
-  \<guillemotright> prems vars x _ rec
-    proof - show "x # rec: List A" by typechk qed
-  done
-
-definition head_i ("head")
-  where [implicit]: "head xs \<equiv> List.head ? xs"
-
-definition tail_i ("tail")
-  where [implicit]: "tail xs \<equiv> List.tail ? xs"
-
-definition app_i ("app")
-  where [implicit]: "app xs ys \<equiv> List.app ? xs ys"
-
-Lemma (derive) rev:
-  assumes "A: U i" "xs: List A"
-  shows "List A"
-  apply (elim xs)
-  \<guillemotright> by (rule List_nil)
-  \<guillemotright> prems vars x _ rec proof - show "app rec [x]: List A" by typechk qed
-  done
-
-Lemma (derive) map:
-  assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
-  shows "List B"
-proof (elim xs)
-  show "[]: List B" by intro
-  next fix x ys
-    assume "x: A" "ys: List B"
-  show "f x # ys: List B" by typechk
-qed
-
-definition rev_i ("rev")
-  where [implicit]: "rev \<equiv> List.rev ?"
-
-definition map_i ("map")
-  where [implicit]: "map \<equiv> List.map ? ?"
+definition head_i ("head") where [implicit]: "head xs \<equiv> List.head ? xs"
+definition tail_i ("tail") where [implicit]: "tail xs \<equiv> List.tail ? xs"
 
 translations
   "head" \<leftharpoondown> "CONST List.head A"
   "tail" \<leftharpoondown> "CONST List.tail A"
-  "map" \<leftharpoondown> "CONST List.map A B"
 
 Lemma head_type [typechk]:
   assumes "A: U i" "xs: List A"
@@ -165,10 +127,66 @@ Lemma tail_of_cons [comps]:
   shows "tail (x # xs) \<equiv> xs"
   unfolding tail_def ListCase_def by reduce
 
+subsection \<open>Append\<close>
+
+Lemma (derive) app:
+  assumes "A: U i" "xs: List A" "ys: List A"
+  shows "List A"
+  apply (elim xs)
+  \<guillemotright> by (fact \<open>ys:_\<close>)
+  \<guillemotright> prems vars x _ rec
+    proof - show "x # rec: List A" by typechk qed
+  done
+
+definition app_i ("app") where [implicit]: "app xs ys \<equiv> List.app ? xs ys"
+
+translations "app" \<leftharpoondown> "CONST List.app A"
+
+subsection \<open>Map\<close>
+
+Lemma (derive) map:
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
+  shows "List B"
+proof (elim xs)
+  show "[]: List B" by intro
+  next fix x ys
+    assume "x: A" "ys: List B"
+  show "f x # ys: List B" by typechk
+qed
+
+definition map_i ("map") where [implicit]: "map \<equiv> List.map ? ?"
+
+translations "map" \<leftharpoondown> "CONST List.map A B"
+
 Lemma map_type [typechk]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
   shows "map f xs: List B"
   unfolding map_def by typechk
+
+
+subsection \<open>Reverse\<close>
+
+Lemma (derive) rev:
+  assumes "A: U i" "xs: List A"
+  shows "List A"
+  apply (elim xs)
+  \<guillemotright> by (rule List_nil)
+  \<guillemotright> prems vars x _ rec proof - show "app rec [x]: List A" by typechk qed
+  done
+
+definition rev_i ("rev") where [implicit]: "rev \<equiv> List.rev ?"
+
+translations "rev" \<leftharpoondown> "CONST List.rev A"
+
+Lemma rev_type [typechk]:
+  assumes "A: U i" "xs: List A"
+  shows "rev xs: List A"
+  unfolding rev_def by typechk
+
+Lemma rev_nil [comps]:
+  assumes "A: U i"
+  shows "rev (nil A) \<equiv> nil A"
+  unfolding rev_def by reduce
 
 
 end
