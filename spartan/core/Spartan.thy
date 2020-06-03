@@ -56,7 +56,7 @@ lemma U_in_U:
   "U i: U (S i)"
   by (rule U_hierarchy, rule lt_S)
 
-lemma lift_universe:
+lemma lift_U:
   "A: U i \<Longrightarrow> A: U (S i)"
   by (erule U_cumulative, rule lt_S)
 
@@ -154,6 +154,7 @@ named_theorems typechk
 ML_file \<open>lib/lib.ML\<close>
 ML_file \<open>lib/goals.ML\<close>
 ML_file \<open>lib/focus.ML\<close>
+ML_file \<open>lib/types.ML\<close>
 
 
 section \<open>Congruence automation\<close>
@@ -322,7 +323,7 @@ lemma lift_universe_codomain:
   shows "f: A \<rightarrow> U (S j)"
   apply (sub eta_exp)
     apply known
-    apply (Pure.rule intros; rule lift_universe)
+    apply (Pure.rule intros; rule lift_U)
   done
 
 subsection \<open>Function composition\<close>

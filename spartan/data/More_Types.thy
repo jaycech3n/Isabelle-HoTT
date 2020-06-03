@@ -90,6 +90,14 @@ definition "Bool \<equiv> \<top> \<or> \<top>"
 definition "true \<equiv> inl \<top> \<top> tt"
 definition "false \<equiv> inr \<top> \<top> tt"
 
+Lemma
+  BoolF: "Bool: U i" and
+  Bool_true: "true: Bool" and
+  Bool_false: "false: Bool"
+  unfolding Bool_def true_def false_def by typechk+
+
+lemmas [intros] = BoolF Bool_true Bool_false
+
 \<comment> \<open>Can define if-then-else etc.\<close>
 
 

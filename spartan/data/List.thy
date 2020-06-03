@@ -52,14 +52,14 @@ abbreviation "ListRec A C \<equiv> ListInd A (\<lambda>_. C)"
 
 Lemma (derive) ListCase:
   assumes
-    "A: U i" "\<And>xs. xs: List A \<Longrightarrow> C xs: U i" and
+    "xs: List A" and
     nil_case: "c\<^sub>0: C (nil A)" and
     cons_case: "\<And>x xs. \<lbrakk>x: A; xs: List A\<rbrakk> \<Longrightarrow> f x xs: C (cons A x xs)" and
-    "xs: List A"
+    "\<And>xs. xs: List A \<Longrightarrow> C xs: U i"
   shows "?List_cases A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs. f x xs) xs: C xs"
   by (elim xs) (fact nil_case, rule cons_case)
 
-lemmas List_cases [cases] = ListCase[rotated 4]
+lemmas List_cases [cases] = ListCase[unfolded ListCase_def]
 
 
 section \<open>Notation\<close>
