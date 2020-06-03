@@ -387,7 +387,7 @@ Lemma (derive) id_imp_equiv:
       \<^item> prems vars A
         apply (subst transport_comp)
           \<^enum> by (rule U_in_U)
-          \<^enum> by reduce (rule lift_universe)
+          \<^enum> by reduce (rule lift_U)
           \<^enum> by reduce (rule id_biinv)
         done
       done
