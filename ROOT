@@ -14,7 +14,7 @@ session Spartan in spartan = Spartan_Core +
     Type theory based on Spartan, but with a few more bells and whistles.
   "
   directories
-    data
+    lib
   theories
     More_Types
     Maybe
