@@ -6,6 +6,7 @@ Type elimination setup.
 
 structure Elim: sig
 
+val Rules: Proof.context -> (thm * indexname list) Termtab.table
 val rules: Proof.context -> (thm * indexname list) list
 val lookup_rule: Proof.context -> Termtab.key -> (thm * indexname list) option
 val register_rule: term list -> thm -> Context.generic -> Context.generic
@@ -25,8 +26,9 @@ structure Rules = Generic_Data (
   val merge = Termtab.merge (eq_fst Thm.eq_thm_prop)
 )
 
-fun rules ctxt = map (op #2) (Termtab.dest (Rules.get (Context.Proof ctxt)))
-fun lookup_rule ctxt = Termtab.lookup (Rules.get (Context.Proof ctxt))
+val Rules = Rules.get o Context.Proof
+fun rules ctxt = map (op #2) (Termtab.dest (Rules ctxt))
+fun lookup_rule ctxt = Termtab.lookup (Rules ctxt)
 fun register_rule tms rl =
   let val hd = Term.head_of (Lib.type_of_typing (Thm.major_prem_of rl))
   in Rules.map (Termtab.update (hd, (rl, map (#1 o dest_Var) tms))) end

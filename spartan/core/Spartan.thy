@@ -69,10 +69,13 @@ axiomatization
   app :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close> ("(1_ `_)" [120, 121] 120)
 
 syntax
-  "_Pi"   :: \<open>idt \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<Prod>_: _./ _)" 30)
-  "_lam"  :: \<open>pttrns \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<lambda>_: _./ _)" 30)
-  "_lam2" :: \<open>pttrns \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close>
+  "_Pi"   :: \<open>idts \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<Prod>_: _./ _)" 30)
+  "_Pi2"  :: \<open>idts \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close>
+  "_lam"  :: \<open>idts \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<lambda>_: _./ _)" 30)
+  "_lam2" :: \<open>idts \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close>
 translations
+  "\<Prod>x xs: A. B" \<rightharpoonup> "CONST Pi A (\<lambda>x. _Pi2 xs A B)"
+  "_Pi2 x A B" \<rightharpoonup> "\<Prod>x: A. B"
   "\<Prod>x: A. B"    \<rightleftharpoons> "CONST Pi A (\<lambda>x. B)"
   "\<lambda>x xs: A. b" \<rightharpoonup> "CONST lam A (\<lambda>x. _lam2 xs A b)"
   "_lam2 x A b" \<rightharpoonup> "\<lambda>x: A. b"
@@ -151,23 +154,23 @@ section \<open>Proof commands\<close>
 
 named_theorems typechk
 
-ML_file \<open>lib/lib.ML\<close>
-ML_file \<open>lib/goals.ML\<close>
-ML_file \<open>lib/focus.ML\<close>
-ML_file \<open>lib/types.ML\<close>
+ML_file \<open>lib.ML\<close>
+ML_file \<open>goals.ML\<close>
+ML_file \<open>focus.ML\<close>
+ML_file \<open>types.ML\<close>
 
 
 section \<open>Congruence automation\<close>
 
 consts "rhs" :: \<open>'a\<close> ("..")
 
-ML_file \<open>lib/congruence.ML\<close>
+ML_file \<open>congruence.ML\<close>
 
 
 section \<open>Methods\<close>
 
-ML_file \<open>lib/elimination.ML\<close> \<comment> \<open>elimination rules\<close>
-ML_file \<open>lib/cases.ML\<close> \<comment> \<open>case reasoning rules\<close>
+ML_file \<open>elimination.ML\<close> \<comment> \<open>elimination rules\<close>
+ML_file \<open>cases.ML\<close> \<comment> \<open>case reasoning rules\<close>
 
 named_theorems intros and comps
 lemmas
@@ -177,7 +180,7 @@ lemmas
   [comps] = beta Sig_comp and
   [cong] = Pi_cong lam_cong Sig_cong
 
-ML_file \<open>lib/tactics.ML\<close>
+ML_file \<open>tactics.ML\<close>
 
 method_setup assumptions =
   \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (
@@ -238,7 +241,7 @@ ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
 ML_file \<open>~~/src/Tools/IsaPlanner/isand.ML\<close>
 ML_file \<open>~~/src/Tools/IsaPlanner/rw_inst.ML\<close>
 ML_file \<open>~~/src/Tools/IsaPlanner/zipper.ML\<close>
-ML_file \<open>lib/eqsubst.ML\<close>
+ML_file \<open>eqsubst.ML\<close>
 
 \<comment> \<open>\<open>rewrite\<close> method\<close>
 consts rewrite_HOLE :: "'a::{}"  ("\<hole>")
@@ -265,7 +268,7 @@ lemma imp_cong_eq:
   done
 
 ML_file \<open>~~/src/HOL/Library/cconv.ML\<close>
-ML_file \<open>lib/rewrite.ML\<close>
+ML_file \<open>rewrite.ML\<close>
 
 \<comment> \<open>\<open>reduce\<close> computes terms via judgmental equalities\<close>
 setup \<open>map_theory_simpset (fn ctxt => ctxt addSolver (mk_solver "" typechk_tac))\<close>
@@ -284,7 +287,7 @@ consts
   iarg :: \<open>'a\<close> ("?")
   hole :: \<open>'b\<close> ("{}")
 
-ML_file \<open>lib/implicits.ML\<close>
+ML_file \<open>implicits.ML\<close>
 
 attribute_setup implicit = \<open>Scan.succeed Implicits.implicit_defs_attr\<close>
 
