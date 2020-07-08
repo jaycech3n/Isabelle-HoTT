@@ -473,7 +473,7 @@ Lemma (derive) right_whisker:
       have "t \<bullet> refl x = t" by (rule pathcomp_refl)
       also have ".. = s" by fact
       also have ".. = s \<bullet> refl x" by (rule pathcomp_refl[symmetric])
-      finally show "t \<bullet> refl x = s \<bullet> refl x" by this
+      finally show "{}" by this
     qed
   done
 
@@ -486,7 +486,7 @@ Lemma (derive) left_whisker:
       have "refl x \<bullet> t = t" by (rule refl_pathcomp)
       also have ".. = s" by fact
       also have ".. = refl x \<bullet> s" by (rule refl_pathcomp[symmetric])
-      finally show "refl x \<bullet> t = refl x \<bullet> s" by this
+      finally show "{}" by this
     qed
   done
 

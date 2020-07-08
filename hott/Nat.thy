@@ -151,7 +151,7 @@ Lemma (derive) zero_mul:
     proof reduce
       have "0 + 0 * n = 0 + 0 " by (eq ih) refl
       also have ".. = 0" by reduce refl
-      finally show "0 + 0 * n = 0" by this
+      finally show "{}" by this
     qed
   done
 
