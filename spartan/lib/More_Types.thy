@@ -1,5 +1,3 @@
-chapter \<open>Some standard types\<close>
-
 theory More_Types
 imports Spartan
 
@@ -96,9 +94,53 @@ Lemma
   Bool_false: "false: Bool"
   unfolding Bool_def true_def false_def by typechk+
 
-lemmas [intros] = BoolF Bool_true Bool_false
+\<comment> \<open>Definitions like these should be handled by a future function package\<close>
+Definition ifelse [rotated 1]:
+  assumes *[unfolded Bool_def true_def false_def]:
+    "\<And>x. x: Bool \<Longrightarrow> C x: U i"
+    "x: Bool"
+    "a: C true"
+    "b: C false"
+  shows "C x"
+  by (elim x) (elim, rule *)+
 
-\<comment> \<open>Can define if-then-else etc.\<close>
+Lemma if_true:
+  assumes
+    "\<And>x. x: Bool \<Longrightarrow> C x: U i"
+    "a: C true"
+    "b: C false"
+  shows "ifelse C true a b \<equiv> a"
+  unfolding ifelse_def true_def
+  supply assms[unfolded Bool_def true_def false_def]
+  by reduce
+
+Lemma if_false:
+  assumes
+    "\<And>x. x: Bool \<Longrightarrow> C x: U i"
+    "a: C true"
+    "b: C false"
+  shows "ifelse C false a b \<equiv> b"
+  unfolding ifelse_def false_def
+  supply assms[unfolded Bool_def true_def false_def]
+  by reduce
+
+lemmas
+  [intros] = BoolF Bool_true Bool_false and
+  [comps] = if_true if_false and
+  [elims ?x] = ifelse
+lemmas
+  BoolE = ifelse
+
+subsection \<open>Notation\<close>
+
+definition ifelse_i ("if _ then _ else _")
+  where [implicit]: "if x then a else b \<equiv> ifelse ? x a b"
+
+no_translations "if x then a else b" \<leftharpoondown> "CONST ifelse C x a b"
+
+subsection \<open>Logical connectives\<close>
+
+definition not ("!_") where "not x \<equiv> ifelse (K Bool) x false true"
 
 
 end

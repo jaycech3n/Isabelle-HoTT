@@ -6,7 +6,7 @@ imports
   "HOL-Eisbach.Eisbach"
   "HOL-Eisbach.Eisbach_Tools"
 keywords
-  "Theorem" "Lemma" "Corollary" "Proposition" :: thy_goal_stmt and
+  "Theorem" "Lemma" "Corollary" "Proposition" "Definition" :: thy_goal_stmt and
   "focus" "\<guillemotright>" "\<^item>" "\<^enum>" "~" :: prf_script_goal % "proof" and
   "congruence" "print_coercions" :: thy_decl and
   "rhs" "derive" "prems" "vars" :: quasi_command
@@ -150,27 +150,28 @@ axiomatization where
     \<rbrakk> \<Longrightarrow> \<Sum>x: A. B x \<equiv> \<Sum>x: A. B' x"
 
 
-section \<open>Proof commands\<close>
+section \<open>Infrastructure\<close>
+
+ML_file \<open>lib.ML\<close>
+ML_file \<open>types.ML\<close>
+
+subsection \<open>Proof commands\<close>
 
 named_theorems typechk
 
-ML_file \<open>lib.ML\<close>
 ML_file \<open>goals.ML\<close>
 ML_file \<open>focus.ML\<close>
-ML_file \<open>types.ML\<close>
 
-
-section \<open>Congruence automation\<close>
+subsection \<open>Congruence automation\<close>
 
 consts "rhs" :: \<open>'a\<close> ("..")
 
 ML_file \<open>congruence.ML\<close>
 
-
-section \<open>Methods\<close>
-
 ML_file \<open>elimination.ML\<close> \<comment> \<open>elimination rules\<close>
 ML_file \<open>cases.ML\<close> \<comment> \<open>case reasoning rules\<close>
+
+subsection \<open>Methods\<close>
 
 named_theorems intros and comps
 lemmas
@@ -275,8 +276,7 @@ setup \<open>map_theory_simpset (fn ctxt => ctxt addSolver (mk_solver "" typechk
 
 method reduce uses add = (simp add: comps add | subst comps)+
 
-
-section \<open>Implicit notations\<close>
+subsection \<open>Implicits\<close>
 
 text \<open>
   \<open>?\<close> is used to mark implicit arguments in definitions, while \<open>{}\<close> is expanded
@@ -301,8 +301,7 @@ text \<open>Automatically insert inhabitation judgments where needed:\<close>
 syntax inhabited :: \<open>o \<Rightarrow> prop\<close> ("(_)")
 translations "inhabited A" \<rightharpoonup> "CONST has_type {} A"
 
-
-section \<open>Lambda coercion\<close>
+subsection \<open>Lambda coercion\<close>
 
 \<comment> \<open>Coerce object lambdas to meta-lambdas\<close>
 abbreviation (input) lambda :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close>

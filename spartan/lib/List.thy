@@ -50,7 +50,7 @@ lemmas
 
 abbreviation "ListRec A C \<equiv> ListInd A (\<lambda>_. C)"
 
-Lemma (derive) ListCase:
+Lemma list_cases [cases]:
   assumes
     "xs: List A" and
     nil_case: "c\<^sub>0: C (nil A)" and
@@ -58,8 +58,6 @@ Lemma (derive) ListCase:
     "\<And>xs. xs: List A \<Longrightarrow> C xs: U i"
   shows "?List_cases A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs. f x xs) xs: C xs"
   by (elim xs) (fact nil_case, rule cons_case)
-
-lemmas List_cases [cases] = ListCase[unfolded ListCase_def]
 
 
 section \<open>Notation\<close>
@@ -84,7 +82,7 @@ section \<open>Standard functions\<close>
 
 subsection \<open>Head and tail\<close>
 
-Lemma (derive) head:
+Definition head:
   assumes "A: U i" "xs: List A"
   shows "Maybe A"
 proof (cases xs)
@@ -92,7 +90,7 @@ proof (cases xs)
   show "\<And>x. x: A \<Longrightarrow> some x: Maybe A" by intro
 qed
 
-Lemma (derive) tail:
+Definition tail:
   assumes "A: U i" "xs: List A"
   shows "List A"
 proof (cases xs)
@@ -115,7 +113,7 @@ Lemma head_type [typechk]:
 Lemma head_of_cons [comps]:
   assumes "A: U i" "x: A" "xs: List A"
   shows "head (x # xs) \<equiv> some x"
-  unfolding head_def ListCase_def by reduce
+  unfolding head_def by reduce
 
 Lemma tail_type [typechk]:
   assumes "A: U i" "xs: List A"
@@ -125,11 +123,11 @@ Lemma tail_type [typechk]:
 Lemma tail_of_cons [comps]:
   assumes "A: U i" "x: A" "xs: List A"
   shows "tail (x # xs) \<equiv> xs"
-  unfolding tail_def ListCase_def by reduce
+  unfolding tail_def by reduce
 
 subsection \<open>Append\<close>
 
-Lemma (derive) app:
+Definition app:
   assumes "A: U i" "xs: List A" "ys: List A"
   shows "List A"
   apply (elim xs)
@@ -144,7 +142,7 @@ translations "app" \<leftharpoondown> "CONST List.app A"
 
 subsection \<open>Map\<close>
 
-Lemma (derive) map:
+Definition map:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
   shows "List B"
 proof (elim xs)
@@ -166,7 +164,7 @@ Lemma map_type [typechk]:
 
 subsection \<open>Reverse\<close>
 
-Lemma (derive) rev:
+Definition rev:
   assumes "A: U i" "xs: List A"
   shows "List A"
   apply (elim xs)

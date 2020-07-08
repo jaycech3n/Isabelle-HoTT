@@ -204,11 +204,20 @@ fun theorem spec descr =
         schematic_theorem_cmd
           (case opt_derive of SOME "derive" => true | _ => false)
           long descr NONE (K I) binding includes elems concl))
+
+fun definition spec descr =
+  Outer_Syntax.local_theory_to_proof' spec "definition via proof"
+    ((long_statement || short_statement) >>
+      (fn (long, binding, includes, elems, concl) => schematic_theorem_cmd
+        true long descr NONE (K I) binding includes elems concl))
+
+
 in
 
 val _ = theorem \<^command_keyword>\<open>Theorem\<close> "Theorem"
 val _ = theorem \<^command_keyword>\<open>Lemma\<close> "Lemma"
 val _ = theorem \<^command_keyword>\<open>Corollary\<close> "Corollary"
 val _ = theorem \<^command_keyword>\<open>Proposition\<close> "Proposition"
+val _ = definition \<^command_keyword>\<open>Definition\<close> "Definition"
 
 end
