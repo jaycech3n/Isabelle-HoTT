@@ -7,6 +7,8 @@ Work is slowly ongoing to develop the logic into a fully-featured framework in w
 While Isabelle has provided support for object logics based on Martin-Löf type theory since the beginning, these have largely been ignored in favor of Isabelle/HOL.
 Thus this project is also an experiment in creating a viable framework, based on dependent type theory, inside the simple type theoretic foundations of Isabelle/Pure.
 
+**Caveat prover**: *This project is under active experimentation and is not yet guaranteed fit for any particular purpose.*
+
 ### Usage
 
 Isabelle/HoTT is compatible with Isabelle2020.
