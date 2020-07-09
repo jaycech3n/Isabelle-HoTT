@@ -73,7 +73,7 @@ Lemma (derive) commute_homotopy:
     "x: A" "y: A"
     "p: x =\<^bsub>A\<^esub> y"
     "f: A \<rightarrow> B" "g: A \<rightarrow> B"
-    "H: homotopy A (\<lambda>_. B) f g"
+    "H: homotopy A (fn _. B) f g"
   shows "(H x) \<bullet> g[p] = f[p] \<bullet> (H y)"
   \<comment> \<open>Need this assumption unfolded for typechecking\<close>
   supply assms(8)[unfolded homotopy_def]
@@ -94,7 +94,7 @@ Corollary (derive) commute_homotopy':
     "A: U i"
     "x: A"
     "f: A \<rightarrow> A"
-    "H: homotopy A (\<lambda>_. A) f (id A)"
+    "H: homotopy A (fn _. A) f (id A)"
   shows "H (f x) = f [H x]"
 oops
 
@@ -125,7 +125,7 @@ Lemma homotopy_funcomp_left:
 
 Lemma homotopy_funcomp_right:
   assumes
-    "H: homotopy A (\<lambda>_. B) f f'"
+    "H: homotopy A (fn _. B) f f'"
     "f: A \<rightarrow> B"
     "f': A \<rightarrow> B"
     "g: B \<rightarrow> C"
@@ -149,7 +149,7 @@ section \<open>Quasi-inverse and bi-invertibility\<close>
 subsection \<open>Quasi-inverses\<close>
 
 definition "qinv A B f \<equiv> \<Sum>g: B \<rightarrow> A.
-  homotopy A (\<lambda>_. A) (g \<circ>\<^bsub>A\<^esub> f) (id A) \<times> homotopy B (\<lambda>_. B) (f \<circ>\<^bsub>B\<^esub> g) (id B)"
+  homotopy A (fn _. A) (g \<circ>\<^bsub>A\<^esub> f) (id A) \<times> homotopy B (fn _. B) (f \<circ>\<^bsub>B\<^esub> g) (id B)"
 
 lemma qinv_type [typechk]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
@@ -210,8 +210,8 @@ Lemma (derive) funcomp_qinv:
 subsection \<open>Bi-invertible maps\<close>
 
 definition "biinv A B f \<equiv>
-  (\<Sum>g: B \<rightarrow> A. homotopy A (\<lambda>_. A) (g \<circ>\<^bsub>A\<^esub> f) (id A))
-    \<times> (\<Sum>g: B \<rightarrow> A. homotopy B (\<lambda>_. B) (f \<circ>\<^bsub>B\<^esub> g) (id B))"
+  (\<Sum>g: B \<rightarrow> A. homotopy A (fn _. A) (g \<circ>\<^bsub>A\<^esub> f) (id A))
+    \<times> (\<Sum>g: B \<rightarrow> A. homotopy B (fn _. B) (f \<circ>\<^bsub>B\<^esub> g) (id B))"
 
 lemma biinv_type [typechk]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"

@@ -20,13 +20,13 @@ where
     c\<^sub>0: C 0;
     \<And>k rec. \<lbrakk>k: Nat; rec: C k\<rbrakk> \<Longrightarrow> f k rec: C (suc k);
     \<And>n. n: Nat \<Longrightarrow> C n: U i
-    \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k rec. f k rec) n: C n" and
+    \<rbrakk> \<Longrightarrow> NatInd (fn n. C n) c\<^sub>0 (fn k rec. f k rec) n: C n" and
 
   Nat_comp_zero: "\<lbrakk>
     c\<^sub>0: C 0;
     \<And>k rec. \<lbrakk>k: Nat; rec: C k\<rbrakk> \<Longrightarrow> f k rec: C (suc k);
     \<And>n. n: Nat \<Longrightarrow> C n: U i
-    \<rbrakk> \<Longrightarrow> NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k rec. f k rec) 0 \<equiv> c\<^sub>0" and
+    \<rbrakk> \<Longrightarrow> NatInd (fn n. C n) c\<^sub>0 (fn k rec. f k rec) 0 \<equiv> c\<^sub>0" and
 
   Nat_comp_suc: "\<lbrakk>
     n: Nat;
@@ -34,15 +34,15 @@ where
     \<And>k rec. \<lbrakk>k: Nat; rec: C k\<rbrakk> \<Longrightarrow> f k rec: C (suc k);
     \<And>n. n: Nat \<Longrightarrow> C n: U i
     \<rbrakk> \<Longrightarrow>
-      NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k rec. f k rec) (suc n) \<equiv>
-        f n (NatInd (\<lambda>n. C n) c\<^sub>0 (\<lambda>k rec. f k rec) n)"
+      NatInd (fn n. C n) c\<^sub>0 (fn k rec. f k rec) (suc n) \<equiv>
+        f n (NatInd (fn n. C n) c\<^sub>0 (fn k rec. f k rec) n)"
 
 lemmas
   [intros] = NatF Nat_zero Nat_suc and
   [elims "?n"] = NatE and
   [comps] = Nat_comp_zero Nat_comp_suc
 
-abbreviation "NatRec C \<equiv> NatInd (\<lambda>_. C)"
+abbreviation "NatRec C \<equiv> NatInd (fn _. C)"
 
 abbreviation one   ("1") where "1 \<equiv> suc 0"
 abbreviation two   ("2") where "2 \<equiv> suc 1"

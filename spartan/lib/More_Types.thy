@@ -25,21 +25,21 @@ axiomatization where
     \<And>s. s: A \<or> B \<Longrightarrow> C s: U i;
     \<And>a. a: A \<Longrightarrow> c a: C (inl A B a);
     \<And>b. b: B \<Longrightarrow> d b: C (inr A B b)
-    \<rbrakk> \<Longrightarrow> SumInd A B (\<lambda>s. C s) (\<lambda>a. c a) (\<lambda>b. d b) s: C s" and
+    \<rbrakk> \<Longrightarrow> SumInd A B (fn s. C s) (fn a. c a) (fn b. d b) s: C s" and
 
   Sum_comp_inl: "\<lbrakk>
     a: A;
     \<And>s. s: A \<or> B \<Longrightarrow> C s: U i;
     \<And>a. a: A \<Longrightarrow> c a: C (inl A B a);
     \<And>b. b: B \<Longrightarrow> d b: C (inr A B b)
-    \<rbrakk> \<Longrightarrow> SumInd A B (\<lambda>s. C s) (\<lambda>a. c a) (\<lambda>b. d b) (inl A B a) \<equiv> c a" and
+    \<rbrakk> \<Longrightarrow> SumInd A B (fn s. C s) (fn a. c a) (fn b. d b) (inl A B a) \<equiv> c a" and
 
   Sum_comp_inr: "\<lbrakk>
     b: B;
     \<And>s. s: A \<or> B \<Longrightarrow> C s: U i;
     \<And>a. a: A \<Longrightarrow> c a: C (inl A B a);
     \<And>b. b: B \<Longrightarrow> d b: C (inr A B b)
-    \<rbrakk> \<Longrightarrow> SumInd A B (\<lambda>s. C s) (\<lambda>a. c a) (\<lambda>b. d b) (inr A B b) \<equiv> d b"
+    \<rbrakk> \<Longrightarrow> SumInd A B (fn s. C s) (fn a. c a) (fn b. d b) (inr A B b) \<equiv> d b"
 
 lemmas
   [intros] = SumF Sum_inl Sum_inr and
@@ -67,13 +67,13 @@ axiomatization where
 
   TopI: "tt: \<top>" and
 
-  TopE: "\<lbrakk>a: \<top>; \<And>x. x: \<top> \<Longrightarrow> C x: U i; c: C tt\<rbrakk> \<Longrightarrow> TopInd (\<lambda>x. C x) c a: C a" and
+  TopE: "\<lbrakk>a: \<top>; \<And>x. x: \<top> \<Longrightarrow> C x: U i; c: C tt\<rbrakk> \<Longrightarrow> TopInd (fn x. C x) c a: C a" and
 
-  Top_comp: "\<lbrakk>\<And>x. x: \<top> \<Longrightarrow> C x: U i; c: C tt\<rbrakk> \<Longrightarrow> TopInd (\<lambda>x. C x) c tt \<equiv> c"
+  Top_comp: "\<lbrakk>\<And>x. x: \<top> \<Longrightarrow> C x: U i; c: C tt\<rbrakk> \<Longrightarrow> TopInd (fn x. C x) c tt \<equiv> c"
 and
   BotF: "\<bottom>: U i" and
 
-  BotE: "\<lbrakk>x: \<bottom>; \<And>x. x: \<bottom> \<Longrightarrow> C x: U i\<rbrakk> \<Longrightarrow> BotInd (\<lambda>x. C x) x: C x"
+  BotE: "\<lbrakk>x: \<bottom>; \<And>x. x: \<bottom> \<Longrightarrow> C x: U i\<rbrakk> \<Longrightarrow> BotInd (fn x. C x) x: C x"
 
 lemmas
   [intros] = TopF TopI BotF and

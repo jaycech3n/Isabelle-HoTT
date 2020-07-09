@@ -15,24 +15,37 @@ keywords
 begin
 
 
-section \<open>Preamble\<close>
+section \<open>Prelude\<close>
 
 declare [[eta_contract=false]]
+
+setup \<open>
+let
+  val typ = Simple_Syntax.read_typ
+  fun mixfix (sy, ps, p) = Mixfix (Input.string sy, ps, p, Position.no_range)
+in
+  Sign.del_syntax (Print_Mode.ASCII, true)
+    [("_lambda", typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic", mixfix ("(3fn _./ _)", [0, 3], 3))]
+  #> Sign.del_syntax Syntax.mode_default
+    [("_lambda", typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic", mixfix ("(3\<lambda>_./ _)", [0, 3], 3))]
+  #> Sign.add_syntax Syntax.mode_default
+    [("_lambda", typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic", mixfix ("(3fn _./ _)", [0, 3], 3))]
+end
+\<close>
 
 syntax "_dollar" :: \<open>logic \<Rightarrow> logic \<Rightarrow> logic\<close> (infixr "$" 3)
 translations "a $ b" \<rightharpoonup> "a (b)"
 
-abbreviation (input) K where "K x \<equiv> \<lambda>_. x"
-
-
-section \<open>Metatype setup\<close>
+abbreviation (input) K where "K x \<equiv> fn _. x"
 
 typedecl o
 
-
-section \<open>Judgments\<close>
-
 judgment has_type :: \<open>o \<Rightarrow> o \<Rightarrow> prop\<close> ("(2_:/ _)" 999)
+
+
+section \<open>Type annotations\<close>
+
+consts anno :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close> ("'(_: _')")
 
 
 section \<open>Universes\<close>
@@ -74,15 +87,15 @@ syntax
   "_lam"  :: \<open>idts \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<lambda>_: _./ _)" 30)
   "_lam2" :: \<open>idts \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close>
 translations
-  "\<Prod>x xs: A. B" \<rightharpoonup> "CONST Pi A (\<lambda>x. _Pi2 xs A B)"
-  "_Pi2 x A B" \<rightharpoonup> "\<Prod>x: A. B"
-  "\<Prod>x: A. B"    \<rightleftharpoons> "CONST Pi A (\<lambda>x. B)"
-  "\<lambda>x xs: A. b" \<rightharpoonup> "CONST lam A (\<lambda>x. _lam2 xs A b)"
+  "\<Prod>x xs: A. B" \<rightharpoonup> "CONST Pi A (fn x. _Pi2 xs A B)"
+  "_Pi2 x A B"  \<rightharpoonup> "\<Prod>x: A. B"
+  "\<Prod>x: A. B"    \<rightleftharpoons> "CONST Pi A (fn x. B)"
+  "\<lambda>x xs: A. b" \<rightharpoonup> "CONST lam A (fn x. _lam2 xs A b)"
   "_lam2 x A b" \<rightharpoonup> "\<lambda>x: A. b"
-  "\<lambda>x: A. b"    \<rightleftharpoons> "CONST lam A (\<lambda>x. b)"
+  "\<lambda>x: A. b"    \<rightleftharpoons> "CONST lam A (fn x. b)"
 
 abbreviation Fn (infixr "\<rightarrow>" 40) where "A \<rightarrow> B \<equiv> \<Prod>_: A. B"
-
+term "\<lambda>x: A. b x"
 axiomatization where
   PiF: "\<lbrakk>\<And>x. x: A \<Longrightarrow> B x: U i; A: U i\<rbrakk> \<Longrightarrow> \<Prod>x: A. B x: U i" and
 
@@ -113,7 +126,7 @@ axiomatization
 
 syntax "_Sum" :: \<open>idt \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<Sum>_: _./ _)" 20)
 
-translations "\<Sum>x: A. B" \<rightleftharpoons> "CONST Sig A (\<lambda>x. B)"
+translations "\<Sum>x: A. B" \<rightleftharpoons> "CONST Sig A (fn x. B)"
 
 abbreviation Prod (infixl "\<times>" 60)
   where "A \<times> B \<equiv> \<Sum>_: A. B"
@@ -132,7 +145,7 @@ axiomatization where
     \<And>x. x : A \<Longrightarrow> B x: U i;
     \<And>x y. \<lbrakk>x: A; y: B x\<rbrakk> \<Longrightarrow> f x y: C <x, y>;
     \<And>p. p: \<Sum>x: A. B x \<Longrightarrow> C p: U i
-    \<rbrakk> \<Longrightarrow> SigInd A (\<lambda>x. B x) (\<lambda>p. C p) f p: C p" and
+    \<rbrakk> \<Longrightarrow> SigInd A (fn x. B x) (fn p. C p) f p: C p" and
 
   Sig_comp: "\<lbrakk>
     a: A;
@@ -140,7 +153,7 @@ axiomatization where
     \<And>x. x: A \<Longrightarrow> B x: U i;
     \<And>p. p: \<Sum>x: A. B x \<Longrightarrow> C p: U i;
     \<And>x y. \<lbrakk>x: A; y: B x\<rbrakk> \<Longrightarrow> f x y: C <x, y>
-    \<rbrakk> \<Longrightarrow> SigInd A (\<lambda>x. B x) (\<lambda>p. C p) f <a, b> \<equiv> f a b" and
+    \<rbrakk> \<Longrightarrow> SigInd A (fn x. B x) (fn p. C p) f <a, b> \<equiv> f a b" and
 
   Sig_cong: "\<lbrakk>
     \<And>x. x: A \<Longrightarrow> B x \<equiv> B' x;
@@ -249,7 +262,7 @@ consts rewrite_HOLE :: "'a::{}"  ("\<hole>")
 
 lemma eta_expand:
   fixes f :: "'a::{} \<Rightarrow> 'b::{}"
-  shows "f \<equiv> \<lambda>x. f x" .
+  shows "f \<equiv> fn x. f x" .
 
 lemma rewr_imp:
   assumes "PROP A \<equiv> PROP B"
@@ -301,11 +314,23 @@ text \<open>Automatically insert inhabitation judgments where needed:\<close>
 syntax inhabited :: \<open>o \<Rightarrow> prop\<close> ("(_)")
 translations "inhabited A" \<rightharpoonup> "CONST has_type {} A"
 
+text \<open>Implicit lambdas\<close>
+
+definition lam_i where [implicit]: "lam_i f \<equiv> lam ? f"
+
+syntax
+  "_lam_i"  :: \<open>idts \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<lambda>_./ _)" 30)
+  "_lam_i2" :: \<open>idts \<Rightarrow> o \<Rightarrow> o\<close>
+translations
+  "\<lambda>x xs. b" \<rightharpoonup> "CONST lam_i (fn x. _lam_i2 xs b)"
+  "_lam_i2 x b" \<rightharpoonup> "\<lambda>x. b"
+  "\<lambda>x. b"    \<rightleftharpoons> "CONST lam_i (fn x. b)"
+
 subsection \<open>Lambda coercion\<close>
 
 \<comment> \<open>Coerce object lambdas to meta-lambdas\<close>
 abbreviation (input) lambda :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close>
-  where "lambda f \<equiv> \<lambda>x. f `x"
+  where "lambda f \<equiv> fn x. f `x"
 
 ML_file \<open>~~/src/Tools/subtyping.ML\<close>
 declare [[coercion_enabled, coercion lambda]]
@@ -409,8 +434,8 @@ lemma id_U [typechk]:
 
 section \<open>Pairs\<close>
 
-definition "fst A B \<equiv> \<lambda>p: \<Sum>x: A. B x. SigInd A B (\<lambda>_. A) (\<lambda>x y. x) p"
-definition "snd A B \<equiv> \<lambda>p: \<Sum>x: A. B x. SigInd A B (\<lambda>p. B (fst A B p)) (\<lambda>x y. y) p"
+definition "fst A B \<equiv> \<lambda>p: \<Sum>x: A. B x. SigInd A B (fn _. A) (fn x y. x) p"
+definition "snd A B \<equiv> \<lambda>p: \<Sum>x: A. B x. SigInd A B (fn p. B (fst A B p)) (fn x y. y) p"
 
 lemma fst_type [typechk]:
   assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"

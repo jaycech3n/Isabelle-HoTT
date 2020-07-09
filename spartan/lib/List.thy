@@ -26,13 +26,13 @@ where
     c\<^sub>0: C (nil A);
     \<And>x xs rec. \<lbrakk>x: A; xs: List A; rec: C xs\<rbrakk> \<Longrightarrow> f x xs rec: C (cons A x xs);
     \<And>xs. xs: List A \<Longrightarrow> C xs: U i
-    \<rbrakk> \<Longrightarrow> ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs rec. f x xs rec) xs: C xs" and
+    \<rbrakk> \<Longrightarrow> ListInd A (fn xs. C xs) c\<^sub>0 (fn x xs rec. f x xs rec) xs: C xs" and
 
   List_comp_nil: "\<lbrakk>
     c\<^sub>0: C (nil A);
     \<And>x xs rec. \<lbrakk>x: A; xs: List A; rec: C xs\<rbrakk> \<Longrightarrow> f x xs rec: C (cons A x xs);
     \<And>xs. xs: List A \<Longrightarrow> C xs: U i
-    \<rbrakk> \<Longrightarrow> ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs rec. f x xs rec) (nil A) \<equiv> c\<^sub>0" and
+    \<rbrakk> \<Longrightarrow> ListInd A (fn xs. C xs) c\<^sub>0 (fn x xs rec. f x xs rec) (nil A) \<equiv> c\<^sub>0" and
 
   List_comp_cons: "\<lbrakk>
     xs: List A;
@@ -40,15 +40,15 @@ where
     \<And>x xs rec. \<lbrakk>x: A; xs: List A; rec: C xs\<rbrakk> \<Longrightarrow> f x xs rec: C (cons A x xs);
     \<And>xs. xs: List A \<Longrightarrow> C xs: U i
     \<rbrakk> \<Longrightarrow>
-      ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs rec. f x xs rec) (cons A x xs) \<equiv>
-        f x xs (ListInd A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs rec. f x xs rec) xs)"
+      ListInd A (fn xs. C xs) c\<^sub>0 (fn x xs rec. f x xs rec) (cons A x xs) \<equiv>
+        f x xs (ListInd A (fn xs. C xs) c\<^sub>0 (fn x xs rec. f x xs rec) xs)"
 
 lemmas
   [intros] = ListF List_nil List_cons and
   [elims "?xs"] = ListE and
   [comps] = List_comp_nil List_comp_cons
 
-abbreviation "ListRec A C \<equiv> ListInd A (\<lambda>_. C)"
+abbreviation "ListRec A C \<equiv> ListInd A (fn _. C)"
 
 Lemma list_cases [cases]:
   assumes
@@ -56,7 +56,7 @@ Lemma list_cases [cases]:
     nil_case: "c\<^sub>0: C (nil A)" and
     cons_case: "\<And>x xs. \<lbrakk>x: A; xs: List A\<rbrakk> \<Longrightarrow> f x xs: C (cons A x xs)" and
     "\<And>xs. xs: List A \<Longrightarrow> C xs: U i"
-  shows "?List_cases A (\<lambda>xs. C xs) c\<^sub>0 (\<lambda>x xs. f x xs) xs: C xs"
+  shows "C xs"
   by (elim xs) (fact nil_case, rule cons_case)
 
 

@@ -30,13 +30,13 @@ axiomatization where
     b: A;
     \<And>x y p. \<lbrakk>p: x =\<^bsub>A\<^esub> y; x: A; y: A\<rbrakk> \<Longrightarrow> C x y p: U i;
     \<And>x. x: A \<Longrightarrow> f x: C x x (refl x)
-    \<rbrakk> \<Longrightarrow> IdInd A (\<lambda>x y p. C x y p) (\<lambda>x. f x) a b p: C a b p" and
+    \<rbrakk> \<Longrightarrow> IdInd A (fn x y p. C x y p) (fn x. f x) a b p: C a b p" and
 
   Id_comp: "\<lbrakk>
     a: A;
     \<And>x y p. \<lbrakk>x: A; y: A; p: x =\<^bsub>A\<^esub> y\<rbrakk> \<Longrightarrow> C x y p: U i;
     \<And>x. x: A \<Longrightarrow> f x: C x x (refl x)
-    \<rbrakk> \<Longrightarrow> IdInd A (\<lambda>x y p. C x y p) (\<lambda>x. f x) a a (refl a) \<equiv> f a"
+    \<rbrakk> \<Longrightarrow> IdInd A (fn x y p. C x y p) (fn x. f x) a a (refl a) \<equiv> f a"
 
 lemmas
   [intros] = IdF IdI and
@@ -347,7 +347,7 @@ Lemma (derive) transport_compose_typefam:
     "x: A" "y: A"
     "p: x =\<^bsub>A\<^esub> y"
     "u: P (f x)"
-  shows "trans (\<lambda>x. P (f x)) p u = trans P f[p] u"
+  shows "trans (fn x. P (f x)) p u = trans P f[p] u"
   by (eq p) (reduce; intros)
 
 Lemma (derive) transport_function_family:
@@ -367,7 +367,7 @@ Lemma (derive) transport_const:
     "A: U i" "B: U i"
     "x: A" "y: A"
     "p: x =\<^bsub>A\<^esub> y"
-  shows "\<Prod>b: B. trans (\<lambda>_. B) p b = b"
+  shows "\<Prod>b: B. trans (fn _. B) p b = b"
   by (intro, eq p) (reduce; intro)
 
 definition transport_const_i ("trans'_const")

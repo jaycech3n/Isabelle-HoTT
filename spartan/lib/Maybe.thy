@@ -24,7 +24,7 @@ Definition MaybeInd:
     "c\<^sub>0: C (none A)"
     "\<And>a. a: A \<Longrightarrow> f a: C (some A a)"
     "m: Maybe A"
-  shows "?MaybeInd A (\<lambda>m. C m) c\<^sub>0 (\<lambda>a. f a) m: C m"
+  shows "C m"
   supply assms[unfolded Maybe_def none_def some_def]
   apply (elim m)
   \<guillemotright> unfolding Maybe_def .
@@ -38,7 +38,7 @@ Lemma Maybe_comp_none:
     "c\<^sub>0: C (none A)"
     "\<And>a. a: A \<Longrightarrow> f a: C (some A a)"
     "\<And>m. m: Maybe A \<Longrightarrow> C m: U i"
-  shows "MaybeInd A (\<lambda>m. C m) c\<^sub>0 (\<lambda>a. f a) (none A) \<equiv> c\<^sub>0"
+  shows "MaybeInd A C c\<^sub>0 f (none A) \<equiv> c\<^sub>0"
   supply assms[unfolded Maybe_def some_def none_def]
   unfolding MaybeInd_def none_def by reduce
 
@@ -49,7 +49,7 @@ Lemma Maybe_comp_some:
     "c\<^sub>0: C (none A)"
     "\<And>a. a: A \<Longrightarrow> f a: C (some A a)"
     "\<And>m. m: Maybe A \<Longrightarrow> C m: U i"
-  shows "MaybeInd A (\<lambda>m. C m) c\<^sub>0 (\<lambda>a. f a) (some A a) \<equiv> f a"
+  shows "MaybeInd A C c\<^sub>0 f (some A a) \<equiv> f a"
   supply assms[unfolded Maybe_def some_def none_def]
   unfolding MaybeInd_def some_def by (reduce add: Maybe_def)
 
@@ -62,11 +62,8 @@ lemmas
 
 abbreviation "MaybeRec A C \<equiv> MaybeInd A (K C)"
 
-definition none_i ("none")
-  where [implicit]: "none \<equiv> Maybe.none ?"
-
-definition some_i ("some")
-  where [implicit]: "some a \<equiv> Maybe.some ? a"
+definition none_i ("none") where [implicit]: "none \<equiv> Maybe.none ?"
+definition some_i ("some") where [implicit]: "some a \<equiv> Maybe.some ? a"
 
 translations
   "none" \<leftharpoondown> "CONST Maybe.none A"

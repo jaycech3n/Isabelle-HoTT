@@ -7,7 +7,7 @@ begin
 
 section \<open>Length\<close>
 
-definition [implicit]: "len \<equiv> ListRec ? Nat 0 (\<lambda>_ _ rec. suc rec)"
+definition [implicit]: "len \<equiv> ListRec ? Nat 0 (fn _ _ rec. suc rec)"
 
 experiment begin
   Lemma "len [] \<equiv> ?n" by (subst comps)+
