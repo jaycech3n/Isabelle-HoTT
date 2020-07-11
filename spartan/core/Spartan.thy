@@ -42,10 +42,13 @@ typedecl o
 
 judgment has_type :: \<open>o \<Rightarrow> o \<Rightarrow> prop\<close> ("(2_:/ _)" 999)
 
+text \<open>Type annotations:\<close>
 
-section \<open>Type annotations\<close>
+definition anno :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close> ("'(_ : _')")
+  where "(a : A) \<equiv> a" if "a: A"
 
-consts anno :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close> ("'(_: _')")
+lemma anno: "a: A \<Longrightarrow> (a : A): A"
+  by (unfold anno_def)
 
 
 section \<open>Universes\<close>
@@ -95,7 +98,7 @@ translations
   "\<lambda>x: A. b"    \<rightleftharpoons> "CONST lam A (fn x. b)"
 
 abbreviation Fn (infixr "\<rightarrow>" 40) where "A \<rightarrow> B \<equiv> \<Prod>_: A. B"
-term "\<lambda>x: A. b x"
+
 axiomatization where
   PiF: "\<lbrakk>\<And>x. x: A \<Longrightarrow> B x: U i; A: U i\<rbrakk> \<Longrightarrow> \<Prod>x: A. B x: U i" and
 
@@ -166,7 +169,7 @@ axiomatization where
 section \<open>Infrastructure\<close>
 
 ML_file \<open>lib.ML\<close>
-ML_file \<open>types.ML\<close>
+ML_file \<open>typechecking.ML\<close>
 
 subsection \<open>Proof commands\<close>
 
