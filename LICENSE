@@ -4,8 +4,8 @@ Copyright (c) 2018–2020 Joshua Chen
 All files are licensed under the terms of the
 GNU Lesser General Public License v3.0 reproduced below,
 WITH THE EXCEPTION OF the following files:
-  spartan/lib/focus.ML
-  spartan/lib/goals.ML
+  spartan/core/focus.ML
+  spartan/core/goals.ML
 
 These have been modified from source code which is part of the official
 Isabelle distribution (https://isabelle.in.tum.de/) and licensed under the
