@@ -15,8 +15,7 @@ USER isabelle
 
 # Isabelle
 WORKDIR /home/isabelle
-RUN 
-  curl -o Isabelle.tar.gz 'https://isabelle.in.tum.de/dist/Isabelle2020_linux.tar.gz'
+ADD --chown=isabelle:isabelle https://isabelle.in.tum.de/dist/Isabelle2020_linux.tar.gz Isabelle.tar.gz
 RUN
   tar xzf Isabelle.tar.gz && \
   mv Isabelle2020 Isabelle && \
