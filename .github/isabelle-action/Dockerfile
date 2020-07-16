@@ -25,5 +25,5 @@ RUN tar xzf Isabelle.tar.gz &&\
 
 # ENTRYPOINT ["Isabelle/bin/isabelle"]
 #ENTRYPOINT [ "sh", "-c", "./Isabelle/bin/isabelle $INPUT_TOOL_ARGS" ]
-#ENTRYPOINT [ "sh", "-c", "ls" ]
+ENTRYPOINT [ "sh", "-c", "ls" ]
 
