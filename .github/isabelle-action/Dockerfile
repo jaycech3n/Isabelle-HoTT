@@ -1,15 +1,15 @@
 ## Isabelle/Pure on Isabelle2020
 
-FROM ubuntu-latest
+FROM ubuntu
 SHELL ["/bin/bash", "-c"]
 
-# packages
+# Packages
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update && \
   apt-get install -y curl less libfontconfig1 libgomp1 libwww-perl rlwrap unzip && \
   apt-get clean
 
-# user
+# User
 RUN useradd -m isabelle && (echo isabelle:isabelle | chpasswd)
 USER isabelle
 
@@ -23,5 +23,6 @@ RUN tar xzf Isabelle.tar.gz &&\
   Isabelle/bin/isabelle build -o system_heaps -b Pure &&\
   rm Isabelle.tar.gz
 
-ENTRYPOINT ["Isabelle/bin/isabelle"]
+# ENTRYPOINT ["Isabelle/bin/isabelle"]
+ENTRYPOINT [ "sh", "-c", "Isabelle/bin/isabelle $INPUT_TOOL_ARGS" ]
 

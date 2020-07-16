@@ -3,8 +3,8 @@ description: "Build ROOT file"
 author: "josh@joshchen.io"
 
 inputs:
-  OPTION:
-    description: "Options to invoke"
+  TOOL_ARGS:
+    description: "Tool and argument invokation"
     required: true
 
 runs:

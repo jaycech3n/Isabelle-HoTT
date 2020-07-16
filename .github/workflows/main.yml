@@ -9,5 +9,5 @@ jobs:
       - uses: actions/checkout@v1
       - uses: ./.github/isabelle-action
         with:
-          OPTION: "build -D ."
+          TOOL_ARGS: "build -D ."
 
