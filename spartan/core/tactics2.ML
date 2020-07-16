@@ -4,102 +4,71 @@
 General tactics for dependent type theory.
 *)
 
-structure Tactics:
+structure Tactics2:
 sig
 
-val assumptions_tac: Proof.context -> int -> tactic
-val known_tac: Proof.context -> int -> tactic
-val typechk_tac: Proof.context -> int -> tactic
-val auto_typechk: bool Config.T
-val SIDE_CONDS: (int -> tactic) -> Proof.context -> int -> tactic
-val rule_tac: thm list -> Proof.context -> int -> tactic
-val dest_tac: int option -> thm list -> Proof.context -> int -> tactic
-val intro_tac: Proof.context -> int -> tactic
-val intros_tac: Proof.context -> int -> tactic
+val solve_side_conds: bool Config.T
+val SIDE_CONDS: context_tactic' -> thm list -> context_tactic'
+val rule_tac: thm list -> context_tactic'
+val dest_tac: int option -> thm list -> context_tactic'
+val intro_tac: context_tactic'
+val intros_tac: context_tactic'
+(*
 val elim_context_tac: term list -> Proof.context -> int -> context_tactic
 val cases_tac: term -> Proof.context -> int -> tactic
+*)
 
 end = struct
 
-(*An assumption tactic that only solves typing goals with rigid terms and
-  judgmental equalities without schematic variables*)
-fun assumptions_tac ctxt = SUBGOAL (fn (goal, i) =>
-  let
-    val concl = Logic.strip_assums_concl goal
-  in
-    if
-      Lib.is_typing concl andalso Lib.is_rigid (Lib.term_of_typing concl)
-      orelse not ((exists_subterm is_Var) concl)
-    then assume_tac ctxt i
-    else no_tac
-  end)
-
-(*Solves typing goals with rigid term by resolving with context facts and
-  simplifier premises, or arbitrary goals by *non-unifying* assumption*)
-fun known_tac ctxt = SUBGOAL (fn (goal, i) =>
-  let
-    val concl = Logic.strip_assums_concl goal
-  in
-    ((if Lib.is_typing concl andalso Lib.is_rigid (Lib.term_of_typing concl)
-      then
-        let val ths = map fst (Facts.props (Proof_Context.facts_of ctxt))
-        in resolve_tac ctxt (ths @ Simplifier.prems_of ctxt) end
-      else K no_tac)
-    ORELSE' assumptions_tac ctxt) i
-  end)
-
-(*Typechecking: try to solve goals of the form "a: A" where a is rigid*)
-fun typechk_tac ctxt =
-  let
-    val tac = SUBGOAL (fn (goal, i) =>
-      if Lib.rigid_typing_concl goal
-      then
-        let val net = Tactic.build_net
-          ((Named_Theorems.get ctxt \<^named_theorems>\<open>typechk\<close>)
-          @(Named_Theorems.get ctxt \<^named_theorems>\<open>intros\<close>)
-          @(map #1 (Elim.rules ctxt)))
-        in (resolve_from_net_tac ctxt net) i end
-      else no_tac)
-  in
-    REPEAT_ALL_NEW (known_tac ctxt ORELSE' tac)
-  end
-
-(*Many methods try to automatically discharge side conditions by typechecking.
-  Switch this flag off to discharge by non-unifying assumption instead.*)
-val auto_typechk = Attrib.setup_config_bool \<^binding>\<open>auto_typechk\<close> (K true)
-
-fun side_cond_tac ctxt = CHANGED o REPEAT o
-  (if Config.get ctxt auto_typechk then typechk_tac ctxt else known_tac ctxt)
-
-(*Combinator runs tactic and tries to discharge all new typing side conditions*)
-fun SIDE_CONDS tac ctxt = tac THEN_ALL_NEW (TRY o side_cond_tac ctxt)
+(*Automatically try to solve side conditions?*)
+val solve_side_conds =
+  Attrib.setup_config_bool \<^binding>\<open>solve_side_conds\<close> (K true)
 
 local
-fun mk_rules _ ths [] = ths
-  | mk_rules n ths ths' =
-      let val ths'' = foldr1 (op @)
-        (map (fn th => [rotate_prems n (th RS @{thm PiE})] handle THM _ => []) ths')
-      in
-        mk_rules n (ths @ ths') ths''
-      end
+  fun side_cond_ctac facts i (cst as (ctxt, _)) =
+    if Config.get ctxt solve_side_conds
+    then (Types.check_infer facts i) cst
+    else all_ctac cst
 in
 
-(*Resolves with given rules, discharging as many side conditions as possible*)
-fun rule_tac ths ctxt = resolve_tac ctxt (mk_rules 0 [] ths)
+(*Combinator runs tactic and tries to discharge newly arising side conditions*)
+fun SIDE_CONDS ctac facts = ctac CTHEN_ALL_NEW (CTRY o side_cond_ctac facts)
+
+end
+
+local
+  fun mk_rules _ ths [] = ths
+    | mk_rules n ths ths' =
+        let val ths'' = foldr1 (op @)
+          (map
+            (fn th => [rotate_prems n (th RS @{thm PiE})] handle THM _ => [])
+            ths')
+        in
+          mk_rules n (ths @ ths') ths''
+        end
+in
+
+(*Resolves with given rules*)
+fun rule_tac ths i (ctxt, st) =
+  TACTIC_CONTEXT ctxt (resolve_tac ctxt (mk_rules 0 [] ths) i st)
 
 (*Attempts destruct-resolution with the n-th premise of the given rules*)
-fun dest_tac opt_n ths ctxt = dresolve_tac ctxt
-  (mk_rules (case opt_n of NONE => 0 | SOME 0 => 0 | SOME n => n-1) [] ths)
+fun dest_tac opt_n ths i (ctxt, st) =
+  TACTIC_CONTEXT ctxt (dresolve_tac ctxt
+    (mk_rules (case opt_n of NONE => 0 | SOME 0 => 0 | SOME n => n-1) [] ths)
+    i st)
 
 end
 
 (*Applies some introduction rule*)
-fun intro_tac ctxt = SUBGOAL (fn (_, i) => SIDE_CONDS
-  (resolve_tac ctxt (Named_Theorems.get ctxt \<^named_theorems>\<open>intros\<close>)) ctxt i)
+fun intro_tac i (ctxt, st) =
+  TACTIC_CONTEXT ctxt (resolve_tac ctxt
+    (Named_Theorems.get ctxt \<^named_theorems>\<open>intros\<close>) i st)
 
-fun intros_tac ctxt = SUBGOAL (fn (_, i) =>
-  (CHANGED o REPEAT o CHANGED o intro_tac ctxt) i)
+val intros_tac = CONTEXT_SUBGOAL (fn (_, i) =>
+  (CCHANGED o CREPEAT o CCHANGED o intro_tac) i)
 
+(*
 (* Induction/elimination *)
 
 (*Pushes a context/goal premise typing t:T into a \<Prod>-type*)
@@ -145,7 +114,7 @@ in
 
 fun elim_context_tac tms ctxt = case tms of
     [] => CONTEXT_SUBGOAL (K (Context_Tactic.CONTEXT_TACTIC (HEADGOAL (
-      SIDE_CONDS (eresolve_tac ctxt (map #1 (Elim.rules ctxt))) ctxt))))
+      SIDE_CONDS' (eresolve_tac ctxt (map #1 (Elim.rules ctxt))) ctxt))))
   | major::_  => CONTEXT_SUBGOAL (fn (goal, _) =>
     let
       val facts = Proof_Context.facts_of ctxt
@@ -211,11 +180,12 @@ fun cases_tac tm ctxt = SUBGOAL (fn (goal, i) =>
       handle Option => error ("no case rule known for "
         ^ (Syntax.string_of_term ctxt tm))
   in
-    SIDE_CONDS (resolve_tac ctxt [res]) ctxt i
+    SIDE_CONDS' (resolve_tac ctxt [res]) ctxt i
   end)
 
 end
+*)
 
 end
 
-open Tactics
+open Tactics2
