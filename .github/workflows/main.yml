@@ -1,0 +1,13 @@
+name: continuous integration
+on: push
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ./isabelle-action
+        with:
+          OPTION: "build -D ."
+

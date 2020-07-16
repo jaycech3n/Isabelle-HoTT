@@ -1,0 +1,13 @@
+name: "build"
+description: "Build ROOT file"
+author: "josh@joshchen.io"
+
+inputs:
+  OPTION:
+    description: "Options to invoke"
+    required: true
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+
