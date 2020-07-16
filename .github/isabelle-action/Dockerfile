@@ -15,8 +15,9 @@ USER isabelle
 
 # Isabelle
 WORKDIR /home/isabelle
-COPY Isabelle.tar.gz .
-RUN tar xzf Isabelle.tar.gz && \
+RUN
+  curl -o Isabelle.tar.gz https://isabelle.in.tum.de/dist/Isabelle2020_linux.tar.gz
+  tar xzf Isabelle.tar.gz && \
   mv Isabelle2020 Isabelle && \
   perl -pi -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings && \
   perl -pi -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=Pure,g;' Isabelle/etc/settings && \
