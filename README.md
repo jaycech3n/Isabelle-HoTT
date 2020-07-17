@@ -1,4 +1,4 @@
-# Isabelle/HoTT ![build](https://github.com/jaycech3n/Isabelle-HoTT/workflows/build/badge.svg)
+# Isabelle/HoTT [![build](https://github.com/jaycech3n/Isabelle-HoTT/workflows/build/badge.svg)](https://github.com/jaycech3n/Isabelle-HoTT/actions?query=workflow%3Abuild)
 
 Isabelle/HoTT is an experimental implementation of [homotopy type theory](https://en.wikipedia.org/wiki/Homotopy_type_theory) in the [Isabelle](https://isabelle.in.tum.de/) interactive theorem prover.
 It largely follows the development of the theory in the [Homotopy Type Theory book](https://homotopytypetheory.org/book/), but aims to be general enough to eventually support cubical and other kinds of homotopy type theories.
