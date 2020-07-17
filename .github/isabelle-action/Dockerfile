@@ -16,10 +16,11 @@ ADD https://isabelle.in.tum.de/dist/Isabelle2020_linux.tar.gz Isabelle.tar.gz
 RUN ls
 RUN tar xzf Isabelle.tar.gz &&\
   mv Isabelle2020 Isabelle &&\
-  perl -pi -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings &&\
+  perl -pi -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$HOME/.isabelle",g;' Isabelle/etc/settings &&\
   perl -pi -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=Pure,g;' Isabelle/etc/settings &&\
   Isabelle/bin/isabelle build -o system_heaps -b Pure &&\
   rm Isabelle.tar.gz
+RUN ls
 
 ENTRYPOINT [ "sh", "-c", "ls" ]
 
