@@ -11,7 +11,7 @@ RUN apt-get -y update &&\
 
 
 # Isabelle
-RUN echo $USER_HOME
+RUN echo $HOME
 ADD https://isabelle.in.tum.de/dist/Isabelle2020_linux.tar.gz Isabelle.tar.gz
 RUN ls
 RUN tar xzf Isabelle.tar.gz &&\
