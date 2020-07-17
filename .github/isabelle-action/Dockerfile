@@ -19,6 +19,7 @@ RUN tar xzf Isabelle.tar.gz &&\
   rm Isabelle.tar.gz
 
 # Set up entrypoint
-RUN chmod +x entrypoint.sh
-ENTRYPOINT ["entrypoint.sh"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
+ENTRYPOINT ["/entrypoint.sh"]
