@@ -1,10 +1,10 @@
-name: "build"
-description: "Build ROOT file"
+name: "Isabelle action"
+description: "Run Isabelle"
 author: "josh@joshchen.io"
 
 inputs:
   TOOL_ARGS:
-    description: "Tool and argument invokation"
+    description: "Isabelle tool to invoke and arguments to pass"
     required: true
 
 runs:

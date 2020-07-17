@@ -1,21 +1,18 @@
-## Isabelle/Pure on Isabelle2020
+## Isabelle2020 Dockerfile for GitHub Actions
 
 FROM ubuntu
 SHELL ["/bin/bash", "-c"]
 
 # Packages
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get -y update && \
-  apt-get install -y curl less libfontconfig1 libgomp1 libwww-perl rlwrap unzip && \
+RUN apt-get -y update &&\
+  apt-get install -y curl less libfontconfig1 libgomp1 libwww-perl rlwrap unzip &&\
   apt-get clean
 
-# User
-RUN useradd -m isabelle && (echo isabelle:isabelle | chpasswd)
-USER isabelle
 
 # Isabelle
-WORKDIR /home/isabelle
-ADD --chown=isabelle:isabelle https://isabelle.in.tum.de/dist/Isabelle2020_linux.tar.gz Isabelle.tar.gz
+ADD https://isabelle.in.tum.de/dist/Isabelle2020_linux.tar.gz Isabelle.tar.gz
+RUN ls
 RUN tar xzf Isabelle.tar.gz &&\
   mv Isabelle2020 Isabelle &&\
   perl -pi -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$USER_HOME/.isabelle",g;' Isabelle/etc/settings &&\
@@ -23,7 +20,5 @@ RUN tar xzf Isabelle.tar.gz &&\
   Isabelle/bin/isabelle build -o system_heaps -b Pure &&\
   rm Isabelle.tar.gz
 
-# ENTRYPOINT ["Isabelle/bin/isabelle"]
-#ENTRYPOINT [ "sh", "-c", "./Isabelle/bin/isabelle $INPUT_TOOL_ARGS" ]
 ENTRYPOINT [ "sh", "-c", "ls" ]
 
