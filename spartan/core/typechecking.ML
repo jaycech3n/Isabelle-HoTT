@@ -1,7 +1,7 @@
 (*  Title:      typechecking.ML
     Author:     Joshua Chen
 
-Type information and typechecking infrastructure.
+Type information and type-checking infrastructure.
 *)
 
 structure Types: sig
@@ -11,10 +11,11 @@ val types: Proof.context -> term -> thm list
 val put_type: thm -> Proof.context -> Proof.context
 val put_types: thm list -> Proof.context -> Proof.context
 
-val check: Proof.context -> thm -> int -> tactic
-val infer: Proof.context -> thm -> int -> tactic
+val known_ctac: thm list -> int -> context_tactic
+val check_infer: thm list -> int -> context_tactic
 
 end = struct
+
 
 (* Context data *)
 
@@ -32,22 +33,55 @@ fun put_type typing = Context.proof_map (Data.map (Item_Net.update typing))
 fun put_types typings = foldr1 (op o) (map put_type typings)
 
 
-(* Checking and inference *)
+(* Context tactics for type-checking *)
 
+(*Solves goals without metavariables and type inference problems by resolving
+  with facts or assumption from inline premises.*)
+fun known_ctac facts = CONTEXT_SUBGOAL (fn (goal, i) => fn (ctxt, st) =>
+  TACTIC_CONTEXT ctxt
+    let val concl = Logic.strip_assums_concl goal in
+      if Lib.no_vars concl orelse
+        (Lib.is_typing concl andalso Lib.no_vars (Lib.term_of_typing concl))
+      then
+        let val ths = facts
+          (*FIXME: Shouldn't pull nameless facts directly from context*)
+          @ map fst (Facts.props (Proof_Context.facts_of ctxt))
+        in (resolve_tac ctxt ths i ORELSE assume_tac ctxt i) st end
+      else Seq.empty
+    end)
+
+(*Simple bidirectional typing tactic, with some nondeterminism from backtracking
+  search over arbitrary `typechk` rules. The current implementation does not
+  perform any normalization.*)
 local
-
-fun checkable prop = Lib.is_typing prop
-  andalso not (exists_subterm is_Var (Lib.type_of_typing prop))
-
+  fun check_infer_step facts i (ctxt, st) =
+    let
+      val tac = SUBGOAL (fn (goal, i) =>
+        if Lib.rigid_typing_concl goal
+        then
+          let val net = Tactic.build_net (facts
+            (*MAYBE FIXME: Remove `typechk` from this list, and instead perform
+              definitional unfolding to (w?)hnf.*)
+            @(Named_Theorems.get ctxt \<^named_theorems>\<open>typechk\<close>)
+            @(Named_Theorems.get ctxt \<^named_theorems>\<open>form\<close>)
+            @(Named_Theorems.get ctxt \<^named_theorems>\<open>intro\<close>)
+            @(map #1 (Elim.rules ctxt)))
+          in (resolve_from_net_tac ctxt net) i end
+        else no_tac)
+      val ctxt' = ctxt
+    in
+      TACTIC_CONTEXT ctxt' (tac i st)
+    end
 in
 
-fun check ctxt rule = Subgoal.FOCUS_PREMS (
-  fn {context = goal_ctxt, prems, concl, ...} => no_tac) ctxt
-
-fun infer ctxt rule = Subgoal.FOCUS_PREMS (
-  fn {context = goal_ctxt, prems, concl, ...} => no_tac) ctxt
+fun check_infer facts i (cst as (_, st)) =
+  let
+    val ctac = known_ctac facts CORELSE' check_infer_step facts
+  in
+    cst |> (ctac i CTHEN
+      CREPEAT_IN_RANGE i (Thm.nprems_of st - i) (CTRY o CREPEAT_ALL_NEW_FWD ctac))
+  end
 
 end
-
 
 end

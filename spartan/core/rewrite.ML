@@ -15,8 +15,8 @@ patterns but has diverged significantly during its development.
 We also allow introduction of identifiers for bound variables,
 which can then be used to match arbitrary subterms inside abstractions.
 
-This code is slightly modified from the original at HOL/Library/rewrite.ML,
-to incorporate auto-typechecking for type theory.
+This code has been slightly modified from the original at HOL/Library/rewrite.ML
+to incorporate automatic discharge of type-theoretic side conditions.
 *)
 
 infix 1 then_pconv;
@@ -448,18 +448,18 @@ val _ =
     val subst_parser =
       let val scan = raw_pattern -- to_parser -- Parse.thms1
       in context_lift scan prep_args end
+
+    fun rewrite_export_ctac inputs inthms =
+      CONTEXT_TACTIC' (fn ctxt => rewrite_export_tac ctxt inputs inthms)
   in
     Method.setup \<^binding>\<open>rewr\<close> (subst_parser >>
-      (fn (pattern, inthms, (to, pat_ctxt)) => fn orig_ctxt =>
-        SIMPLE_METHOD'
-          (rewrite_export_tac orig_ctxt ((pattern, to), SOME pat_ctxt) inthms)))
-      "single-step rewriting, allowing subterm selection via patterns"
-    #>
-    (Method.setup \<^binding>\<open>rewrite\<close> (subst_parser >>
-      (fn (pattern, inthms, (to, pat_ctxt)) => fn orig_ctxt =>
-        SIMPLE_METHOD' (SIDE_CONDS
-          (rewrite_export_tac orig_ctxt ((pattern, to), SOME pat_ctxt) inthms)
-          orig_ctxt)))
-      "single-step rewriting with auto-typechecking")
+      (fn (pattern, inthms, (to, pat_ctxt)) => fn orig_ctxt => SIMPLE_METHOD'
+        (rewrite_export_tac orig_ctxt ((pattern, to), SOME pat_ctxt) inthms)))
+      "single-step rewriting, allowing subterm selection via patterns" #>
+    Method.setup \<^binding>\<open>rewrite\<close> (subst_parser >>
+      (fn (pattern, inthms, (to, pat_ctxt)) => K (CONTEXT_METHOD (
+        CHEADGOAL o SIDE_CONDS
+          (rewrite_export_ctac ((pattern, to), SOME pat_ctxt) inthms)))))
+      "single-step rewriting with auto-typechecking"
   end
 end

@@ -416,19 +416,27 @@ fun eqsubst_asm_tac ctxt occs thms i st =
    should be done to an assumption, false = apply to the conclusion of
    the goal) as well as the theorems to use *)
 val _ =
-  Theory.setup
-    (Method.setup \<^binding>\<open>sub\<close>
-      (Scan.lift (Args.mode "asm" -- Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0]) --
-        Attrib.thms >> (fn ((asm, occs), inthms) => fn ctxt =>
-          SIMPLE_METHOD' ((if asm then eqsubst_asm_tac else eqsubst_tac) ctxt occs inthms)))
-      "single-step substitution"
-    #>
-    (Method.setup \<^binding>\<open>subst\<close>
-      (Scan.lift (Args.mode "asm" -- Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0]) --
-        Attrib.thms >> (fn ((asm, occs), inthms) => fn ctxt =>
-          SIMPLE_METHOD' (SIDE_CONDS
-            ((if asm then eqsubst_asm_tac else eqsubst_tac) ctxt occs inthms)
-            ctxt)))
-      "single-step substitution with auto-typechecking"))
+  let
+    val parser =
+      Scan.lift (Args.mode "asm"
+        -- Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0])
+      -- Attrib.thms
+    fun eqsubst_asm_ctac occs inthms =
+      CONTEXT_TACTIC' (fn ctxt => eqsubst_asm_tac ctxt occs inthms)
+    fun eqsubst_ctac occs inthms =
+      CONTEXT_TACTIC' (fn ctxt => eqsubst_tac ctxt occs inthms)
+  in
+    Theory.setup (
+      Method.setup \<^binding>\<open>sub\<close>
+        (parser >> (fn ((asm, occs), inthms) => fn ctxt => SIMPLE_METHOD' (
+          (if asm then eqsubst_asm_tac else eqsubst_tac) ctxt occs inthms)))
+        "single-step substitution" #>
+      Method.setup \<^binding>\<open>subst\<close>
+        (parser >> (fn ((asm, occs), inthms) => K (CONTEXT_METHOD (
+          CHEADGOAL o SIDE_CONDS
+            ((if asm then eqsubst_asm_ctac else eqsubst_ctac) occs inthms)))))
+        "single-step substitution with automatic discharge of side conditions"
+    )
+  end
 
 end;

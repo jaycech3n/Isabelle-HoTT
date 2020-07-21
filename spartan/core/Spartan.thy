@@ -10,22 +10,29 @@ keywords
   "focus" "\<guillemotright>" "\<^item>" "\<^enum>" "~" :: prf_script_goal % "proof" and
   "congruence" "print_coercions" :: thy_decl and
   "rhs" "derive" "prems" "vars" :: quasi_command
-  
 
 begin
 
 
 section \<open>Prelude\<close>
 
+paragraph \<open>Set up the meta-logic just so.\<close>
+
+paragraph \<open>Notation.\<close>
+
 declare [[eta_contract=false]]
 
+text \<open>
+  Rebind notation for meta-lambdas since we want to use `\<lambda>` for the object
+  lambdas. Meta-functions now use the binder `fn`.
+\<close>
 setup \<open>
 let
   val typ = Simple_Syntax.read_typ
   fun mixfix (sy, ps, p) = Mixfix (Input.string sy, ps, p, Position.no_range)
 in
   Sign.del_syntax (Print_Mode.ASCII, true)
-    [("_lambda", typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic", mixfix ("(3fn _./ _)", [0, 3], 3))]
+    [("_lambda", typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic", mixfix ("(3%_./ _)", [0, 3], 3))]
   #> Sign.del_syntax Syntax.mode_default
     [("_lambda", typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic", mixfix ("(3\<lambda>_./ _)", [0, 3], 3))]
   #> Sign.add_syntax Syntax.mode_default
@@ -38,11 +45,16 @@ translations "a $ b" \<rightharpoonup> "a (b)"
 
 abbreviation (input) K where "K x \<equiv> fn _. x"
 
+paragraph \<open>
+  Deeply embed dependent type theory: meta-type of expressions, and typing
+  judgment.
+\<close>
+
 typedecl o
 
 judgment has_type :: \<open>o \<Rightarrow> o \<Rightarrow> prop\<close> ("(2_:/ _)" 999)
 
-text \<open>Type annotations:\<close>
+text \<open>Type annotations for type-checking and inference.\<close>
 
 definition anno :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close> ("'(_ : _')")
   where "(a : A) \<equiv> a" if "a: A"
@@ -51,7 +63,9 @@ lemma anno: "a: A \<Longrightarrow> (a : A): A"
   by (unfold anno_def)
 
 
-section \<open>Universes\<close>
+section \<open>Axioms\<close>
+
+subsection \<open>Universes\<close>
 
 typedecl lvl \<comment> \<open>Universe levels\<close>
 
@@ -65,19 +79,19 @@ axiomatization
   lt_trans: "i < j \<Longrightarrow> j < k \<Longrightarrow> i < k"
 
 axiomatization U :: \<open>lvl \<Rightarrow> o\<close> where
-  U_hierarchy: "i < j \<Longrightarrow> U i: U j" and
-  U_cumulative: "A: U i \<Longrightarrow> i < j \<Longrightarrow> A: U j"
+  Ui_in_Uj: "i < j \<Longrightarrow> U i: U j" and
+  in_Uj_if_in_Ui: "A: U i \<Longrightarrow> i < j \<Longrightarrow> A: U j"
 
-lemma U_in_U:
+lemma Ui_in_USi:
   "U i: U (S i)"
-  by (rule U_hierarchy, rule lt_S)
+  by (rule Ui_in_Uj, rule lt_S)
 
-lemma lift_U:
+lemma in_USi_if_in_Ui:
   "A: U i \<Longrightarrow> A: U (S i)"
-  by (erule U_cumulative, rule lt_S)
+  by (erule in_Uj_if_in_Ui, rule lt_S)
 
 
-section \<open>\<Prod>-type\<close>
+subsection \<open>\<Prod>-type\<close>
 
 axiomatization
   Pi  :: \<open>o \<Rightarrow> (o \<Rightarrow> o) \<Rightarrow> o\<close> and
@@ -100,9 +114,9 @@ translations
 abbreviation Fn (infixr "\<rightarrow>" 40) where "A \<rightarrow> B \<equiv> \<Prod>_: A. B"
 
 axiomatization where
-  PiF: "\<lbrakk>\<And>x. x: A \<Longrightarrow> B x: U i; A: U i\<rbrakk> \<Longrightarrow> \<Prod>x: A. B x: U i" and
+  PiF: "\<lbrakk>A: U i; \<And>x. x: A \<Longrightarrow> B x: U i\<rbrakk> \<Longrightarrow> \<Prod>x: A. B x: U i" and
 
-  PiI: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x: B x; A: U i\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x: \<Prod>x: A. B x" and
+  PiI: "\<lbrakk>A: U i; \<And>x. x: A \<Longrightarrow> b x: B x\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x: \<Prod>x: A. B x" and
 
   PiE: "\<lbrakk>f: \<Prod>x: A. B x; a: A\<rbrakk> \<Longrightarrow> f `a: B a" and
 
@@ -113,14 +127,14 @@ axiomatization where
   Pi_cong: "\<lbrakk>
     \<And>x. x: A \<Longrightarrow> B x \<equiv> B' x;
     A: U i;
-    \<And>x. x: A \<Longrightarrow> B x: U i;
-    \<And>x. x: A \<Longrightarrow> B' x: U i
+    \<And>x. x: A \<Longrightarrow> B x: U j;
+    \<And>x. x: A \<Longrightarrow> B' x: U j
     \<rbrakk> \<Longrightarrow> \<Prod>x: A. B x \<equiv> \<Prod>x: A. B' x" and
 
   lam_cong: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x \<equiv> c x; A: U i\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x \<equiv> \<lambda>x: A. c x"
 
 
-section \<open>\<Sum>-type\<close>
+subsection \<open>\<Sum>-type\<close>
 
 axiomatization
   Sig    :: \<open>o \<Rightarrow> (o \<Rightarrow> o) \<Rightarrow> o\<close> and
@@ -138,16 +152,16 @@ abbreviation "and" (infixl "\<and>" 60)
   where "A \<and> B \<equiv> A \<times> B"
 
 axiomatization where
-  SigF: "\<lbrakk>\<And>x. x: A \<Longrightarrow> B x: U i; A: U i\<rbrakk> \<Longrightarrow> \<Sum>x: A. B x: U i" and
+  SigF: "\<lbrakk>A: U i; \<And>x. x: A \<Longrightarrow> B x: U i\<rbrakk> \<Longrightarrow> \<Sum>x: A. B x: U i" and
 
   SigI: "\<lbrakk>\<And>x. x: A \<Longrightarrow> B x: U i; a: A; b: B a\<rbrakk> \<Longrightarrow> <a, b>: \<Sum>x: A. B x" and
 
   SigE: "\<lbrakk>
     p: \<Sum>x: A. B x;
     A: U i;
-    \<And>x. x : A \<Longrightarrow> B x: U i;
-    \<And>x y. \<lbrakk>x: A; y: B x\<rbrakk> \<Longrightarrow> f x y: C <x, y>;
-    \<And>p. p: \<Sum>x: A. B x \<Longrightarrow> C p: U i
+    \<And>x. x : A \<Longrightarrow> B x: U j;
+    \<And>p. p: \<Sum>x: A. B x \<Longrightarrow> C p: U k;
+    \<And>x y. \<lbrakk>x: A; y: B x\<rbrakk> \<Longrightarrow> f x y: C <x, y>
     \<rbrakk> \<Longrightarrow> SigInd A (fn x. B x) (fn p. C p) f p: C p" and
 
   Sig_comp: "\<lbrakk>
@@ -161,22 +175,23 @@ axiomatization where
   Sig_cong: "\<lbrakk>
     \<And>x. x: A \<Longrightarrow> B x \<equiv> B' x;
     A: U i;
-    \<And>x. x : A \<Longrightarrow> B x: U i;
-    \<And>x. x : A \<Longrightarrow> B' x: U i
+    \<And>x. x : A \<Longrightarrow> B x: U j;
+    \<And>x. x : A \<Longrightarrow> B' x: U j
     \<rbrakk> \<Longrightarrow> \<Sum>x: A. B x \<equiv> \<Sum>x: A. B' x"
 
 
 section \<open>Infrastructure\<close>
 
 ML_file \<open>lib.ML\<close>
-ML_file \<open>typechecking.ML\<close>
+ML_file \<open>context_tactical.ML\<close>
 
 subsection \<open>Proof commands\<close>
+
+ML_file \<open>focus.ML\<close>
 
 named_theorems typechk
 
 ML_file \<open>goals.ML\<close>
-ML_file \<open>focus.ML\<close>
 
 subsection \<open>Congruence automation\<close>
 
@@ -184,72 +199,75 @@ consts "rhs" :: \<open>'a\<close> ("..")
 
 ML_file \<open>congruence.ML\<close>
 
+subsection \<open>Proof methods and type-checking/inference\<close>
+
+named_theorems form and intro and intros and comp
+\<comment> \<open>`intros` stores the introduction rule variants used by the
+  `intro` and `intros` methods.\<close>
+
 ML_file \<open>elimination.ML\<close> \<comment> \<open>elimination rules\<close>
 ML_file \<open>cases.ML\<close> \<comment> \<open>case reasoning rules\<close>
 
-subsection \<open>Methods\<close>
-
-named_theorems intros and comps
 lemmas
-  [intros] = PiF PiI SigF SigI and
-  [elims "?f"] = PiE and
-  [elims "?p"] = SigE and
-  [comps] = beta Sig_comp and
+  [form] = PiF SigF and
+  [intro] = PiI SigI and
+  [intros] = PiI[rotated] SigI and
+  [elim "?f"] = PiE and
+  [elim "?p"] = SigE and
+  [comp] = beta Sig_comp and
   [cong] = Pi_cong lam_cong Sig_cong
 
+ML_file \<open>typechecking.ML\<close>
 ML_file \<open>tactics.ML\<close>
 
-method_setup assumptions =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (
-    CHANGED (TRYALL (assumptions_tac ctxt))))\<close>
+method_setup typechk =
+  \<open>Scan.succeed (K (CONTEXT_METHOD (
+    CHEADGOAL o Types.check_infer)))\<close>
 
 method_setup known =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (
-    CHANGED (TRYALL (known_tac ctxt))))\<close>
+  \<open>Scan.succeed (K (CONTEXT_METHOD (
+    CHEADGOAL o Types.known_ctac)))\<close>
+
+method_setup rule =
+  \<open>Attrib.thms >> (fn ths => K (CONTEXT_METHOD (
+    CHEADGOAL o SIDE_CONDS (rule_ctac ths))))\<close>
+
+method_setup dest =
+  \<open>Scan.lift (Scan.option (Args.parens Parse.int))
+    -- Attrib.thms >> (fn (n_opt, ths) => K (CONTEXT_METHOD (
+      CHEADGOAL o SIDE_CONDS (dest_ctac n_opt ths))))\<close>
 
 method_setup intro =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (intro_tac ctxt)))\<close>
+  \<open>Scan.succeed (K (CONTEXT_METHOD (
+    CHEADGOAL o SIDE_CONDS (intro_ctac))))\<close>
 
 method_setup intros =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (intros_tac ctxt)))\<close>
+  \<open>Scan.succeed (K (CONTEXT_METHOD (
+    CHEADGOAL o SIDE_CONDS (CREPEAT o intro_ctac))))\<close>
 
 method_setup elim =
-  \<open>Scan.repeat Args.term >> (fn tms => fn ctxt =>
-    CONTEXT_METHOD (K (elim_context_tac tms ctxt 1)))\<close>
+  \<open>Scan.repeat Args.term >> (fn tms => K (CONTEXT_METHOD (
+    CHEADGOAL o SIDE_CONDS (elim_ctac tms))))\<close>
 
 method elims = elim+
 
 method_setup cases =
-  \<open>Args.term >> (fn tm => fn ctxt => SIMPLE_METHOD' (cases_tac tm ctxt))\<close>
+  \<open>Args.term >> (fn tm => K (CONTEXT_METHOD (
+    CHEADGOAL o SIDE_CONDS (cases_ctac tm))))\<close>
 
-(*This could possibly use additional simplification hints via a simp: modifier*)
-method_setup typechk =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (
-    SIDE_CONDS (typechk_tac ctxt) ctxt))
-    (* CHANGED (ALLGOALS (TRY o typechk_tac ctxt)))) *)\<close>
-
-method_setup rule =
-  \<open>Attrib.thms >> (fn ths => fn ctxt =>
-    SIMPLE_METHOD (HEADGOAL (SIDE_CONDS (rule_tac ths ctxt) ctxt)))\<close>
-
-method_setup dest =
-  \<open>Scan.lift (Scan.option (Args.parens Parse.int)) -- Attrib.thms
-    >> (fn (opt_n, ths) => fn ctxt =>
-        SIMPLE_METHOD (HEADGOAL (SIDE_CONDS (dest_tac opt_n ths ctxt) ctxt)))\<close>
 
 subsection \<open>Reflexivity\<close>
 
 named_theorems refl
 method refl = (rule refl)
 
-subsection \<open>Trivial proofs modulo typechecking\<close>
+subsection \<open>Trivial proofs (modulo automatic discharge of side conditions)\<close>
 
 method_setup this =
-  \<open>Scan.succeed (fn ctxt => METHOD (
-    EVERY o map (HEADGOAL o
-      (fn ths => SIDE_CONDS (resolve_tac ctxt ths) ctxt) o
-      single)
-    ))\<close>
+  \<open>Scan.succeed (K (CONTEXT_METHOD (fn facts =>
+    CHEADGOAL (SIDE_CONDS
+      (CONTEXT_TACTIC' (fn ctxt => resolve_tac ctxt facts))
+      facts))))\<close>
 
 subsection \<open>Rewriting\<close>
 
@@ -270,7 +288,7 @@ lemma eta_expand:
 lemma rewr_imp:
   assumes "PROP A \<equiv> PROP B"
   shows "(PROP A \<Longrightarrow> PROP C) \<equiv> (PROP B \<Longrightarrow> PROP C)"
-  apply (rule Pure.equal_intr_rule)
+  apply (Pure.rule Pure.equal_intr_rule)
   apply (drule equal_elim_rule2[OF assms]; assumption)
   apply (drule equal_elim_rule1[OF assms]; assumption)
   done
@@ -288,9 +306,11 @@ ML_file \<open>~~/src/HOL/Library/cconv.ML\<close>
 ML_file \<open>rewrite.ML\<close>
 
 \<comment> \<open>\<open>reduce\<close> computes terms via judgmental equalities\<close>
-setup \<open>map_theory_simpset (fn ctxt => ctxt addSolver (mk_solver "" typechk_tac))\<close>
+setup \<open>map_theory_simpset (fn ctxt =>
+  ctxt addSolver (mk_solver "" (fn ctxt' =>
+    NO_CONTEXT_TACTIC ctxt' o Types.check_infer (Simplifier.prems_of ctxt'))))\<close>
 
-method reduce uses add = (simp add: comps add | subst comps)+
+method reduce uses add = changed \<open>((simp add: comp add | sub comp); typechk?)+\<close>
 
 subsection \<open>Implicits\<close>
 
@@ -348,13 +368,19 @@ lemma eta_exp:
   shows "f \<equiv> \<lambda>x: A. f x"
   by (rule eta[symmetric])
 
+lemma refine_codomain:
+  assumes
+    "A: U i"
+    "f: \<Prod>x: A. B x"
+    "\<And>x. x: A \<Longrightarrow> f `x: C x"
+  shows "f: \<Prod>x: A. C x"
+  by (subst eta_exp)
+
 lemma lift_universe_codomain:
   assumes "A: U i" "f: A \<rightarrow> U j"
   shows "f: A \<rightarrow> U (S j)"
-  apply (sub eta_exp)
-    apply known
-    apply (Pure.rule intros; rule lift_U)
-  done
+  using in_USi_if_in_Ui[of "f {}"]
+  by (rule refine_codomain)
 
 subsection \<open>Function composition\<close>
 
@@ -376,7 +402,7 @@ lemma funcompI [typechk]:
     "g \<circ>\<^bsub>A\<^esub> f: \<Prod>x: A. C (f x)"
   unfolding funcomp_def by typechk
 
-lemma funcomp_assoc [comps]:
+lemma funcomp_assoc [comp]:
   assumes
     "f: A \<rightarrow> B"
     "g: B \<rightarrow> C"
@@ -386,7 +412,7 @@ lemma funcomp_assoc [comps]:
     "(h \<circ>\<^bsub>B\<^esub> g) \<circ>\<^bsub>A\<^esub> f \<equiv> h \<circ>\<^bsub>A\<^esub> g \<circ>\<^bsub>A\<^esub> f"
   unfolding funcomp_def by reduce
 
-lemma funcomp_lambda_comp [comps]:
+lemma funcomp_lambda_comp [comp]:
   assumes
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> b x: B"
@@ -395,7 +421,7 @@ lemma funcomp_lambda_comp [comps]:
     "(\<lambda>x: B. c x) \<circ>\<^bsub>A\<^esub> (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
   unfolding funcomp_def by reduce
 
-lemma funcomp_apply_comp [comps]:
+lemma funcomp_apply_comp [comp]:
   assumes
     "f: A \<rightarrow> B" "g: \<Prod>x: B. C x"
     "x: A"
@@ -417,22 +443,22 @@ abbreviation id where "id A \<equiv> \<lambda>x: A. x"
 
 lemma
   id_type[typechk]: "A: U i \<Longrightarrow> id A: A \<rightarrow> A" and
-  id_comp [comps]: "x: A \<Longrightarrow> (id A) x \<equiv> x" \<comment> \<open>for the occasional manual rewrite\<close>
-  by reduce
+  id_comp [comp]: "x: A \<Longrightarrow> (id A) x \<equiv> x" \<comment> \<open>for the occasional manual rewrite\<close>
+  by reduce+
 
-lemma id_left [comps]:
+lemma id_left [comp]:
   assumes "f: A \<rightarrow> B" "A: U i" "B: U i"
   shows "(id B) \<circ>\<^bsub>A\<^esub> f \<equiv> f"
   by (subst eta_exp[of f]) (reduce, rule eta)
 
-lemma id_right [comps]:
+lemma id_right [comp]:
   assumes "f: A \<rightarrow> B" "A: U i" "B: U i"
   shows "f \<circ>\<^bsub>A\<^esub> (id A) \<equiv> f"
   by (subst eta_exp[of f]) (reduce, rule eta)
 
 lemma id_U [typechk]:
   "id (U i): U i \<rightarrow> U i"
-  by typechk (fact U_in_U)
+  by typechk (rule Ui_in_USi) (*FIXME: Add annotation rule to typechecker*)
 
 
 section \<open>Pairs\<close>
@@ -445,7 +471,7 @@ lemma fst_type [typechk]:
   shows "fst A B: (\<Sum>x: A. B x) \<rightarrow> A"
   unfolding fst_def by typechk
 
-lemma fst_comp [comps]:
+lemma fst_comp [comp]:
   assumes
     "a: A"
     "b: B a"
@@ -459,10 +485,10 @@ lemma snd_type [typechk]:
   shows "snd A B: \<Prod>p: \<Sum>x: A. B x. B (fst A B p)"
   unfolding snd_def by typechk reduce
 
-lemma snd_comp [comps]:
+lemma snd_comp [comp]:
   assumes "a: A" "b: B a" "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "snd A B <a, b> \<equiv> b"
-  unfolding snd_def by reduce
+  unfolding snd_def by reduce+
 
 subsection \<open>Notation\<close>
 
@@ -483,7 +509,7 @@ Lemma fst [typechk]:
     "p: \<Sum>x: A. B x"
     "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "fst p: A"
-  by typechk
+  by typechk    
 
 Lemma snd [typechk]:
   assumes

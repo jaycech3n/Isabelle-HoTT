@@ -44,9 +44,10 @@ where
         f x xs (ListInd A (fn xs. C xs) c\<^sub>0 (fn x xs rec. f x xs rec) xs)"
 
 lemmas
-  [intros] = ListF List_nil List_cons and
-  [elims "?xs"] = ListE and
-  [comps] = List_comp_nil List_comp_cons
+  [form] = ListF and
+  [intro, intros] = List_nil List_cons and
+  [elim "?xs"] = ListE and
+  [comp] = List_comp_nil List_comp_cons
 
 abbreviation "ListRec A C \<equiv> ListInd A (fn _. C)"
 
@@ -110,7 +111,7 @@ Lemma head_type [typechk]:
   shows "head xs: Maybe A"
   unfolding head_def by typechk
 
-Lemma head_of_cons [comps]:
+Lemma head_of_cons [comp]:
   assumes "A: U i" "x: A" "xs: List A"
   shows "head (x # xs) \<equiv> some x"
   unfolding head_def by reduce
@@ -120,7 +121,7 @@ Lemma tail_type [typechk]:
   shows "tail xs: List A"
   unfolding tail_def by typechk
 
-Lemma tail_of_cons [comps]:
+Lemma tail_of_cons [comp]:
   assumes "A: U i" "x: A" "xs: List A"
   shows "tail (x # xs) \<equiv> xs"
   unfolding tail_def by reduce
@@ -181,7 +182,7 @@ Lemma rev_type [typechk]:
   shows "rev xs: List A"
   unfolding rev_def by typechk
 
-Lemma rev_nil [comps]:
+Lemma rev_nil [comp]:
   assumes "A: U i"
   shows "rev (nil A) \<equiv> nil A"
   unfolding rev_def by reduce

@@ -35,7 +35,7 @@ Lemma (derive) hsym:
     "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "H: f ~ g \<Longrightarrow> g ~ f"
   unfolding homotopy_def
-  apply intros
+  apply intro
     apply (rule pathinv)
       \<guillemotright> by (elim H)
       \<guillemotright> by typechk
@@ -106,7 +106,8 @@ Lemma homotopy_id_left [typechk]:
 Lemma homotopy_id_right [typechk]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "homotopy_refl A f: f \<circ> (id A) ~ f"
-  unfolding homotopy_refl_def homotopy_def by reduce
+  unfolding homotopy_refl_def homotopy_def
+ by reduce
 
 Lemma homotopy_funcomp_left:
   assumes
@@ -165,11 +166,9 @@ Lemma (derive) id_qinv:
   assumes "A: U i"
   shows "qinv (id A)"
   unfolding qinv_def
-  apply intro defer
-    apply intro defer
-      apply htpy_id
-      apply id_htpy
-  done
+  proof intro
+    show "id A: A \<rightarrow> A" by typechk
+  qed (reduce, intro; refl)
 
 Lemma (derive) quasiinv_qinv:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
@@ -272,7 +271,7 @@ Lemma (derive) biinv_imp_qinv:
         also have ".. ~ (id A) \<circ> h" by (subst funcomp_assoc[symmetric]) (htpy_o, fact)
         also have ".. ~ h" by reduce refl
         finally have "g ~ h" by this
-        then have "f \<circ> g ~ f \<circ> h" by o_htpy
+        then have "f \<circ> g ~ f \<circ> h" by (o_htpy, this)
         also note \<open>H2:_\<close>
         finally show "f \<circ> g ~ id B" by this
       qed
@@ -313,10 +312,9 @@ Lemma (derive) equivalence_refl:
   assumes "A: U i"
   shows "A \<simeq> A"
   unfolding equivalence_def
-  apply intro defer
-    apply (rule qinv_imp_biinv) defer
-      apply (rule id_qinv)
-  done
+  proof intro
+    show "biinv (id A)" by (rule qinv_imp_biinv) (rule id_qinv)
+  qed typechk
 
 text \<open>
   The following could perhaps be easier with transport (but then I think we need
@@ -340,11 +338,14 @@ Lemma (derive) equivalence_symmetric:
 Lemma (derive) equivalence_transitive:
   assumes "A: U i" "B: U i" "C: U i"
   shows "A \<simeq> B \<rightarrow> B \<simeq> C \<rightarrow> A \<simeq> C"
+  (* proof intros
+    fix AB BC assume "AB: A \<simeq> B" "BC: B \<simeq> C"
+    let "?f: {}" = "(fst AB) :: o" *)
   apply intros
   unfolding equivalence_def
     focus vars p q apply (elim p, elim q)
       focus vars f biinv\<^sub>f g biinv\<^sub>g apply intro
-        \<guillemotright> apply (rule funcompI) defer by assumption known
+        \<guillemotright> apply (rule funcompI) defer by assumption+ known
         \<guillemotright> by (rule funcomp_biinv)
       done
     done
@@ -372,32 +373,31 @@ Lemma (derive) id_imp_equiv:
   shows "<trans (id (U i)) p, ?isequiv>: A \<simeq> B"
   unfolding equivalence_def
   apply intros defer
-
-  \<comment> \<open>Switch off auto-typechecking, which messes with universe levels\<close>
-  supply [[auto_typechk=false]]
-
-    \<guillemotright> apply (eq p, typechk)
+    \<guillemotright> apply (eq p)
       \<^item> prems vars A B
         apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
+        using [[solve_side_conds=1]]
         apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
-        apply (rule transport, rule U_in_U)
-        apply (rule lift_universe_codomain, rule U_in_U)
-        apply (typechk, rule U_in_U)
+        apply (rule transport, rule Ui_in_USi)
+        apply (rule lift_universe_codomain, rule Ui_in_USi)
+        apply (typechk, rule Ui_in_USi)
         done
       \<^item> prems vars A
+        using [[solve_side_conds=1]]
         apply (subst transport_comp)
-          \<^enum> by (rule U_in_U)
-          \<^enum> by reduce (rule lift_U)
+          \<^enum> by (rule Ui_in_USi)
+          \<^enum> by reduce (rule in_USi_if_in_Ui)
           \<^enum> by reduce (rule id_biinv)
         done
       done
 
     \<guillemotright> \<comment> \<open>Similar proof as in the first subgoal above\<close>
       apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
+      using [[solve_side_conds=1]]
       apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
-      apply (rule transport, rule U_in_U)
-      apply (rule lift_universe_codomain, rule U_in_U)
-      apply (typechk, rule U_in_U)
+      apply (rule transport, rule Ui_in_USi)
+      apply (rule lift_universe_codomain, rule Ui_in_USi)
+      apply (typechk, rule Ui_in_USi)
       done
   done
 

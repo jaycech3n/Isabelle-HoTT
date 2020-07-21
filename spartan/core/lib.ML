@@ -7,6 +7,7 @@ val maxint: int list -> int
 
 (*Terms*)
 val is_rigid: term -> bool
+val no_vars: term -> bool
 val dest_eq: term -> term * term
 val mk_Var: string -> int -> typ -> term
 val lambda_var: term -> term -> term
@@ -49,6 +50,8 @@ val maxint = max (op >)
 (* Meta *)
 
 val is_rigid = not o is_Var o head_of
+
+val no_vars = not o exists_subterm is_Var
 
 fun dest_eq (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t $ def) = (t, def)
   | dest_eq _ = error "dest_eq"
