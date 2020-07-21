@@ -462,7 +462,7 @@ lemma id_right [comp]:
 
 lemma id_U [typechk]:
   "id (U i): U i \<rightarrow> U i"
-  by typechk (rule Ui_in_USi) (*FIXME: Add annotation rule to typechecker*)
+  using Ui_in_USi by typechk
 
 
 section \<open>Pairs\<close>
