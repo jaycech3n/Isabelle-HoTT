@@ -34,13 +34,13 @@ fun register_rule tms rl =
   in Rules.map (Termtab.update (hd, (rl, map (#1 o dest_Var) tms))) end
 
 
-(* [elims] attribute *)
+(* [elim] attribute *)
 val _ = Theory.setup (
-  Attrib.setup \<^binding>\<open>elims\<close>
+  Attrib.setup \<^binding>\<open>elim\<close>
     (Scan.repeat Args.term_pattern >>
       (Thm.declaration_attribute o register_rule))
     ""
-  #> Global_Theory.add_thms_dynamic (\<^binding>\<open>elims\<close>,
+  #> Global_Theory.add_thms_dynamic (\<^binding>\<open>elim\<close>,
       fn context => (map #1 (rules (Context.proof_of context))))
 )
 

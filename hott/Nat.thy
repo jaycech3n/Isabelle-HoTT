@@ -38,9 +38,10 @@ where
         f n (NatInd (fn n. C n) c\<^sub>0 (fn k rec. f k rec) n)"
 
 lemmas
-  [intros] = NatF Nat_zero Nat_suc and
-  [elims "?n"] = NatE and
-  [comps] = Nat_comp_zero Nat_comp_suc
+  [form] = NatF and
+  [intro, intros] = Nat_zero Nat_suc and
+  [elim "?n"] = NatE and
+  [comp] = Nat_comp_zero Nat_comp_suc
 
 abbreviation "NatRec C \<equiv> NatInd (fn _. C)"
 
@@ -66,12 +67,12 @@ lemma add_type [typechk]:
   shows "m + n: Nat"
   unfolding add_def by typechk
 
-lemma add_zero [comps]:
+lemma add_zero [comp]:
   assumes "m: Nat"
   shows "m + 0 \<equiv> m"
   unfolding add_def by reduce
 
-lemma add_suc [comps]:
+lemma add_suc [comp]:
   assumes "m: Nat" "n: Nat"
   shows "m + suc n \<equiv> suc (m + n)"
   unfolding add_def by reduce
@@ -127,17 +128,17 @@ lemma mul_type [typechk]:
   shows "m * n: Nat"
   unfolding mul_def by typechk
 
-lemma mul_zero [comps]:
+lemma mul_zero [comp]:
   assumes "n: Nat"
   shows "n * 0 \<equiv> 0"
   unfolding mul_def by reduce
 
-lemma mul_one [comps]:
+lemma mul_one [comp]:
   assumes "n: Nat"
   shows "n * 1 \<equiv> n"
   unfolding mul_def by reduce
 
-lemma mul_suc [comps]:
+lemma mul_suc [comp]:
   assumes "m: Nat" "n: Nat"
   shows "m * suc n \<equiv> m + m * n"
   unfolding mul_def by reduce

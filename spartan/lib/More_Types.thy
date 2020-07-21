@@ -16,9 +16,9 @@ notation Sum (infixl "\<or>" 50)
 axiomatization where
   SumF: "\<lbrakk>A: U i; B: U i\<rbrakk> \<Longrightarrow> A \<or> B: U i" and
 
-  Sum_inl: "\<lbrakk>a: A; B: U i\<rbrakk> \<Longrightarrow> inl A B a: A \<or> B" and
+  Sum_inl: "\<lbrakk>B: U i; a: A\<rbrakk> \<Longrightarrow> inl A B a: A \<or> B" and
 
-  Sum_inr: "\<lbrakk>b: B; A: U i\<rbrakk> \<Longrightarrow> inr A B b: A \<or> B" and
+  Sum_inr: "\<lbrakk>A: U i; b: B\<rbrakk> \<Longrightarrow> inr A B b: A \<or> B" and
 
   SumE: "\<lbrakk>
     s: A \<or> B;
@@ -42,9 +42,11 @@ axiomatization where
     \<rbrakk> \<Longrightarrow> SumInd A B (fn s. C s) (fn a. c a) (fn b. d b) (inr A B b) \<equiv> d b"
 
 lemmas
-  [intros] = SumF Sum_inl Sum_inr and
-  [elims ?s] = SumE and
-  [comps] = Sum_comp_inl Sum_comp_inr
+  [form] = SumF and
+  [intro] = Sum_inl Sum_inr and
+  [intros] = Sum_inl[rotated] Sum_inr[rotated] and
+  [elim ?s] = SumE and
+  [comp] = Sum_comp_inl Sum_comp_inr
 
 method left = rule Sum_inl
 method right = rule Sum_inr
@@ -76,10 +78,11 @@ and
   BotE: "\<lbrakk>x: \<bottom>; \<And>x. x: \<bottom> \<Longrightarrow> C x: U i\<rbrakk> \<Longrightarrow> BotInd (fn x. C x) x: C x"
 
 lemmas
-  [intros] = TopF TopI BotF and
-  [elims ?a] = TopE and
-  [elims ?x] = BotE and
-  [comps] = Top_comp
+  [form] = TopF BotF and
+  [intro, intros] = TopI and
+  [elim ?a] = TopE and
+  [elim ?x] = BotE and
+  [comp] = Top_comp
 
 
 section \<open>Booleans\<close>
@@ -125,9 +128,10 @@ Lemma if_false:
   by reduce
 
 lemmas
-  [intros] = BoolF Bool_true Bool_false and
-  [comps] = if_true if_false and
-  [elims ?x] = ifelse
+  [form] = BoolF and
+  [intro, intros] = Bool_true Bool_false and
+  [comp] = if_true if_false and
+  [elim ?x] = ifelse
 lemmas
   BoolE = ifelse
 
@@ -136,7 +140,7 @@ subsection \<open>Notation\<close>
 definition ifelse_i ("if _ then _ else _")
   where [implicit]: "if x then a else b \<equiv> ifelse ? x a b"
 
-no_translations "if x then a else b" \<leftharpoondown> "CONST ifelse C x a b"
+translations "if x then a else b" \<leftharpoondown> "CONST ifelse C x a b"
 
 subsection \<open>Logical connectives\<close>
 

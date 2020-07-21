@@ -79,16 +79,16 @@ axiomatization
   lt_trans: "i < j \<Longrightarrow> j < k \<Longrightarrow> i < k"
 
 axiomatization U :: \<open>lvl \<Rightarrow> o\<close> where
-  U_hierarchy: "i < j \<Longrightarrow> U i: U j" and
-  U_cumulative: "A: U i \<Longrightarrow> i < j \<Longrightarrow> A: U j"
+  Ui_in_Uj: "i < j \<Longrightarrow> U i: U j" and
+  in_Uj_if_in_Ui: "A: U i \<Longrightarrow> i < j \<Longrightarrow> A: U j"
 
-lemma U_in_U:
+lemma Ui_in_USi:
   "U i: U (S i)"
-  by (rule U_hierarchy, rule lt_S)
+  by (rule Ui_in_Uj, rule lt_S)
 
-lemma lift_U:
+lemma in_USi_if_in_Ui:
   "A: U i \<Longrightarrow> A: U (S i)"
-  by (erule U_cumulative, rule lt_S)
+  by (erule in_Uj_if_in_Ui, rule lt_S)
 
 
 subsection \<open>\<Prod>-type\<close>
@@ -199,70 +199,61 @@ consts "rhs" :: \<open>'a\<close> ("..")
 
 ML_file \<open>congruence.ML\<close>
 
-subsection \<open>Theorem attributes, type-checking and proof methods\<close>
+subsection \<open>Proof methods and type-checking/inference\<close>
 
-named_theorems intros and comps
+named_theorems form and intro and intros and comp
+\<comment> \<open>`intros` stores the introduction rule variants used by the
+  `intro` and `intros` methods.\<close>
 
 ML_file \<open>elimination.ML\<close> \<comment> \<open>elimination rules\<close>
 ML_file \<open>cases.ML\<close> \<comment> \<open>case reasoning rules\<close>
 
 lemmas
-  [intros] = anno PiF PiI SigF SigI and
-  [elims "?f"] = PiE and
-  [elims "?p"] = SigE and
-  [comps] = beta Sig_comp and
+  [form] = PiF SigF and
+  [intro] = PiI SigI and
+  [intros] = PiI[rotated] SigI and
+  [elim "?f"] = PiE and
+  [elim "?p"] = SigE and
+  [comp] = beta Sig_comp and
   [cong] = Pi_cong lam_cong Sig_cong
 
 ML_file \<open>typechecking.ML\<close>
-ML_file \<open>tactics2.ML\<close>
 ML_file \<open>tactics.ML\<close>
 
-method_setup assumptions =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (
-    CHANGED (TRYALL (assumptions_tac ctxt))))\<close>
-
-method_setup known =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (
-    CHANGED (TRYALL (known_tac ctxt))))\<close>
-
-method_setup intro =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (intro_tac ctxt)))\<close>
-
-method_setup intros =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (intros_tac ctxt)))\<close>
-
-method_setup elim =
-  \<open>Scan.repeat Args.term >> (fn tms => fn ctxt =>
-    CONTEXT_METHOD (K (elim_context_tac tms ctxt 1)))\<close>
-
-method elims = elim+
-
-method_setup cases =
-  \<open>Args.term >> (fn tm => fn ctxt => SIMPLE_METHOD' (cases_tac tm ctxt))\<close>
-
-(*This could possibly use additional simplification hints via a simp: modifier*)
-method_setup typechk' =
-  \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD' (
-    SIDE_CONDS (typechk_tac ctxt) ctxt))
-    (* CHANGED (ALLGOALS (TRY o typechk_tac ctxt)))) *)\<close>
-
-method_setup rule' =
-  \<open>Attrib.thms >> (fn ths => fn ctxt =>
-    SIMPLE_METHOD (HEADGOAL (SIDE_CONDS (rule_tac ths ctxt) ctxt)))\<close>
-
-method_setup dest =
-  \<open>Scan.lift (Scan.option (Args.parens Parse.int)) -- Attrib.thms
-    >> (fn (opt_n, ths) => fn ctxt =>
-        SIMPLE_METHOD (HEADGOAL (SIDE_CONDS (dest_tac opt_n ths ctxt) ctxt)))\<close>
-
-(*NEW*)
 method_setup typechk =
   \<open>Scan.succeed (K (CONTEXT_METHOD (
     CHEADGOAL o Types.check_infer)))\<close>
 
+method_setup known =
+  \<open>Scan.succeed (K (CONTEXT_METHOD (
+    CHEADGOAL o Types.known_ctac)))\<close>
+
 method_setup rule =
   \<open>Attrib.thms >> (fn ths => K (CONTEXT_METHOD (
-    CHEADGOAL o Tactics2.SIDE_CONDS (Tactics2.rule_tac ths))))\<close>
+    CHEADGOAL o SIDE_CONDS (rule_ctac ths))))\<close>
+
+method_setup dest =
+  \<open>Scan.lift (Scan.option (Args.parens Parse.int))
+    -- Attrib.thms >> (fn (n_opt, ths) => K (CONTEXT_METHOD (
+      CHEADGOAL o SIDE_CONDS (dest_ctac n_opt ths))))\<close>
+
+method_setup intro =
+  \<open>Scan.succeed (K (CONTEXT_METHOD (
+    CHEADGOAL o SIDE_CONDS (intro_ctac))))\<close>
+
+method_setup intros =
+  \<open>Scan.succeed (K (CONTEXT_METHOD (
+    CHEADGOAL o SIDE_CONDS (CREPEAT o intro_ctac))))\<close>
+
+method_setup elim =
+  \<open>Scan.repeat Args.term >> (fn tms => K (CONTEXT_METHOD (
+    CHEADGOAL o SIDE_CONDS (elim_ctac tms))))\<close>
+
+method elims = elim+
+
+method_setup cases =
+  \<open>Args.term >> (fn tm => K (CONTEXT_METHOD (
+    CHEADGOAL o SIDE_CONDS (cases_ctac tm))))\<close>
 
 
 subsection \<open>Reflexivity\<close>
@@ -270,14 +261,13 @@ subsection \<open>Reflexivity\<close>
 named_theorems refl
 method refl = (rule refl)
 
-subsection \<open>Trivial proofs modulo typechecking\<close>
+subsection \<open>Trivial proofs (modulo automatic discharge of side conditions)\<close>
 
 method_setup this =
-  \<open>Scan.succeed (fn ctxt => METHOD (
-    EVERY o map (HEADGOAL o
-      (fn ths => SIDE_CONDS (resolve_tac ctxt ths) ctxt) o
-      single)
-    ))\<close>
+  \<open>Scan.succeed (K (CONTEXT_METHOD (fn facts =>
+    CHEADGOAL (SIDE_CONDS
+      (CONTEXT_TACTIC' (fn ctxt => resolve_tac ctxt facts))
+      facts))))\<close>
 
 subsection \<open>Rewriting\<close>
 
@@ -298,7 +288,7 @@ lemma eta_expand:
 lemma rewr_imp:
   assumes "PROP A \<equiv> PROP B"
   shows "(PROP A \<Longrightarrow> PROP C) \<equiv> (PROP B \<Longrightarrow> PROP C)"
-  apply (rule Pure.equal_intr_rule)
+  apply (Pure.rule Pure.equal_intr_rule)
   apply (drule equal_elim_rule2[OF assms]; assumption)
   apply (drule equal_elim_rule1[OF assms]; assumption)
   done
@@ -316,9 +306,11 @@ ML_file \<open>~~/src/HOL/Library/cconv.ML\<close>
 ML_file \<open>rewrite.ML\<close>
 
 \<comment> \<open>\<open>reduce\<close> computes terms via judgmental equalities\<close>
-setup \<open>map_theory_simpset (fn ctxt => ctxt addSolver (mk_solver "" typechk_tac))\<close>
+setup \<open>map_theory_simpset (fn ctxt =>
+  ctxt addSolver (mk_solver "" (fn ctxt' =>
+    NO_CONTEXT_TACTIC ctxt' o Types.check_infer (Simplifier.prems_of ctxt'))))\<close>
 
-method reduce uses add = (simp add: comps add | subst comps)+
+method reduce uses add = changed \<open>((simp add: comp add | sub comp); typechk?)+\<close>
 
 subsection \<open>Implicits\<close>
 
@@ -387,11 +379,8 @@ lemma refine_codomain:
 lemma lift_universe_codomain:
   assumes "A: U i" "f: A \<rightarrow> U j"
   shows "f: A \<rightarrow> U (S j)"
-  (*FIXME: Temporary; should be fixed once all methods are rewritten to use
-    the new typechk*)
-  apply (Pure.rule refine_codomain, typechk, typechk)
-  apply (Pure.rule lift_U, typechk)
-  done
+  using in_USi_if_in_Ui[of "f {}"]
+  by (rule refine_codomain)
 
 subsection \<open>Function composition\<close>
 
@@ -413,7 +402,7 @@ lemma funcompI [typechk]:
     "g \<circ>\<^bsub>A\<^esub> f: \<Prod>x: A. C (f x)"
   unfolding funcomp_def by typechk
 
-lemma funcomp_assoc [comps]:
+lemma funcomp_assoc [comp]:
   assumes
     "f: A \<rightarrow> B"
     "g: B \<rightarrow> C"
@@ -423,7 +412,7 @@ lemma funcomp_assoc [comps]:
     "(h \<circ>\<^bsub>B\<^esub> g) \<circ>\<^bsub>A\<^esub> f \<equiv> h \<circ>\<^bsub>A\<^esub> g \<circ>\<^bsub>A\<^esub> f"
   unfolding funcomp_def by reduce
 
-lemma funcomp_lambda_comp [comps]:
+lemma funcomp_lambda_comp [comp]:
   assumes
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> b x: B"
@@ -432,7 +421,7 @@ lemma funcomp_lambda_comp [comps]:
     "(\<lambda>x: B. c x) \<circ>\<^bsub>A\<^esub> (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
   unfolding funcomp_def by reduce
 
-lemma funcomp_apply_comp [comps]:
+lemma funcomp_apply_comp [comp]:
   assumes
     "f: A \<rightarrow> B" "g: \<Prod>x: B. C x"
     "x: A"
@@ -454,22 +443,22 @@ abbreviation id where "id A \<equiv> \<lambda>x: A. x"
 
 lemma
   id_type[typechk]: "A: U i \<Longrightarrow> id A: A \<rightarrow> A" and
-  id_comp [comps]: "x: A \<Longrightarrow> (id A) x \<equiv> x" \<comment> \<open>for the occasional manual rewrite\<close>
-  by reduce
+  id_comp [comp]: "x: A \<Longrightarrow> (id A) x \<equiv> x" \<comment> \<open>for the occasional manual rewrite\<close>
+  by reduce+
 
-lemma id_left [comps]:
+lemma id_left [comp]:
   assumes "f: A \<rightarrow> B" "A: U i" "B: U i"
   shows "(id B) \<circ>\<^bsub>A\<^esub> f \<equiv> f"
   by (subst eta_exp[of f]) (reduce, rule eta)
 
-lemma id_right [comps]:
+lemma id_right [comp]:
   assumes "f: A \<rightarrow> B" "A: U i" "B: U i"
   shows "f \<circ>\<^bsub>A\<^esub> (id A) \<equiv> f"
   by (subst eta_exp[of f]) (reduce, rule eta)
 
 lemma id_U [typechk]:
   "id (U i): U i \<rightarrow> U i"
-  by typechk (fact U_in_U)
+  by typechk (rule Ui_in_USi) (*FIXME: Add annotation rule to typechecker*)
 
 
 section \<open>Pairs\<close>
@@ -482,7 +471,7 @@ lemma fst_type [typechk]:
   shows "fst A B: (\<Sum>x: A. B x) \<rightarrow> A"
   unfolding fst_def by typechk
 
-lemma fst_comp [comps]:
+lemma fst_comp [comp]:
   assumes
     "a: A"
     "b: B a"
@@ -496,10 +485,10 @@ lemma snd_type [typechk]:
   shows "snd A B: \<Prod>p: \<Sum>x: A. B x. B (fst A B p)"
   unfolding snd_def by typechk reduce
 
-lemma snd_comp [comps]:
+lemma snd_comp [comp]:
   assumes "a: A" "b: B a" "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "snd A B <a, b> \<equiv> b"
-  unfolding snd_def by reduce
+  unfolding snd_def by reduce+
 
 subsection \<open>Notation\<close>
 
@@ -509,7 +498,7 @@ definition fst_i ("fst")
 definition snd_i ("snd")
   where [implicit]: "snd \<equiv> Spartan.snd ? ?"
 
-no_translations
+translations
   "fst" \<leftharpoondown> "CONST Spartan.fst A B"
   "snd" \<leftharpoondown> "CONST Spartan.snd A B"
 
@@ -520,22 +509,14 @@ Lemma fst [typechk]:
     "p: \<Sum>x: A. B x"
     "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "fst p: A"
-  \<comment> \<open>This can't be solved by a single application of `typechk`; it needs
-    multiple (two) passes. Something to do with constraint/subgoal reordering.\<close>
-  apply (Pure.rule elims)
-    apply (Pure.rule typechk)
-    apply known [1]
-    defer \<comment> \<open>The deferred subgoal is an inhabitation problem.\<close>
-    apply known [1]
-  by known
-    
+  by typechk    
 
 Lemma snd [typechk]:
   assumes
     "p: \<Sum>x: A. B x"
     "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "snd p: B (fst p)"
-  by typechk+
+  by typechk
 
 method fst for p::o = rule fst[of p]
 method snd for p::o = rule snd[of p]

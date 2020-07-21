@@ -35,12 +35,6 @@ fun put_types typings = foldr1 (op o) (map put_type typings)
 
 (* Context tactics for type-checking *)
 
-(*For debugging*)
-structure Probe = Proof_Data (
-  type T = int
-  val init = K 0
-)
-
 (*Solves goals without metavariables and type inference problems by resolving
   with facts or assumption from inline premises.*)
 fun known_ctac facts = CONTEXT_SUBGOAL (fn (goal, i) => fn (ctxt, st) =>
@@ -69,22 +63,23 @@ local
             (*MAYBE FIXME: Remove `typechk` from this list, and instead perform
               definitional unfolding to (w?)hnf.*)
             @(Named_Theorems.get ctxt \<^named_theorems>\<open>typechk\<close>)
-            @(Named_Theorems.get ctxt \<^named_theorems>\<open>intros\<close>)
+            @(Named_Theorems.get ctxt \<^named_theorems>\<open>form\<close>)
+            @(Named_Theorems.get ctxt \<^named_theorems>\<open>intro\<close>)
             @(map #1 (Elim.rules ctxt)))
           in (resolve_from_net_tac ctxt net) i end
         else no_tac)
-      val ctxt' = Probe.map (fn i => i + 1) ctxt
+      val ctxt' = ctxt
     in
       TACTIC_CONTEXT ctxt' (tac i st)
     end
 in
 
-fun check_infer facts =
-  let val probe = K (print_ctac (Int.toString o Probe.get))
+fun check_infer facts i (cst as (_, st)) =
+  let
+    val ctac = known_ctac facts CORELSE' check_infer_step facts
   in
-    CREPEAT_ALL_NEW_FWD (
-      probe CTHEN' known_ctac facts
-      CORELSE' probe CTHEN' check_infer_step facts)
+    cst |> (ctac i CTHEN
+      CREPEAT_IN_RANGE i (Thm.nprems_of st - i) (CTRY o CREPEAT_ALL_NEW_FWD ctac))
   end
 
 end

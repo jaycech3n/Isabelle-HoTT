@@ -15,15 +15,15 @@ Lemma (derive) eq: shows "Nat \<rightarrow> Nat \<rightarrow> U O"
     apply intro focus vars n apply elim
       \<guillemotright> by (rule TopF) \<comment> \<open>n \<equiv> 0\<close>
       \<guillemotright> by (rule BotF) \<comment> \<open>n \<equiv> suc _\<close>
-      \<guillemotright> by (rule U_in_U)
+      \<guillemotright> by (rule Ui_in_USi)
     done
     \<comment> \<open>m \<equiv> suc k\<close>
     apply intro focus vars k k_eq n apply (elim n)
       \<guillemotright> by (rule BotF) \<comment> \<open>n \<equiv> 0\<close>
       \<guillemotright> prems vars l proof - show "k_eq l: U O" by typechk qed
-      \<guillemotright> by (rule U_in_U)
+      \<guillemotright> by (rule Ui_in_USi)
     done
-    by (rule U_in_U)
+    by (rule Ui_in_USi)
   done
 
 text \<open>

@@ -11,6 +11,7 @@ structure Context_Tactical:
 sig
 
 type context_tactic' = int -> context_tactic
+val CONTEXT_TACTIC': (Proof.context -> int -> tactic) -> context_tactic'
 val all_ctac: context_tactic
 val no_ctac: context_tactic
 val print_ctac: (Proof.context -> string) -> context_tactic
@@ -25,15 +26,20 @@ val CREPEAT: context_tactic -> context_tactic
 val CFILTER: (context_state -> bool) -> context_tactic -> context_tactic
 val CCHANGED: context_tactic -> context_tactic
 val CTHEN_ALL_NEW: context_tactic' * context_tactic' -> context_tactic'
+val CREPEAT_IN_RANGE: int -> int -> context_tactic' -> context_tactic
 val CREPEAT_ALL_NEW: context_tactic' -> context_tactic'
 val CTHEN_ALL_NEW_FWD: context_tactic' * context_tactic' -> context_tactic'
 val CREPEAT_ALL_NEW_FWD: context_tactic' -> context_tactic'
 val CHEADGOAL: context_tactic' -> context_tactic
 val CALLGOALS: context_tactic' -> context_tactic
+val CSOMEGOAL: context_tactic' -> context_tactic
+val CRANGE: context_tactic' list -> context_tactic'
 
 end = struct
 
 type context_tactic' = int -> context_tactic
+
+fun CONTEXT_TACTIC' tac i (ctxt, st) = TACTIC_CONTEXT ctxt ((tac ctxt i) st)
 
 val all_ctac = Seq.make_results o Seq.single
 val no_ctac = K Seq.empty
@@ -87,26 +93,34 @@ local
 
   (*By Peter Lammich: apply tactic to subgoals in interval in a forward manner,
     skipping over emerging subgoals*)
-  fun INTERVAL_FWD ctac l u (cst as (_, st)) =
-    if l > u then all_ctac cst
+  fun INTERVAL_FWD ctac l u (cst as (_, st)) = cst |>
+    (if l > u then all_ctac
     else (ctac l CTHEN (fn cst' as (_, st') =>
       let val ofs = Thm.nprems_of st' - Thm.nprems_of st in
         if ofs < ~1
         then raise THM (
           "INTERVAL_FWD: tactic solved more than one goal", ~1, [st, st'])
         else INTERVAL_FWD ctac (l + 1 + ofs) (u + ofs) cst'
-      end)) cst
+      end)))
 in
 
 fun (ctac1 CTHEN_ALL_NEW ctac2) i (cst as (_, st)) =
   cst |> (ctac1 i CTHEN (fn cst' as (_, st') =>
-    cst' |> INTERVAL ctac2 i (i + Thm.nprems_of st' - Thm.nprems_of st)))
+    INTERVAL ctac2 i (i + Thm.nprems_of st' - Thm.nprems_of st) cst'))
 
 (*By Peter Lammich: apply ctac2 to all subgoals emerging from ctac1, in forward
   manner*)
 fun (ctac1 CTHEN_ALL_NEW_FWD ctac2) i (cst as (_, st)) =
   cst |> (ctac1 i CTHEN (fn cst' as (_, st') =>
-    cst' |> INTERVAL_FWD ctac2 i (i + Thm.nprems_of st' - Thm.nprems_of st)))
+    INTERVAL_FWD ctac2 i (i + Thm.nprems_of st' - Thm.nprems_of st) cst'))
+
+(*Repeatedly apply ctac to the i-th until the k-th-from-last subgoals
+  (i.e. leave the last k subgoals alone), until no more changes appear in the
+  goal state.*)
+fun CREPEAT_IN_RANGE i k ctac =
+  let fun interval_ctac (cst as (_, st)) =
+    INTERVAL_FWD ctac i (Thm.nprems_of st - k) cst
+  in CREPEAT (CCHANGED interval_ctac) end
 
 end
 
@@ -123,6 +137,15 @@ fun CALLGOALS ctac (cst as (_, st)) =
     fun doall 0 = all_ctac
       | doall n = ctac n CTHEN doall (n - 1);
   in doall (Thm.nprems_of st) cst end
+
+fun CSOMEGOAL ctac (cst as (_, st)) =
+  let
+    fun find 0 = no_ctac
+      | find n = ctac n CORELSE find (n - 1);
+  in find (Thm.nprems_of st) cst end
+
+fun CRANGE [] _ = all_ctac
+  | CRANGE (ctac :: ctacs) i = CRANGE ctacs (i + 1) CTHEN ctac i
 
 end
 
