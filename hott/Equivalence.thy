@@ -338,18 +338,18 @@ Lemma (derive) equivalence_symmetric:
 Lemma (derive) equivalence_transitive:
   assumes "A: U i" "B: U i" "C: U i"
   shows "A \<simeq> B \<rightarrow> B \<simeq> C \<rightarrow> A \<simeq> C"
-  (* proof intros
-    fix AB BC assume "AB: A \<simeq> B" "BC: B \<simeq> C"
-    let "?f: {}" = "(fst AB) :: o" *)
-  apply intros
-  unfolding equivalence_def
-    focus vars p q apply (elim p, elim q)
-      focus vars f biinv\<^sub>f g biinv\<^sub>g apply intro
-        \<guillemotright> apply (rule funcompI) defer by assumption+ known
-        \<guillemotright> by (rule funcomp_biinv)
-      done
-    done
-  done
+  proof intros
+    fix AB BC assume *: "AB: A \<simeq> B" "BC: B \<simeq> C"
+    then have
+      "fst AB: A \<rightarrow> B" and 1: "snd AB: biinv (fst AB)"
+      "fst BC: B \<rightarrow> C" and 2: "snd BC: biinv (fst BC)"
+      unfolding equivalence_def by typechk+
+    then have "fst BC \<circ> fst AB: A \<rightarrow> C" by typechk
+    moreover have "biinv (fst BC \<circ> fst AB)"
+      using * unfolding equivalence_def by (rules funcomp_biinv 1 2)
+    ultimately show "A \<simeq> C"
+      unfolding equivalence_def by intro facts
+  qed
 
 text \<open>
   Equal types are equivalent. We give two proofs: the first by induction, and

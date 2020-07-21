@@ -52,7 +52,7 @@ paragraph \<open>
 
 typedecl o
 
-judgment has_type :: \<open>o \<Rightarrow> o \<Rightarrow> prop\<close> ("(2_:/ _)" 999)
+consts has_type :: \<open>o \<Rightarrow> o \<Rightarrow> prop\<close> ("(2_:/ _)" 999)
 
 text \<open>Type annotations for type-checking and inference.\<close>
 
@@ -232,6 +232,10 @@ method_setup rule =
   \<open>Attrib.thms >> (fn ths => K (CONTEXT_METHOD (
     CHEADGOAL o SIDE_CONDS (rule_ctac ths))))\<close>
 
+method_setup rules =
+  \<open>Attrib.thms >> (fn ths => K (CONTEXT_METHOD (
+    CREPEAT o CHEADGOAL o SIDE_CONDS (rule_ctac ths))))\<close>
+
 method_setup dest =
   \<open>Scan.lift (Scan.option (Args.parens Parse.int))
     -- Attrib.thms >> (fn (n_opt, ths) => K (CONTEXT_METHOD (
@@ -254,6 +258,8 @@ method elims = elim+
 method_setup cases =
   \<open>Args.term >> (fn tm => K (CONTEXT_METHOD (
     CHEADGOAL o SIDE_CONDS (cases_ctac tm))))\<close>
+
+method facts = fact+
 
 
 subsection \<open>Reflexivity\<close>
@@ -310,7 +316,8 @@ setup \<open>map_theory_simpset (fn ctxt =>
   ctxt addSolver (mk_solver "" (fn ctxt' =>
     NO_CONTEXT_TACTIC ctxt' o Types.check_infer (Simplifier.prems_of ctxt'))))\<close>
 
-method reduce uses add = changed \<open>((simp add: comp add | sub comp); typechk?)+\<close>
+method reduce uses add =
+  changed \<open>repeat_new \<open>(simp add: comp add | sub comp); typechk?\<close>\<close>
 
 subsection \<open>Implicits\<close>
 
@@ -327,10 +334,7 @@ ML_file \<open>implicits.ML\<close>
 
 attribute_setup implicit = \<open>Scan.succeed Implicits.implicit_defs_attr\<close>
 
-ML \<open>
-val _ = Context.>>
-  (Syntax_Phases.term_check 1 "" (fn ctxt => map (Implicits.make_holes ctxt)))
-\<close>
+ML \<open>val _ = Context.>> (Syntax_Phases.term_check 1 "" Implicits.make_holes)\<close>
 
 text \<open>Automatically insert inhabitation judgments where needed:\<close>
 
@@ -488,7 +492,7 @@ lemma snd_type [typechk]:
 lemma snd_comp [comp]:
   assumes "a: A" "b: B a" "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "snd A B <a, b> \<equiv> b"
-  unfolding snd_def by reduce+
+  unfolding snd_def by reduce
 
 subsection \<open>Notation\<close>
 

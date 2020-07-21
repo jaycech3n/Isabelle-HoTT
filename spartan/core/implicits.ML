@@ -3,7 +3,7 @@ sig
 
 val implicit_defs: Proof.context -> (term * term) Symtab.table
 val implicit_defs_attr: attribute
-val make_holes: Proof.context -> term -> term
+val make_holes: Proof.context -> term list -> term list
 
 end = struct
 
@@ -25,16 +25,15 @@ val implicit_defs_attr = Thm.declaration_attribute (fn th =>
     Defs.map (Symtab.update (Term.term_name head, (head, def')))
   end)
 
-fun make_holes ctxt =
+fun make_holes_single ctxt tm name_ctxt =
   let
     fun iarg_to_hole (Const (\<^const_name>\<open>iarg\<close>, T)) =
           Const (\<^const_name>\<open>hole\<close>, T)
       | iarg_to_hole t = t
 
     fun expand head args =
-      let
-        fun betapplys (head', args') =
-          Term.betapplys (map_aterms iarg_to_hole head', args')
+      let fun betapplys (head', args') =
+        Term.betapplys (map_aterms iarg_to_hole head', args')
       in
         case head of
           Abs (x, T, t) =>
@@ -66,13 +65,17 @@ fun make_holes ctxt =
               in subst t (take n vs) Ts $ subst u (drop n vs) Ts end
           | subst t _ _ = t
 
-        val vars = map (fn n => Var ((n, 0), dummyT))
-          (Name.invent (Variable.names_of ctxt) "*" (count t))
+        val names = Name.invent name_ctxt "*" (count t)
+        val vars = map (fn n => Var ((n, 0), dummyT)) names
       in
-        subst t vars []
+        (subst t vars [], fold Name.declare names name_ctxt)
       end
   in
-    Lib.traverse_term expand #> holes_to_vars
+    holes_to_vars (Lib.traverse_term expand tm)
   end
+
+fun make_holes ctxt tms = #1
+  (fold_map (make_holes_single ctxt) tms (Variable.names_of ctxt))
+
 
 end

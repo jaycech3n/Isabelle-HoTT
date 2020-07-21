@@ -49,6 +49,9 @@ lemmas
 
 section \<open>Path induction\<close>
 
+\<comment> \<open>With `p: x = y` in the context the invokation `eq p` is essentially
+  `elim p x y`, with some extra bits before and after.\<close>
+
 method_setup eq =
   \<open>Args.term >> (fn tm => K (CONTEXT_METHOD (
     CHEADGOAL o SIDE_CONDS (
@@ -155,12 +158,12 @@ translations
 Lemma lu_refl [comp]:
   assumes "A: U i" "x: A"
   shows "lu (refl x) \<equiv> refl (refl x)"
-  unfolding refl_pathcomp_def by reduce+
+  unfolding refl_pathcomp_def by reduce
 
 Lemma ru_refl [comp]:
   assumes "A: U i" "x: A"
   shows "ru (refl x) \<equiv> refl (refl x)"
-  unfolding pathcomp_refl_def by reduce+
+  unfolding pathcomp_refl_def by reduce
 
 Lemma (derive) inv_pathcomp:
   assumes "A: U i" "x: A" "y: A" "p: x =\<^bsub>A\<^esub> y"
@@ -374,7 +377,7 @@ Lemma transport_const_comp [comp]:
     "x: A" "b: B"
     "A: U i" "B: U i"
   shows "trans_const B (refl x) b\<equiv> refl b"
-  unfolding transport_const_def by reduce+
+  unfolding transport_const_def by reduce
 
 Lemma (derive) pathlift:
   assumes
@@ -398,7 +401,7 @@ Lemma pathlift_comp [comp]:
     "\<And>x. x: A \<Longrightarrow> P x: U i"
     "A: U i"
   shows "lift P (refl x) u \<equiv> refl <x, u>"
-  unfolding pathlift_def by reduce+
+  unfolding pathlift_def by reduce
 
 Lemma (derive) pathlift_fst:
   assumes
@@ -438,7 +441,7 @@ Lemma dependent_map_comp [comp]:
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> P x: U i"
   shows "apd f (refl x) \<equiv> refl (f x)"
-  unfolding apd_def by reduce+
+  unfolding apd_def by reduce
 
 Lemma (derive) apd_ap:
   assumes
@@ -495,13 +498,13 @@ Lemma whisker_refl [comp]:
   assumes "A: U i" "a: A" "b: A"
   shows "\<lbrakk>p: a = b; q: a = b; \<alpha>: p =\<^bsub>a = b\<^esub> q\<rbrakk> \<Longrightarrow>
     \<alpha> \<bullet>\<^sub>r\<^bsub>a\<^esub> (refl b) \<equiv> ru p \<bullet> \<alpha> \<bullet> (ru q)\<inverse>"
-  unfolding right_whisker_def by reduce+
+  unfolding right_whisker_def by reduce
 
 Lemma refl_whisker [comp]:
   assumes "A: U i" "a: A" "b: A"
   shows "\<lbrakk>p: a = b; q: a = b; \<alpha>: p = q\<rbrakk> \<Longrightarrow>
     (refl a) \<bullet>\<^sub>l\<^bsub>b\<^esub> \<alpha> \<equiv> (lu p) \<bullet> \<alpha> \<bullet> (lu q)\<inverse>"
-  unfolding left_whisker_def by reduce+
+  unfolding left_whisker_def by reduce
 
 method left_whisker = (rule left_whisker)
 method right_whisker = (rule right_whisker)
