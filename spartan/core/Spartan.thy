@@ -185,28 +185,13 @@ section \<open>Infrastructure\<close>
 ML_file \<open>lib.ML\<close>
 ML_file \<open>context_tactical.ML\<close>
 
-subsection \<open>Proof commands\<close>
+subsection \<open>Type-checking/inference\<close>
 
-ML_file \<open>focus.ML\<close>
-
-named_theorems typechk
-
-ML_file \<open>goals.ML\<close>
-
-subsection \<open>Congruence automation\<close>
-
-consts "rhs" :: \<open>'a\<close> ("..")
-
-ML_file \<open>congruence.ML\<close>
-
-subsection \<open>Proof methods and type-checking/inference\<close>
-
-named_theorems form and intro and intros and comp
+named_theorems form and intro and intros and comp and typechk
 \<comment> \<open>`intros` stores the introduction rule variants used by the
   `intro` and `intros` methods.\<close>
 
 ML_file \<open>elimination.ML\<close> \<comment> \<open>elimination rules\<close>
-ML_file \<open>cases.ML\<close> \<comment> \<open>case reasoning rules\<close>
 
 lemmas
   [form] = PiF SigF and
@@ -218,7 +203,6 @@ lemmas
   [cong] = Pi_cong lam_cong Sig_cong
 
 ML_file \<open>typechecking.ML\<close>
-ML_file \<open>tactics.ML\<close>
 
 method_setup typechk =
   \<open>Scan.succeed (K (CONTEXT_METHOD (
@@ -227,6 +211,16 @@ method_setup typechk =
 method_setup known =
   \<open>Scan.succeed (K (CONTEXT_METHOD (
     CHEADGOAL o Types.known_ctac)))\<close>
+
+subsection \<open>Statement commands\<close>
+
+ML_file \<open>focus.ML\<close>
+ML_file \<open>goals.ML\<close>
+
+subsection \<open>Proof methods\<close>
+
+ML_file \<open>cases.ML\<close> \<comment> \<open>case reasoning rules\<close>
+ML_file \<open>tactics.ML\<close>
 
 method_setup rule =
   \<open>Attrib.thms >> (fn ths => K (CONTEXT_METHOD (
@@ -318,6 +312,12 @@ setup \<open>map_theory_simpset (fn ctxt =>
 
 method reduce uses add =
   changed \<open>repeat_new \<open>(simp add: comp add | sub comp); typechk?\<close>\<close>
+
+subsection \<open>Congruence automation\<close>
+
+consts "rhs" :: \<open>'a\<close> ("..")
+
+ML_file \<open>congruence.ML\<close>
 
 subsection \<open>Implicits\<close>
 
@@ -513,7 +513,7 @@ Lemma fst [typechk]:
     "p: \<Sum>x: A. B x"
     "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "fst p: A"
-  by typechk    
+  by typechk
 
 Lemma snd [typechk]:
   assumes
