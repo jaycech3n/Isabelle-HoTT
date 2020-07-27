@@ -33,13 +33,16 @@ Lemma (derive) hsym:
     "g: \<Prod>x: A. B x"
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> B x: U i"
-  shows "H: f ~ g \<Longrightarrow> g ~ f"
-  unfolding homotopy_def
-  apply intro
-    apply (rule pathinv)
-      \<guillemotright> by (elim H)
-      \<guillemotright> by typechk
-  done
+    "H: f ~ g"
+  shows "g ~ f"
+unfolding homotopy_def
+proof intro
+  fix x assume "x: A" then have "H x: f x = g x"
+    using \<open>H:_\<close>[unfolded homotopy_def]
+      \<comment> \<open>this should become unnecessary when definitional unfolding is implemented\<close>
+    by typechk
+  thus "g x = f x" by (rule pathinv) fact
+qed typechk
 
 Lemma (derive) htrans:
   assumes
@@ -71,9 +74,9 @@ Lemma (derive) commute_homotopy:
   assumes
     "A: U i" "B: U i"
     "x: A" "y: A"
-    "p: x =\<^bsub>A\<^esub> y"
+    "p: x = y"
     "f: A \<rightarrow> B" "g: A \<rightarrow> B"
-    "H: homotopy A (fn _. B) f g"
+    "H: f ~ g"
   shows "(H x) \<bullet> g[p] = f[p] \<bullet> (H y)"
   \<comment> \<open>Need this assumption unfolded for typechecking\<close>
   supply assms(8)[unfolded homotopy_def]
@@ -94,7 +97,7 @@ Corollary (derive) commute_homotopy':
     "A: U i"
     "x: A"
     "f: A \<rightarrow> A"
-    "H: homotopy A (fn _. A) f (id A)"
+    "H: f ~ (id A)"
   shows "H (f x) = f [H x]"
 oops
 

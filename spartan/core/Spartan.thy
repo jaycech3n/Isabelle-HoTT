@@ -215,6 +215,8 @@ method_setup known =
 subsection \<open>Statement commands\<close>
 
 ML_file \<open>focus.ML\<close>
+ML_file \<open>elaboration.ML\<close>
+ML_file \<open>elaborated_expression.ML\<close>
 ML_file \<open>goals.ML\<close>
 
 subsection \<open>Proof methods\<close>
