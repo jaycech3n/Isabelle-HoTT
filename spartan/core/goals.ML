@@ -184,7 +184,7 @@ val schematic_theorem_cmd =
   gen_schematic_theorem
     Bundle.includes_cmd
     Attrib.check_src
-    Expression.read_statement
+    Elaborated_Expression.read_statement
 
 fun theorem spec descr =
   Outer_Syntax.local_theory_to_proof' spec ("state " ^ descr) 

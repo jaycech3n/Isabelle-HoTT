@@ -6,13 +6,16 @@ val max: ('a * 'a -> bool) -> 'a list -> 'a
 val maxint: int list -> int
 
 (*Terms*)
-val is_rigid: term -> bool
 val no_vars: term -> bool
+val is_rigid: term -> bool
+val is_eq: term -> bool
+val dest_prop: term -> term
 val dest_eq: term -> term * term
 val mk_Var: string -> int -> typ -> term
 val lambda_var: term -> term -> term
 
 val is_typing: term -> bool
+val mk_typing: term -> term -> term
 val dest_typing: term -> term * term
 val term_of_typing: term -> term
 val type_of_typing: term -> term
@@ -21,6 +24,7 @@ val mk_Pi: term -> term -> term -> term
 val typing_of_term: term -> term
 
 (*Goals*)
+val decompose_goal: Proof.context -> term -> term list * term
 val rigid_typing_concl: term -> bool
 
 (*Subterms*)
@@ -49,9 +53,15 @@ val maxint = max (op >)
 
 (* Meta *)
 
+val no_vars = not o exists_subterm is_Var
+
 val is_rigid = not o is_Var o head_of
 
-val no_vars = not o exists_subterm is_Var
+fun is_eq (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ _) = true
+  | is_eq _ = false
+
+fun dest_prop (Const (\<^const_name>\<open>Pure.prop\<close>, _) $ P) = P
+  | dest_prop P = P
 
 fun dest_eq (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t $ def) = (t, def)
   | dest_eq _ = error "dest_eq"
@@ -72,8 +82,10 @@ fun lambda_var x tm =
 fun is_typing (Const (\<^const_name>\<open>has_type\<close>, _) $ _ $ _) = true
   | is_typing _ = false
 
+fun mk_typing t T = \<^const>\<open>has_type\<close> $ t $ T
+
 fun dest_typing (Const (\<^const_name>\<open>has_type\<close>, _) $ t $ T) = (t, T)
-  | dest_typing _ = error "dest_typing"
+  | dest_typing t = raise TERM ("dest_typing", [t])
 
 val term_of_typing = #1 o dest_typing
 val type_of_typing = #2 o dest_typing
@@ -82,10 +94,27 @@ fun mk_Pi v typ body = Const (\<^const_name>\<open>Pi\<close>, dummyT) $ typ $ l
 
 fun typing_of_term tm = \<^const>\<open>has_type\<close> $ tm $ Var (("*?", 0), \<^typ>\<open>o\<close>)
 (*The above is a bit hacky; basically we need to guarantee that the schematic
-  var is fresh*)
+  var is fresh. This works for now because no other code in the Isabelle system
+  or the current logic uses this identifier.*)
 
 
 (** Goals **)
+
+(*Breaks a goal \<And>x ... y. \<lbrakk>P1; ... Pn\<rbrakk> \<Longrightarrow> Q into ([P1, ..., Pn], Q), fixing
+  \<And>-quantified variables and keeping schematics.*)
+fun decompose_goal ctxt goal =
+  let
+    val focus =
+      #1 (Subgoal.focus_prems ctxt 1 NONE (Thm.trivial (Thm.cterm_of ctxt goal)))
+
+    val schematics = #2 (#schematics focus)
+      |> map (fn (v, ctm) => (Thm.term_of ctm, Var v))
+  in
+    map Thm.prop_of (#prems focus) @ [Thm.term_of (#concl focus)]
+    |> map (subst_free schematics)
+    |> (fn xs => chop (length xs - 1) xs) |> apsnd the_single
+  end
+  handle List.Empty => error "Lib.decompose_goal"
 
 fun rigid_typing_concl goal =
   let val concl = Logic.strip_assums_concl goal
