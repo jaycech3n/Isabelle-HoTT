@@ -436,8 +436,7 @@ val _ = Outer_Syntax.command \<^command_keyword>\<open>assuming\<close> "elabora
       val a' = map (fn (b, s, m) => (b, read_option_typ s, m)) a
       val b' = map (map read_terms) b
       val c' = c |> map (fn ((b, atts), ss) =>
-        ((b, map (Attrib.attribute ctxt o Attrib.check_src ctxt) atts),
-         map read_terms ss))
+        ((b, map (Attrib.attribute_cmd ctxt) atts), map read_terms ss))
       val c'' = elaborate ctxt c'
     in Proof.assume a' b' c'' state end)))
 
