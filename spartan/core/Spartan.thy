@@ -7,6 +7,7 @@ imports
   "HOL-Eisbach.Eisbach_Tools"
 keywords
   "Theorem" "Lemma" "Corollary" "Proposition" "Definition" :: thy_goal_stmt and
+  "assuming" :: prf_asm % "proof" and
   "focus" "\<guillemotright>" "\<^item>" "\<^enum>" "~" :: prf_script_goal % "proof" and
   "congruence" "print_coercions" :: thy_decl and
   "rhs" "derive" "prems" "vars" :: quasi_command
@@ -216,7 +217,7 @@ subsection \<open>Statement commands\<close>
 
 ML_file \<open>focus.ML\<close>
 ML_file \<open>elaboration.ML\<close>
-ML_file \<open>elaborated_expression.ML\<close>
+ML_file \<open>elaborated_assumption.ML\<close>
 ML_file \<open>goals.ML\<close>
 
 subsection \<open>Proof methods\<close>
@@ -536,19 +537,12 @@ Lemma (derive) Sig_dist_exp:
     "\<And>x. x: A \<Longrightarrow> B x: U i"
     "\<And>x. x: A \<Longrightarrow> C x: U i"
   shows "(\<Sum>x: A. B x) \<times> (\<Sum>x: A. C x)"
-  apply (elim p)
-    focus vars x y
-      apply intro
-        \<guillemotright> apply intro
-            apply assumption
-            apply (fst y)
-          done
-        \<guillemotright> apply intro
-            apply assumption
-            apply (snd y)
-          done
-    done
-  done
+proof intro
+  have "fst p: A" and "snd p: B (fst p) \<times> C (fst p)" by typechk+
+  thus "<fst p, fst (snd p)>: \<Sum>x: A. B x"
+   and "<fst p, snd (snd p)>: \<Sum>x: A. C x"
+    by typechk+
+qed
 
 
 end

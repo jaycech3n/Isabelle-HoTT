@@ -1,18 +1,45 @@
-(*  Title:      elaborated_expression.ML
+(*  Title:      elaborated_assumption.ML
     Author:     Joshua Chen
 
-A modification of parts of ~~/Pure/Isar/expression.ML to incorporate elaboration
-into the assumptions mechanism.
+Term elaboration for goal and proof assumptions.
 
-Most of this file is copied verbatim from the original; the only changes are the
-addition of `elaborate` and a modification to `activate_i`.
+Contains code from parts of
+  ~~/Pure/Isar/element.ML and
+  ~~/Pure/Isar/expression.ML
+in both verbatim and modified forms.
 *)
 
-structure Elaborated_Expression = struct
+structure Elaborated_Assumption: sig
+
+val read_goal_statement:
+  (string, string, Facts.ref) Element.ctxt list ->
+  (string, string) Element.stmt ->
+  Proof.context ->
+  (Attrib.binding * (term * term list) list) list * Proof.context
+
+end = struct
+
+
+(*Apply elaboration to the list format assumptions are given in*)
+fun elaborate ctxt assms =
+  let
+    fun subst_term env = Envir.subst_term (Envir.type_env env, Envir.term_env env)
+    fun elab_fact (fact, xs) assums =
+      let val (subst, fact') = Elab.elab_stmt ctxt assums fact in
+        ((fact', map (subst_term subst) xs), Thm.cterm_of ctxt fact' :: assums)
+      end
+    fun elab (b, facts) assums =
+      let val (facts', assums') = fold_map elab_fact facts assums
+      in ((b, facts'), assums') end
+  in #1 (fold_map elab assms []) end
+
+
+(* Goal assumptions *)
+
+(*Most of the code in this section is copied verbatim from the originals; the
+  only change is a modification to`activate_i` incorporating elaboration.*)
 
 local
-
-open Element
 
 fun mk_type T = (Logic.mk_type T, [])
 fun mk_term t = (t, [])
@@ -28,25 +55,25 @@ fun restore_inst ((l, (p, _)), cs) = (l, (p, map dest_term cs))
 fun extract_eqns es = map (mk_term o snd) es
 fun restore_eqns (es, cs) = map2 (fn (b, _) => fn c => (b, dest_term c)) es cs
 
-fun extract_elem (Fixes fixes) = map (#2 #> the_list #> map mk_type) fixes
-  | extract_elem (Constrains csts) = map (#2 #> single #> map mk_type) csts
-  | extract_elem (Assumes asms) = map (#2 #> map mk_propp) asms
-  | extract_elem (Defines defs) = map (fn (_, (t, ps)) => [mk_propp (t, ps)]) defs
-  | extract_elem (Notes _) = []
-  | extract_elem (Lazy_Notes _) = []
+fun extract_elem (Element.Fixes fixes) = map (#2 #> the_list #> map mk_type) fixes
+  | extract_elem (Element.Constrains csts) = map (#2 #> single #> map mk_type) csts
+  | extract_elem (Element.Assumes asms) = map (#2 #> map mk_propp) asms
+  | extract_elem (Element.Defines defs) = map (fn (_, (t, ps)) => [mk_propp (t, ps)]) defs
+  | extract_elem (Element.Notes _) = []
+  | extract_elem (Element.Lazy_Notes _) = []
 
-fun restore_elem (Fixes fixes, css) =
+fun restore_elem (Element.Fixes fixes, css) =
       (fixes ~~ css) |> map (fn ((x, _, mx), cs) =>
-        (x, cs |> map dest_type |> try hd, mx)) |> Fixes
-  | restore_elem (Constrains csts, css) =
+        (x, cs |> map dest_type |> try hd, mx)) |> Element.Fixes
+  | restore_elem (Element.Constrains csts, css) =
       (csts ~~ css) |> map (fn ((x, _), cs) =>
-        (x, cs |> map dest_type |> hd)) |> Constrains
-  | restore_elem (Assumes asms, css) =
-      (asms ~~ css) |> map (fn ((b, _), cs) => (b, map dest_propp cs)) |> Assumes
-  | restore_elem (Defines defs, css) =
-      (defs ~~ css) |> map (fn ((b, _), [c]) => (b, dest_propp c)) |> Defines
-  | restore_elem (elem as Notes _, _) = elem
-  | restore_elem (elem as Lazy_Notes _, _) = elem
+        (x, cs |> map dest_type |> hd)) |> Element.Constrains
+  | restore_elem (Element.Assumes asms, css) =
+      (asms ~~ css) |> map (fn ((b, _), cs) => (b, map dest_propp cs)) |> Element.Assumes
+  | restore_elem (Element.Defines defs, css) =
+      (defs ~~ css) |> map (fn ((b, _), [c]) => (b, dest_propp c)) |> Element.Defines
+  | restore_elem (elem as Element.Notes _, _) = elem
+  | restore_elem (elem as Element.Lazy_Notes _, _) = elem
 
 fun prep (_, pats) (ctxt, t :: ts) =
   let val ctxt' = Proof_Context.augment t ctxt
@@ -65,11 +92,11 @@ fun check cs ctxt =
 
 fun inst_morphism params ((prfx, mandatory), insts') ctxt =
   let
-    (* parameters *)
+    (*parameters*)
     val parm_types = map #2 params;
     val type_parms = fold Term.add_tfreesT parm_types [];
 
-    (* type inference *)
+    (*type inference*)
     val parm_types' = map (Type_Infer.paramify_vars o Logic.varifyT_global) parm_types;
     val type_parms' = fold Term.add_tvarsT parm_types' [];
     val checked =
@@ -77,12 +104,12 @@ fun inst_morphism params ((prfx, mandatory), insts') ctxt =
       |> Syntax.check_terms (Config.put Type_Infer.object_logic false ctxt)
     val (type_parms'', insts'') = chop (length type_parms') checked;
 
-    (* context *)
+    (*context*)
     val ctxt' = fold Proof_Context.augment checked ctxt;
     val certT = Thm.trim_context_ctyp o Thm.ctyp_of ctxt';
     val cert = Thm.trim_context_cterm o Thm.cterm_of ctxt';
 
-    (* instantiation *)
+    (*instantiation*)
     val instT =
       (type_parms ~~ map Logic.dest_type type_parms'')
       |> map_filter (fn (v, T) => if TFree v = T then NONE else SOME (v, T));
@@ -203,7 +230,7 @@ fun finish_inst ctxt (loc, (prfx, inst)) =
 fun closeup _ _ false elem = elem
   | closeup (outer_ctxt, ctxt) parms true elem =
       let
-        (* FIXME consider closing in syntactic phase -- before type checking *)
+        (*FIXME consider closing in syntactic phase -- before type checking*)
         fun close_frees t =
           let
             val rev_frees =
@@ -216,20 +243,20 @@ fun closeup _ _ false elem = elem
           | no_binds _ = error "Illegal term bindings in context element";
       in
         (case elem of
-          Assumes asms => Assumes (asms |> map (fn (a, propps) =>
+          Element.Assumes asms => Element.Assumes (asms |> map (fn (a, propps) =>
             (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
-        | Defines defs => Defines (defs |> map (fn ((name, atts), (t, ps)) =>
+        | Element.Defines defs => Element.Defines (defs |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = Local_Defs.cert_def ctxt (K []) (close_frees t)
             in ((Thm.def_binding_optional (Binding.name c) name, atts), (t', no_binds ps)) end))
         | e => e)
       end
 
-fun finish_elem _ parms _ (Fixes fixes) = Fixes (finish_fixes parms fixes)
-  | finish_elem _ _ _ (Constrains _) = Constrains []
-  | finish_elem ctxts parms do_close (Assumes asms) = closeup ctxts parms do_close (Assumes asms)
-  | finish_elem ctxts parms do_close (Defines defs) = closeup ctxts parms do_close (Defines defs)
-  | finish_elem _ _ _ (elem as Notes _) = elem
-  | finish_elem _ _ _ (elem as Lazy_Notes _) = elem
+fun finish_elem _ parms _ (Element.Fixes fixes) = Element.Fixes (finish_fixes parms fixes)
+  | finish_elem _ _ _ (Element.Constrains _) = Element.Constrains []
+  | finish_elem ctxts parms do_close (Element.Assumes asms) = closeup ctxts parms do_close (Element.Assumes asms)
+  | finish_elem ctxts parms do_close (Element.Defines defs) = closeup ctxts parms do_close (Element.Defines defs)
+  | finish_elem _ _ _ (elem as Element.Notes _) = elem
+  | finish_elem _ _ _ (elem as Element.Lazy_Notes _) = elem
 
 fun check_autofix insts eqnss elems concl ctxt =
   let
@@ -237,7 +264,7 @@ fun check_autofix insts eqnss elems concl ctxt =
     val eqns_cs = map extract_eqns eqnss;
     val elem_css = map extract_elem elems;
     val concl_cs = (map o map) mk_propp (map snd concl);
-    (* Type inference *)
+    (*Type inference*)
     val (inst_cs' :: eqns_cs' :: css', ctxt') =
       (fold_burrow o fold_burrow) check (inst_cs :: eqns_cs :: elem_css @ [concl_cs]) ctxt;
     val (elem_css', [concl_cs']) = chop (length elem_css) css';
@@ -317,7 +344,7 @@ fun prep_full_context_statement
       |> fold_map prep_elem raw_elems
       |-> prep_stmt
 
-    (* parameters from expression and elements *)
+    (*parameters from expression and elements*)
     val xs = maps (fn Element.Fixes fixes => map (Variable.check_name o #1) fixes | _ => [])
       (Element.Fixes fors :: elems')
     val (parms, ctxt5) = fold_map Proof_Context.inferred_param xs ctxt4
@@ -344,8 +371,6 @@ val read_full_context_statement = prep_full_context_statement
   Proof_Context.read_var parse_inst Syntax.read_props Attrib.check_src
   Proof_Context.read_var check_expr
 
-in
-
 fun prep_statement prep activate raw_elems raw_stmt ctxt =
   let
     val ((_, _, _, elems, concl), _) =
@@ -357,46 +382,66 @@ fun prep_statement prep activate raw_elems raw_stmt ctxt =
       |> Proof_Context.restore_stmt ctxt;
   in (concl, ctxt') end
 
-fun elaborate ctxt assms =
-  let
-    fun subst_term env = Envir.subst_term (Envir.type_env env, Envir.term_env env)
-    fun elab_fact (fact, xs) assums =
-      let val (subst, fact') = Elab.elab_stmt ctxt assums fact in
-        ((fact', map (subst_term subst) xs), Thm.cterm_of ctxt fact' :: assums)
-      end
-    fun elab (b, facts) assums =
-      let val (facts', assums') = fold_map elab_fact facts assums
-      in ((b, facts'), assums') end
-  in
-    #1 (fold_map elab assms [])
-  end
-
 fun activate_i elem ctxt =
   let
     val elem' =
-      (case (map_ctxt_attrib o map) Token.init_assignable elem of
-        Defines defs =>
-          Defines (defs |> map (fn ((a, atts), (t, ps)) =>
+      (case (Element.map_ctxt_attrib o map) Token.init_assignable elem of
+        Element.Defines defs =>
+          Element.Defines (defs |> map (fn ((a, atts), (t, ps)) =>
             ((Thm.def_binding_optional
               (Binding.name (#1 (#1 (Local_Defs.cert_def ctxt (K []) t)))) a, atts),
               (t, ps))))
-      | Assumes assms => Assumes (elaborate ctxt assms)
+      | Element.Assumes assms => Element.Assumes (elaborate ctxt assms)
       | e => e);
-    val ctxt' = Context.proof_map (init elem') ctxt;
-  in ((map_ctxt_attrib o map) Token.closure elem', ctxt') end
+    val ctxt' = Context.proof_map (Element.init elem') ctxt;
+  in ((Element.map_ctxt_attrib o map) Token.closure elem', ctxt') end
 
 fun activate raw_elem ctxt =
-  let val elem = raw_elem |> map_ctxt
+  let val elem = raw_elem |> Element.map_ctxt
    {binding = I,
     typ = I,
     term = I,
     pattern = I,
     fact = Proof_Context.get_fact ctxt,
     attrib = Attrib.check_src ctxt}
-  in activate_i elem ctxt end;
+  in activate_i elem ctxt end
 
-fun read_statement x = prep_statement read_full_context_statement activate x
+in
+
+val read_goal_statement = prep_statement read_full_context_statement activate
 
 end
+
+
+(* Proof assumption command *)
+
+local
+
+val structured_statement =
+  Parse_Spec.statement -- Parse_Spec.if_statement' -- Parse.for_fixes
+    >> (fn ((shows, assumes), fixes) => (fixes, assumes, shows))
+
+in
+
+val _ = Outer_Syntax.command \<^command_keyword>\<open>assuming\<close> "elaborated assumption"
+  (structured_statement >> (fn (a, b, c) => Toplevel.proof (fn state =>
+    let
+      val ctxt = Proof.context_of state
+
+      fun read_option_typ NONE = NONE
+        | read_option_typ (SOME s) = SOME (Syntax.read_typ ctxt s)
+      fun read_terms (s, ss) =
+        let val f = Syntax.read_term ctxt in (f s, map f ss) end
+
+      val a' = map (fn (b, s, m) => (b, read_option_typ s, m)) a
+      val b' = map (map read_terms) b
+      val c' = c |> map (fn ((b, atts), ss) =>
+        ((b, map (Attrib.attribute ctxt o Attrib.check_src ctxt) atts),
+         map read_terms ss))
+      val c'' = elaborate ctxt c'
+    in Proof.assume a' b' c'' state end)))
+
+end
+
 
 end
