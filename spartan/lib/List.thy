@@ -132,9 +132,9 @@ Definition app:
   assumes "A: U i" "xs: List A" "ys: List A"
   shows "List A"
   apply (elim xs)
-  \<guillemotright> by (fact \<open>ys:_\<close>)
-  \<guillemotright> prems vars x _ rec
-    proof - show "x # rec: List A" by typechk qed
+    \<^item> by (fact \<open>ys:_\<close>)
+    \<^item> vars x _ rec
+      proof - show "x # rec: List A" by typechk qed
   done
 
 definition app_i ("app") where [implicit]: "app xs ys \<equiv> List.app ? xs ys"
@@ -169,8 +169,8 @@ Definition rev:
   assumes "A: U i" "xs: List A"
   shows "List A"
   apply (elim xs)
-  \<guillemotright> by (rule List_nil)
-  \<guillemotright> prems vars x _ rec proof - show "app rec [x]: List A" by typechk qed
+    \<^item> by (rule List_nil)
+    \<^item> vars x _ rec proof - show "app rec [x]: List A" by typechk qed
   done
 
 definition rev_i ("rev") where [implicit]: "rev \<equiv> List.rev ?"

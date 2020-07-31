@@ -1,7 +1,7 @@
-(*  Title:      elaborated_assumption.ML
+(*  Title:      elaborated_statement.ML
     Author:     Joshua Chen
 
-Term elaboration for goal and proof assumptions.
+Term elaboration for goal statements and proof commands.
 
 Contains code from parts of
   ~~/Pure/Isar/element.ML and
@@ -9,7 +9,7 @@ Contains code from parts of
 in both verbatim and modified forms.
 *)
 
-structure Elaborated_Assumption: sig
+structure Elaborated_Statement: sig
 
 val read_goal_statement:
   (string, string, Facts.ref) Element.ctxt list ->
@@ -20,24 +20,7 @@ val read_goal_statement:
 end = struct
 
 
-(*Apply elaboration to the list format assumptions are given in*)
-fun elaborate ctxt assms =
-  let
-    fun subst_term env = Envir.subst_term (Envir.type_env env, Envir.term_env env)
-    fun elab_fact (fact, xs) assums =
-      let val (subst, fact') = Elab.elab_stmt ctxt assums fact in
-        ((fact', map (subst_term subst) xs), Thm.cterm_of ctxt fact' :: assums)
-      end
-    fun elab (b, facts) assums =
-      let val (facts', assums') = fold_map elab_fact facts assums
-      in ((b, facts'), assums') end
-  in #1 (fold_map elab assms []) end
-
-
-(* Goal assumptions *)
-
-(*Most of the code in this section is copied verbatim from the originals; the
-  only change is a modification to`activate_i` incorporating elaboration.*)
+(* Elaborated goal statements *)
 
 local
 
@@ -371,16 +354,28 @@ val read_full_context_statement = prep_full_context_statement
   Proof_Context.read_var parse_inst Syntax.read_props Attrib.check_src
   Proof_Context.read_var check_expr
 
+fun filter_assumes ((x as Element.Assumes _) :: xs) = x :: filter_assumes xs
+  | filter_assumes (_ :: xs) = filter_assumes xs
+  | filter_assumes [] = []
+
 fun prep_statement prep activate raw_elems raw_stmt ctxt =
   let
     val ((_, _, _, elems, concl), _) =
       prep {strict = true, do_close = false, fixed_frees = true}
-        ([], []) I raw_elems raw_stmt ctxt;
-    val ctxt' = ctxt
+        ([], []) I raw_elems raw_stmt ctxt
+
+    val (elems', ctxt') = ctxt
       |> Proof_Context.set_stmt true
-      |> fold_map activate elems |> #2
-      |> Proof_Context.restore_stmt ctxt;
-  in (concl, ctxt') end
+      |> fold_map activate elems
+      |> apsnd (Proof_Context.restore_stmt ctxt)
+
+    val assumes = filter_assumes elems'
+    val assms = flat (flat (map
+      (fn (Element.Assumes asms) =>
+        map (fn (_, facts) => map (Thm.cterm_of ctxt' o #1) facts) asms)
+      assumes))
+    val concl' = Elab.elaborate ctxt' assms concl handle error => concl
+  in (concl', ctxt') end
 
 fun activate_i elem ctxt =
   let
@@ -391,7 +386,7 @@ fun activate_i elem ctxt =
             ((Thm.def_binding_optional
               (Binding.name (#1 (#1 (Local_Defs.cert_def ctxt (K []) t)))) a, atts),
               (t, ps))))
-      | Element.Assumes assms => Element.Assumes (elaborate ctxt assms)
+      | Element.Assumes assms => Element.Assumes (Elab.elaborate ctxt [] assms)
       | e => e);
     val ctxt' = Context.proof_map (Element.init elem') ctxt;
   in ((Element.map_ctxt_attrib o map) Token.closure elem', ctxt') end
@@ -437,7 +432,7 @@ val _ = Outer_Syntax.command \<^command_keyword>\<open>assuming\<close> "elabora
       val b' = map (map read_terms) b
       val c' = c |> map (fn ((b, atts), ss) =>
         ((b, map (Attrib.attribute_cmd ctxt) atts), map read_terms ss))
-      val c'' = elaborate ctxt c'
+      val c'' = Elab.elaborate ctxt [] c'
     in Proof.assume a' b' c'' state end)))
 
 end

@@ -1,4 +1,4 @@
-theory More_Types
+theory Prelude
 imports Spartan
 
 begin
@@ -114,7 +114,7 @@ Lemma if_true:
     "b: C false"
   shows "ifelse C true a b \<equiv> a"
   unfolding ifelse_def true_def
-  supply assms[unfolded Bool_def true_def false_def]
+  using assms unfolding Bool_def true_def false_def
   by reduce
 
 Lemma if_false:
@@ -124,7 +124,7 @@ Lemma if_false:
     "b: C false"
   shows "ifelse C false a b \<equiv> b"
   unfolding ifelse_def false_def
-  supply assms[unfolded Bool_def true_def false_def]
+  using assms unfolding Bool_def true_def false_def
   by reduce
 
 lemmas

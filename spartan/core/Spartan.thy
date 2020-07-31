@@ -8,9 +8,9 @@ imports
 keywords
   "Theorem" "Lemma" "Corollary" "Proposition" "Definition" :: thy_goal_stmt and
   "assuming" :: prf_asm % "proof" and
-  "focus" "\<guillemotright>" "\<^item>" "\<^enum>" "~" :: prf_script_goal % "proof" and
+  "focus" "\<^item>" "\<^enum>" "\<circ>" "\<diamondop>" "~" :: prf_script_goal % "proof" and
   "congruence" "print_coercions" :: thy_decl and
-  "rhs" "derive" "prems" "vars" :: quasi_command
+  "rhs" "def" "vars" :: quasi_command
 
 begin
 
@@ -198,8 +198,8 @@ lemmas
   [form] = PiF SigF and
   [intro] = PiI SigI and
   [intros] = PiI[rotated] SigI and
-  [elim "?f"] = PiE and
-  [elim "?p"] = SigE and
+  [elim ?f] = PiE and
+  [elim ?p] = SigE and
   [comp] = beta Sig_comp and
   [cong] = Pi_cong lam_cong Sig_cong
 
@@ -217,7 +217,7 @@ subsection \<open>Statement commands\<close>
 
 ML_file \<open>focus.ML\<close>
 ML_file \<open>elaboration.ML\<close>
-ML_file \<open>elaborated_assumption.ML\<close>
+ML_file \<open>elaborated_statement.ML\<close>
 ML_file \<open>goals.ML\<close>
 
 subsection \<open>Proof methods\<close>
@@ -228,10 +228,6 @@ ML_file \<open>tactics.ML\<close>
 method_setup rule =
   \<open>Attrib.thms >> (fn ths => K (CONTEXT_METHOD (
     CHEADGOAL o SIDE_CONDS (rule_ctac ths))))\<close>
-
-method_setup rules =
-  \<open>Attrib.thms >> (fn ths => K (CONTEXT_METHOD (
-    CREPEAT o CHEADGOAL o SIDE_CONDS (rule_ctac ths))))\<close>
 
 method_setup dest =
   \<open>Scan.lift (Scan.option (Args.parens Parse.int))
@@ -411,10 +407,10 @@ lemma funcompI [typechk]:
 
 lemma funcomp_assoc [comp]:
   assumes
+    "A: U i"
     "f: A \<rightarrow> B"
     "g: B \<rightarrow> C"
     "h: \<Prod>x: C. D x"
-    "A: U i"
   shows
     "(h \<circ>\<^bsub>B\<^esub> g) \<circ>\<^bsub>A\<^esub> f \<equiv> h \<circ>\<^bsub>A\<^esub> g \<circ>\<^bsub>A\<^esub> f"
   unfolding funcomp_def by reduce
@@ -430,10 +426,9 @@ lemma funcomp_lambda_comp [comp]:
 
 lemma funcomp_apply_comp [comp]:
   assumes
+    "A: U i" "B: U i" "\<And>x y. x: B \<Longrightarrow> C x: U i"
     "f: A \<rightarrow> B" "g: \<Prod>x: B. C x"
     "x: A"
-    "A: U i" "B: U i"
-    "\<And>x y. x: B \<Longrightarrow> C x: U i"
   shows "(g \<circ>\<^bsub>A\<^esub> f) x \<equiv> g (f x)"
   unfolding funcomp_def by reduce
 
@@ -449,17 +444,17 @@ subsection \<open>Identity function\<close>
 abbreviation id where "id A \<equiv> \<lambda>x: A. x"
 
 lemma
-  id_type[typechk]: "A: U i \<Longrightarrow> id A: A \<rightarrow> A" and
+  id_type [typechk]: "A: U i \<Longrightarrow> id A: A \<rightarrow> A" and
   id_comp [comp]: "x: A \<Longrightarrow> (id A) x \<equiv> x" \<comment> \<open>for the occasional manual rewrite\<close>
   by reduce+
 
 lemma id_left [comp]:
-  assumes "f: A \<rightarrow> B" "A: U i" "B: U i"
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "(id B) \<circ>\<^bsub>A\<^esub> f \<equiv> f"
   by (subst eta_exp[of f]) (reduce, rule eta)
 
 lemma id_right [comp]:
-  assumes "f: A \<rightarrow> B" "A: U i" "B: U i"
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "f \<circ>\<^bsub>A\<^esub> (id A) \<equiv> f"
   by (subst eta_exp[of f]) (reduce, rule eta)
 
@@ -480,10 +475,7 @@ lemma fst_type [typechk]:
 
 lemma fst_comp [comp]:
   assumes
-    "a: A"
-    "b: B a"
-    "A: U i"
-    "\<And>x. x: A \<Longrightarrow> B x: U i"
+    "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i" "a: A" "b: B a"
   shows "fst A B <a, b> \<equiv> a"
   unfolding fst_def by reduce
 
@@ -493,7 +485,7 @@ lemma snd_type [typechk]:
   unfolding snd_def by typechk reduce
 
 lemma snd_comp [comp]:
-  assumes "a: A" "b: B a" "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
+  assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i" "a: A" "b: B a"
   shows "snd A B <a, b> \<equiv> b"
   unfolding snd_def by reduce
 
@@ -513,36 +505,48 @@ subsection \<open>Projections\<close>
 
 Lemma fst [typechk]:
   assumes
-    "p: \<Sum>x: A. B x"
     "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
+    "p: \<Sum>x: A. B x"
   shows "fst p: A"
   by typechk
 
 Lemma snd [typechk]:
   assumes
-    "p: \<Sum>x: A. B x"
     "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
+    "p: \<Sum>x: A. B x"
   shows "snd p: B (fst p)"
   by typechk
 
-method fst for p::o = rule fst[of p]
-method snd for p::o = rule snd[of p]
+method fst for p::o = rule fst[where ?p=p]
+method snd for p::o = rule snd[where ?p=p]
 
-subsection \<open>Properties of \<Sigma>\<close>
+text \<open>Double projections:\<close>
 
-Lemma (derive) Sig_dist_exp:
+definition [implicit]: "p\<^sub>1\<^sub>1 p \<equiv> Spartan.fst ? ? (Spartan.fst ? ? p)"
+definition [implicit]: "p\<^sub>1\<^sub>2 p \<equiv> Spartan.snd ? ? (Spartan.fst ? ? p)"
+definition [implicit]: "p\<^sub>2\<^sub>1 p \<equiv> Spartan.fst ? ? (Spartan.snd ? ? p)"
+definition [implicit]: "p\<^sub>2\<^sub>2 p \<equiv> Spartan.snd ? ? (Spartan.snd ? ? p)"
+
+translations
+  "CONST p\<^sub>1\<^sub>1 p" \<leftharpoondown> "fst (fst p)"
+  "CONST p\<^sub>1\<^sub>2 p" \<leftharpoondown> "snd (fst p)"
+  "CONST p\<^sub>2\<^sub>1 p" \<leftharpoondown> "fst (snd p)"
+  "CONST p\<^sub>2\<^sub>2 p" \<leftharpoondown> "snd (snd p)"
+
+Lemma (def) distribute_Sig:
   assumes
-    "p: \<Sum>x: A. B x \<times> C x"
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> B x: U i"
     "\<And>x. x: A \<Longrightarrow> C x: U i"
+    "p: \<Sum>x: A. B x \<times> C x"
   shows "(\<Sum>x: A. B x) \<times> (\<Sum>x: A. C x)"
-proof intro
-  have "fst p: A" and "snd p: B (fst p) \<times> C (fst p)" by typechk+
-  thus "<fst p, fst (snd p)>: \<Sum>x: A. B x"
-   and "<fst p, snd (snd p)>: \<Sum>x: A. C x"
-    by typechk+
-qed
+  proof intro
+    have "fst p: A" and "snd p: B (fst p) \<times> C (fst p)"
+      by typechk+
+    thus "<fst p, fst (snd p)>: \<Sum>x: A. B x"
+     and "<fst p, snd (snd p)>: \<Sum>x: A. C x"
+      by typechk+
+  qed
 
 
 end

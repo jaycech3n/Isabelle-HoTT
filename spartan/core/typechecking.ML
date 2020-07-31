@@ -51,10 +51,9 @@ fun known_ctac facts = CONTEXT_SUBGOAL (fn (goal, i) => fn (ctxt, st) =>
       if Lib.no_vars concl orelse
         (Lib.is_typing concl andalso Lib.no_vars (Lib.term_of_typing concl))
       then
-        let val ths = facts
+        let val ths = map (Simplifier.norm_hhf ctxt)
+          (facts @ map fst (Facts.props (Proof_Context.facts_of ctxt)))
           (*FIXME: Shouldn't pull nameless facts directly from context*)
-          @ map fst (Facts.props (Proof_Context.facts_of ctxt))
-          |> map (Simplifier.norm_hhf ctxt)
         in
           (debug_tac ctxt "resolve" THEN resolve_tac ctxt ths i ORELSE
           debug_tac ctxt "assume" THEN assume_tac ctxt i) st
@@ -70,7 +69,8 @@ fun check_infer_step facts i (ctxt, st) =
     val tac = SUBGOAL (fn (goal, i) =>
       if Lib.rigid_typing_concl goal
       then
-        let val net = Tactic.build_net (facts
+        let val net = Tactic.build_net (
+          map (Simplifier.norm_hhf ctxt) facts
           (*MAYBE FIXME: Remove `typechk` from this list, and instead perform
             definitional unfolding to (w?)hnf.*)
           @(Named_Theorems.get ctxt \<^named_theorems>\<open>typechk\<close>)

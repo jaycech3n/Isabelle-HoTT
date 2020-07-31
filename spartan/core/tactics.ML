@@ -19,8 +19,7 @@ end = struct
 
 
 (* Side conditions *)
-val solve_side_conds =
-  Attrib.setup_config_int \<^binding>\<open>solve_side_conds\<close> (K 2)
+val solve_side_conds = Attrib.setup_config_int \<^binding>\<open>solve_side_conds\<close> (K 2)
 
 fun SIDE_CONDS ctac facts i (cst as (ctxt, st)) = cst |> (ctac i CTHEN
   (case Config.get ctxt solve_side_conds of

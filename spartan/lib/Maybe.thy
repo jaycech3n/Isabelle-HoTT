@@ -1,7 +1,7 @@
 chapter \<open>Maybe type\<close>
 
 theory Maybe
-imports More_Types
+imports Prelude
 
 begin
 
@@ -25,11 +25,10 @@ Definition MaybeInd:
     "\<And>a. a: A \<Longrightarrow> f a: C (some A a)"
     "m: Maybe A"
   shows "C m"
-  supply assms[unfolded Maybe_def none_def some_def]
+  using assms[unfolded Maybe_def none_def some_def]
   apply (elim m)
-  \<guillemotright> unfolding Maybe_def .
-  \<guillemotright> by (rule \<open>_ \<Longrightarrow> _: C (inl _ _ _)\<close>)
-  \<guillemotright> by elim (rule \<open>_: C (inr _ _ _)\<close>)
+    apply (rule \<open>_ \<Longrightarrow> _: C (inl _ _ _)\<close>)
+    apply (elim, rule \<open>_: C (inr _ _ _)\<close>)
   done
 
 Lemma Maybe_comp_none:
@@ -39,8 +38,9 @@ Lemma Maybe_comp_none:
     "\<And>a. a: A \<Longrightarrow> f a: C (some A a)"
     "\<And>m. m: Maybe A \<Longrightarrow> C m: U i"
   shows "MaybeInd A C c\<^sub>0 f (none A) \<equiv> c\<^sub>0"
-  supply assms[unfolded Maybe_def some_def none_def]
-  unfolding MaybeInd_def none_def by reduce
+  using assms
+  unfolding Maybe_def MaybeInd_def none_def some_def
+  by reduce
 
 Lemma Maybe_comp_some:
   assumes
@@ -50,8 +50,9 @@ Lemma Maybe_comp_some:
     "\<And>a. a: A \<Longrightarrow> f a: C (some A a)"
     "\<And>m. m: Maybe A \<Longrightarrow> C m: U i"
   shows "MaybeInd A C c\<^sub>0 f (some A a) \<equiv> f a"
-  supply assms[unfolded Maybe_def some_def none_def]
-  unfolding MaybeInd_def some_def by (reduce add: Maybe_def)
+  using assms
+  unfolding Maybe_def MaybeInd_def none_def some_def
+  by reduce
 
 lemmas
   [form] = MaybeF and

@@ -1,13 +1,14 @@
 (*  Title:      elaboration.ML
     Author:     Joshua Chen
 
-Basic elaboration.
+Basic term elaboration.
 *)
 
 structure Elab: sig
 
 val elab: Proof.context -> cterm list -> term -> Envir.env
 val elab_stmt: Proof.context -> cterm list -> term -> Envir.env * term
+val elaborate: Proof.context -> cterm list -> ('a * (term * term list) list) list -> ('a * (term * term list) list) list
 
 end = struct
 
@@ -71,6 +72,20 @@ fun elab_stmt ctxt assums stmt =
           else subst
       in (subst', subst_term subst' stmt) end
   end
+
+(*Apply elaboration to the list format that assumptions and goal statements are
+  given in*)
+fun elaborate ctxt known assms =
+  let
+    fun subst_term env = Envir.subst_term (Envir.type_env env, Envir.term_env env)
+    fun elab_fact (fact, xs) assums =
+      let val (subst, fact') = elab_stmt ctxt assums fact in
+        ((fact', map (subst_term subst) xs), Thm.cterm_of ctxt fact' :: assums)
+      end
+    fun elab (b, facts) assums =
+      let val (facts', assums') = fold_map elab_fact facts assums
+      in ((b, facts'), assums') end
+  in #1 (fold_map elab assms known) end
 
 
 end

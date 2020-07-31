@@ -1,9 +1,9 @@
 (*  Title:      goals.ML
-    Author:     Makarius Wenzel, Joshua Chen
+    Author:     Joshua Chen
 
 Goal statements and proof term export.
 
-Modified from code originally written by Makarius Wenzel.
+Modified from code contained in ~~/Pure/Isar/specification.ML.
 *)
 
 local
@@ -184,15 +184,15 @@ val schematic_theorem_cmd =
   gen_schematic_theorem
     Bundle.includes_cmd
     Attrib.check_src
-    Elaborated_Assumption.read_goal_statement
+    Elaborated_Statement.read_goal_statement
 
 fun theorem spec descr =
   Outer_Syntax.local_theory_to_proof' spec ("state " ^ descr) 
-    ( Scan.option (Args.parens (Args.$$$ "derive"))
+    ( Scan.option (Args.parens (Args.$$$ "def"))
       -- (long_statement || short_statement) >>
         (fn (opt_derive, (long, binding, includes, elems, concl)) =>
           schematic_theorem_cmd
-            (case opt_derive of SOME "derive" => true | _ => false)
+            (case opt_derive of SOME "def" => true | _ => false)
             long descr NONE (K I) binding includes elems concl) )
 
 fun definition spec descr =

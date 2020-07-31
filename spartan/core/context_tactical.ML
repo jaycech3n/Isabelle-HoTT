@@ -2,6 +2,10 @@
     Author:     Joshua Chen
 
 More context tactics, and context tactic combinators.
+
+Contains code modified from
+  ~~/Pure/search.ML
+  ~~/Pure/tactical.ML
 *)
 
 infix 1 CTHEN CTHEN' CTHEN_ALL_NEW CTHEN_ALL_NEW_FWD
@@ -23,6 +27,7 @@ val CORELSE': context_tactic' * context_tactic' -> context_tactic'
 val CAPPEND': context_tactic' * context_tactic' -> context_tactic'
 val CTRY: context_tactic -> context_tactic
 val CREPEAT: context_tactic -> context_tactic
+val CREPEAT1: context_tactic -> context_tactic
 val CFILTER: (context_state -> bool) -> context_tactic -> context_tactic
 val CCHANGED: context_tactic -> context_tactic
 val CTHEN_ALL_NEW: context_tactic' * context_tactic' -> context_tactic'
@@ -34,6 +39,16 @@ val CHEADGOAL: context_tactic' -> context_tactic
 val CALLGOALS: context_tactic' -> context_tactic
 val CSOMEGOAL: context_tactic' -> context_tactic
 val CRANGE: context_tactic' list -> context_tactic'
+val CFIRST: context_tactic list -> context_tactic
+val CFIRST': context_tactic' list -> context_tactic'
+val CTHEN_BEST_FIRST: context_tactic -> (context_state -> bool) ->
+  (context_state -> int) -> context_tactic -> context_tactic
+val CBEST_FIRST: (context_state -> bool) -> (context_state -> int) ->
+  context_tactic -> context_tactic
+val CTHEN_ASTAR: context_tactic -> (context_state -> bool) ->
+  (int -> context_state -> int) -> context_tactic -> context_tactic
+val CASTAR: (context_state -> bool) -> (int -> context_state -> int) ->
+  context_tactic -> context_tactic
 
 end = struct
 
@@ -73,6 +88,8 @@ fun CREPEAT ctac =
             NONE => repq qs
           | SOME (cst, q) => rep (q :: qs) cst);
   in fn cst => Seq.make_results (Seq.make (fn () => rep [] cst)) end
+
+fun CREPEAT1 ctac = ctac CTHEN CREPEAT ctac
 
 fun CFILTER pred ctac cst =
   ctac cst
@@ -146,6 +163,89 @@ fun CSOMEGOAL ctac (cst as (_, st)) =
 
 fun CRANGE [] _ = all_ctac
   | CRANGE (ctac :: ctacs) i = CRANGE ctacs (i + 1) CTHEN ctac i
+
+fun CFIRST ctacs = fold_rev (curry op CORELSE) ctacs no_ctac
+
+(*FIRST' [tac1,...,tacn] i  equals    tac1 i ORELSE ... ORELSE tacn i*)
+fun CFIRST' ctacs = fold_rev (curry op CORELSE') ctacs (K no_ctac)
+
+
+(** Search tacticals **)
+
+(* Best-first search *)
+
+structure Thm_Heap = Heap (
+  type elem = int * thm;
+  val ord = prod_ord int_ord (Term_Ord.term_ord o apply2 Thm.prop_of)
+)
+
+structure Context_State_Heap = Heap (
+  type elem = int * context_state;
+  val ord = prod_ord int_ord (Term_Ord.term_ord o apply2 (Thm.prop_of o #2))
+)
+
+fun some_of_list [] = NONE
+  | some_of_list (x :: l) = SOME (x, Seq.make (fn () => some_of_list l))
+
+(*Check for and delete duplicate proof states*)
+fun delete_all_min (cst as (_, st)) heap =
+  if Context_State_Heap.is_empty heap then heap
+  else if Thm.eq_thm (st, #2 (#2 (Context_State_Heap.min heap)))
+  then delete_all_min cst (Context_State_Heap.delete_min heap)
+  else heap
+
+(*Best-first search for a state that satisfies satp (incl initial state)
+  Function sizef estimates size of problem remaining (smaller means better).
+  tactic tac0 sets up the initial priority queue, while tac1 searches it. *)
+fun CTHEN_BEST_FIRST ctac0 satp sizef ctac =
+  let
+    fun pairsize cst = (sizef cst, cst);
+    fun bfs (news, nst_heap) =
+      (case List.partition satp news of
+        ([], nonsats) => next (fold_rev Context_State_Heap.insert (map pairsize nonsats) nst_heap)
+      | (sats, _)  => some_of_list sats)
+    and next nst_heap =
+      if Context_State_Heap.is_empty nst_heap then NONE
+      else
+        let
+          val (n, cst) = Context_State_Heap.min nst_heap;
+        in
+          bfs (Seq.list_of (Seq.filter_results (ctac cst)), delete_all_min cst (Context_State_Heap.delete_min nst_heap))
+        end;
+    fun btac cst = bfs (Seq.list_of (Seq.filter_results (ctac0 cst)), Context_State_Heap.empty)
+  in fn cst => Seq.make_results (Seq.make (fn () => btac cst)) end
+
+(*Ordinary best-first search, with no initial tactic*)
+val CBEST_FIRST = CTHEN_BEST_FIRST all_ctac
+
+
+(* A*-like search *)
+
+(*Insertion into priority queue of states, marked with level*)
+fun insert_with_level (lnth: int * int * context_state) [] = [lnth]
+  | insert_with_level (l, m, cst) ((l', n, cst') :: csts) =
+      if  n < m then (l', n, cst') :: insert_with_level (l, m, cst) csts
+      else if n = m andalso Thm.eq_thm (#2 cst, #2 cst') then (l', n, cst') :: csts
+      else (l, m, cst) :: (l', n, cst') :: csts;
+
+fun CTHEN_ASTAR ctac0 satp costf ctac =
+  let
+    fun bfs (news, nst, level) =
+      let fun cost cst = (level, costf level cst, cst) in
+        (case List.partition satp news of
+          ([], nonsats) => next (fold_rev (insert_with_level o cost) nonsats nst)
+        | (sats, _) => some_of_list sats)
+      end
+    and next [] = NONE
+      | next ((level, n, cst) :: nst) =
+          bfs (Seq.list_of (Seq.filter_results (ctac cst)), nst, level + 1)
+  in fn cst => Seq.make_results
+    (Seq.make (fn () => bfs (Seq.list_of (Seq.filter_results (ctac0 cst)), [], 0)))
+  end
+
+(*Ordinary ASTAR, with no initial tactic*)
+val CASTAR = CTHEN_ASTAR all_ctac;
+
 
 end
 

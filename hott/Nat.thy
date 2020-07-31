@@ -77,43 +77,43 @@ lemma add_suc [comp]:
   shows "m + suc n \<equiv> suc (m + n)"
   unfolding add_def by reduce
 
-Lemma (derive) zero_add:
+Lemma (def) zero_add:
   assumes "n: Nat"
   shows "0 + n = n"
   apply (elim n)
-    \<guillemotright> by (reduce; intro)
-    \<guillemotright> vars _ ih by reduce (eq ih; intro)
+    \<^item> by (reduce; intro)
+    \<^item> vars _ ih by reduce (eq ih; refl)
   done
 
-Lemma (derive) suc_add:
+Lemma (def) suc_add:
   assumes "m: Nat" "n: Nat"
   shows "suc m + n = suc (m + n)"
   apply (elim n)
-    \<guillemotright> by reduce refl
-    \<guillemotright> vars _ ih by reduce (eq ih; intro)
+    \<^item> by reduce refl
+    \<^item> vars _ ih by reduce (eq ih; refl)
   done
 
-Lemma (derive) suc_eq:
+Lemma (def) suc_eq:
   assumes "m: Nat" "n: Nat"
   shows "p: m = n \<Longrightarrow> suc m = suc n"
   by (eq p) intro
 
-Lemma (derive) add_assoc:
+Lemma (def) add_assoc:
   assumes "l: Nat" "m: Nat" "n: Nat"
   shows "l + (m + n) = l + m+ n"
   apply (elim n)
-    \<guillemotright> by reduce intro
-    \<guillemotright> vars _ ih by reduce (eq ih; intro)
+    \<^item> by reduce intro
+    \<^item> vars _ ih by reduce (eq ih; refl)
   done
 
-Lemma (derive) add_comm:
+Lemma (def) add_comm:
   assumes "m: Nat" "n: Nat"
   shows "m + n = n + m"
   apply (elim n)
-    \<guillemotright> by (reduce; rule zero_add[symmetric])
-    \<guillemotright> prems vars n ih
+    \<^item> by (reduce; rule zero_add[symmetric])
+    \<^item> vars n ih
       proof reduce
-        have "suc (m + n) = suc (n + m)" by (eq ih) intro
+        have "suc (m + n) = suc (n + m)" by (eq ih) refl
         also have ".. = suc n + m" by (transport eq: suc_add) refl
         finally show "{}" by this
       qed
@@ -143,12 +143,12 @@ lemma mul_suc [comp]:
   shows "m * suc n \<equiv> m + m * n"
   unfolding mul_def by reduce
 
-Lemma (derive) zero_mul:
+Lemma (def) zero_mul:
   assumes "n: Nat"
   shows "0 * n = 0"
   apply (elim n)
-  \<guillemotright> by reduce refl
-  \<guillemotright> prems vars n ih
+  \<^item> by reduce refl
+  \<^item> vars n ih
     proof reduce
       have "0 + 0 * n = 0 + 0 " by (eq ih) refl
       also have ".. = 0" by reduce refl
@@ -156,12 +156,12 @@ Lemma (derive) zero_mul:
     qed
   done
 
-Lemma (derive) suc_mul:
+Lemma (def) suc_mul:
   assumes "m: Nat" "n: Nat"
   shows "suc m * n = m * n + n"
   apply (elim n)
-  \<guillemotright> by reduce refl
-  \<guillemotright> prems vars n ih
+  \<^item> by reduce refl
+  \<^item> vars n ih
     proof (reduce, transport eq: \<open>ih:_\<close>)
       have "suc m + (m * n + n) = suc (m + {})" by (rule suc_add)
       also have ".. = suc (m + m * n + n)" by (transport eq: add_assoc) refl
@@ -169,12 +169,12 @@ Lemma (derive) suc_mul:
     qed
   done
 
-Lemma (derive) mul_dist_add:
+Lemma (def) mul_dist_add:
   assumes "l: Nat" "m: Nat" "n: Nat"
   shows "l * (m + n) = l * m + l * n"
   apply (elim n)
-  \<guillemotright> by reduce refl
-  \<guillemotright> prems prms vars n ih
+  \<^item> by reduce refl
+  \<^item> vars n ih
     proof reduce
       have "l + l * (m + n) = l + (l * m + l * n)" by (eq ih) refl
       also have ".. = l + l * m + l * n" by (rule add_assoc)
@@ -184,12 +184,12 @@ Lemma (derive) mul_dist_add:
     qed
   done
 
-Lemma (derive) mul_assoc:
+Lemma (def) mul_assoc:
   assumes "l: Nat" "m: Nat" "n: Nat"
   shows "l * (m * n) = l * m * n"
   apply (elim n)
-  \<guillemotright> by reduce refl
-  \<guillemotright> prems vars n ih
+  \<^item> by reduce refl
+  \<^item> vars n ih
     proof reduce
       have "l * (m + m * n) = l * m + l * (m * n)" by (rule mul_dist_add)
       also have ".. = l * m + l * m * n" by (transport eq: \<open>ih:_\<close>) refl
@@ -197,12 +197,12 @@ Lemma (derive) mul_assoc:
     qed
   done
 
-Lemma (derive) mul_comm:
+Lemma (def) mul_comm:
   assumes "m: Nat" "n: Nat"
   shows "m * n = n * m"
   apply (elim n)
-  \<guillemotright> by reduce (transport eq: zero_mul, refl)
-  \<guillemotright> prems vars n ih
+  \<^item> by reduce (transport eq: zero_mul, refl)
+  \<^item> vars n ih
     proof (reduce, rule pathinv)
       have "suc n * m = n * m + m" by (rule suc_mul)
       also have ".. = m + m * n"

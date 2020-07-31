@@ -16,53 +16,68 @@ Lemma homotopy_type [typechk]:
   assumes
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> B x: U i"
-    "f: \<Prod>x: A. B x" "g: \<Prod>x: A. B x"
+    "f: \<Prod>x: A. B x"
+    "g: \<Prod>x: A. B x"
   shows "f ~ g: U i"
-  unfolding homotopy_def by typechk
+  unfolding homotopy_def
+  by typechk
 
-Lemma (derive) homotopy_refl [refl]:
+Lemma apply_homotopy:
+  assumes
+    "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
+    "f: \<Prod>x: A. B x" "g: \<Prod>x: A. B x"
+    "H: f ~ g"
+    "x: A"
+  shows "H x: f x = g x"
+  using \<open>H:_\<close> unfolding homotopy_def
+  by typechk
+
+method htpy for H::o = rule apply_homotopy[where ?H=H]
+
+Lemma (def) homotopy_refl [refl]:
   assumes
     "A: U i"
     "f: \<Prod>x: A. B x"
   shows "f ~ f"
-  unfolding homotopy_def by intros
+  unfolding homotopy_def
+  by intros
 
-Lemma (derive) hsym:
+Lemma (def) hsym:
   assumes
-    "f: \<Prod>x: A. B x"
-    "g: \<Prod>x: A. B x"
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> B x: U i"
+    "f: \<Prod>x: A. B x"
+    "g: \<Prod>x: A. B x"
     "H: f ~ g"
   shows "g ~ f"
-unfolding homotopy_def
-proof intro
-  fix x assume "x: A" then have "H x: f x = g x"
-    using \<open>H:_\<close>[unfolded homotopy_def]
-      \<comment> \<open>this should become unnecessary when definitional unfolding is implemented\<close>
-    by typechk
-  thus "g x = f x" by (rule pathinv) fact
-qed typechk
+  unfolding homotopy_def
+  proof intro
+    fix x assume "x: A" then have "f x = g x"
+      by (htpy H)
+    thus "g x = f x"
+      by (rule pathinv) fact
+  qed
 
-Lemma (derive) htrans:
+Lemma (def) htrans:
   assumes
+    "A: U i"
+    "\<And>x. x: A \<Longrightarrow> B x: U i"
     "f: \<Prod>x: A. B x"
     "g: \<Prod>x: A. B x"
     "h: \<Prod>x: A. B x"
-    "A: U i"
-    "\<And>x. x: A \<Longrightarrow> B x: U i"
-  shows "\<lbrakk>H1: f ~ g; H2: g ~ h\<rbrakk> \<Longrightarrow> f ~ h"
+    "H1: f ~ g"
+    "H2: g ~ h"
+  shows "f ~ h"
   unfolding homotopy_def
-  apply intro
-    \<guillemotright> vars x
-      apply (rule pathcomp[where ?y="g x"])
-        \<^item> by (elim H1)
-        \<^item> by (elim H2)
-      done
-    \<guillemotright> by typechk
-  done
+  proof intro
+    fix x assume "x: A"
+    have *: "f x = g x" "g x = h x"
+      by (htpy H1, htpy H2)
+    show "f x = h x"
+      by (rule pathcomp; (rule *)?) typechk
+  qed
 
-text \<open>For calculations:\<close>
+section \<open>Rewriting homotopies\<close>
 
 congruence "f ~ g" rhs g
 
@@ -70,7 +85,52 @@ lemmas
   homotopy_sym [sym] = hsym[rotated 4] and
   homotopy_trans [trans] = htrans[rotated 5]
 
-Lemma (derive) commute_homotopy:
+Lemma id_funcomp_htpy:
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
+  shows "homotopy_refl A f: (id B) \<circ> f ~ f"
+  by reduce
+
+Lemma funcomp_id_htpy:
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
+  shows "homotopy_refl A f: f \<circ> (id A) ~ f"
+  by reduce
+
+Lemma funcomp_left_htpy:
+  assumes
+    "A: U i" "B: U i"
+    "\<And>x. x: B \<Longrightarrow> C x: U i"
+    "f: A \<rightarrow> B"
+    "g: \<Prod>x: B. C x"
+    "g': \<Prod>x: B. C x"
+    "H: g ~ g'"
+  shows "(g \<circ> f) ~ (g' \<circ> f)"
+  unfolding homotopy_def
+  apply (intro, reduce)
+  apply (htpy H)
+  done
+
+Lemma funcomp_right_htpy:
+  assumes
+    "A: U i" "B: U i" "C: U i"
+    "f: A \<rightarrow> B"
+    "f': A \<rightarrow> B"
+    "g: B \<rightarrow> C"
+    "H: f ~ f'"
+  shows "(g \<circ> f) ~ (g \<circ> f')"
+  unfolding homotopy_def
+  proof (intro, reduce)
+    fix x assume "x: A"
+    have *: "f x = f' x"
+      by (htpy H)
+    show "g (f x) = g (f' x)"
+      by (transport eq: *) refl
+  qed
+
+method lhtpy = rule funcomp_left_htpy[rotated 6]
+method rhtpy = rule funcomp_right_htpy[rotated 6]
+
+
+Lemma (def) commute_homotopy:
   assumes
     "A: U i" "B: U i"
     "x: A" "y: A"
@@ -78,21 +138,13 @@ Lemma (derive) commute_homotopy:
     "f: A \<rightarrow> B" "g: A \<rightarrow> B"
     "H: f ~ g"
   shows "(H x) \<bullet> g[p] = f[p] \<bullet> (H y)"
-  \<comment> \<open>Need this assumption unfolded for typechecking\<close>
-  supply assms(8)[unfolded homotopy_def]
-  apply (eq p)
-    focus vars x
-      apply reduce
-        \<comment> \<open>Here it would really be nice to have automation for transport and
-          propositional equality.\<close>
-        apply (rule use_transport[where ?y="H x \<bullet> refl (g x)"])
-          \<guillemotright> by (rule pathcomp_refl)
-          \<guillemotright> by (rule pathinv) (rule refl_pathcomp)
-          \<guillemotright> by typechk
-    done
-  done
+  using \<open>H:_\<close>
+  unfolding homotopy_def
+  apply (eq p, reduce)
+  apply (transport eq: pathcomp_refl, transport eq: refl_pathcomp)
+  by refl
 
-Corollary (derive) commute_homotopy':
+Corollary (def) commute_homotopy':
   assumes
     "A: U i"
     "x: A"
@@ -101,198 +153,190 @@ Corollary (derive) commute_homotopy':
   shows "H (f x) = f [H x]"
 oops
 
-Lemma homotopy_id_left [typechk]:
-  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
-  shows "homotopy_refl A f: (id B) \<circ> f ~ f"
-  unfolding homotopy_refl_def homotopy_def by reduce
-
-Lemma homotopy_id_right [typechk]:
-  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
-  shows "homotopy_refl A f: f \<circ> (id A) ~ f"
-  unfolding homotopy_refl_def homotopy_def
- by reduce
-
-Lemma homotopy_funcomp_left:
-  assumes
-    "H: homotopy B C g g'"
-    "f: A \<rightarrow> B"
-    "g: \<Prod>x: B. C x"
-    "g': \<Prod>x: B. C x"
-    "A: U i" "B: U i"
-    "\<And>x. x: B \<Longrightarrow> C x: U i"
-  shows "homotopy A {} (g \<circ>\<^bsub>A\<^esub> f) (g' \<circ>\<^bsub>A\<^esub> f)"
-  unfolding homotopy_def
-  apply (intro; reduce)
-    apply (insert \<open>H: _\<close>[unfolded homotopy_def])
-      apply (elim H)
-  done
-
-Lemma homotopy_funcomp_right:
-  assumes
-    "H: homotopy A (fn _. B) f f'"
-    "f: A \<rightarrow> B"
-    "f': A \<rightarrow> B"
-    "g: B \<rightarrow> C"
-    "A: U i" "B: U i" "C: U i"
-  shows "homotopy A {} (g \<circ>\<^bsub>A\<^esub> f) (g \<circ>\<^bsub>A\<^esub> f')"
-  unfolding homotopy_def
-  apply (intro; reduce)
-    apply (insert \<open>H: _\<close>[unfolded homotopy_def])
-      apply (dest PiE, assumption)
-      apply (rule ap, assumption)
-  done
-
-method id_htpy = (rule homotopy_id_left)
-method htpy_id = (rule homotopy_id_right)
-method htpy_o = (rule homotopy_funcomp_left)
-method o_htpy = (rule homotopy_funcomp_right)
-
 
 section \<open>Quasi-inverse and bi-invertibility\<close>
 
 subsection \<open>Quasi-inverses\<close>
 
-definition "qinv A B f \<equiv> \<Sum>g: B \<rightarrow> A.
+definition "is_qinv A B f \<equiv> \<Sum>g: B \<rightarrow> A.
   homotopy A (fn _. A) (g \<circ>\<^bsub>A\<^esub> f) (id A) \<times> homotopy B (fn _. B) (f \<circ>\<^bsub>B\<^esub> g) (id B)"
 
-lemma qinv_type [typechk]:
+lemma is_qinv_type [typechk]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
-  shows "qinv A B f: U i"
-  unfolding qinv_def by typechk
+  shows "is_qinv A B f: U i"
+  unfolding is_qinv_def
+  by typechk
 
-definition qinv_i ("qinv")
-  where [implicit]: "qinv f \<equiv> Equivalence.qinv ? ? f"
+definition is_qinv_i ("is'_qinv")
+  where [implicit]: "is_qinv f \<equiv> Equivalence.is_qinv ? ? f"
 
-translations "qinv f" \<leftharpoondown> "CONST Equivalence.qinv A B f"
+no_translations "is_qinv f" \<leftharpoondown> "CONST Equivalence.is_qinv A B f"
 
-Lemma (derive) id_qinv:
+Lemma (def) id_is_qinv:
   assumes "A: U i"
-  shows "qinv (id A)"
-  unfolding qinv_def
+  shows "is_qinv (id A)"
+  unfolding is_qinv_def
   proof intro
     show "id A: A \<rightarrow> A" by typechk
   qed (reduce, intro; refl)
 
-Lemma (derive) quasiinv_qinv:
-  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
-  shows "prf: qinv f \<Longrightarrow> qinv (fst prf)"
-  unfolding qinv_def
-  apply intro
-  \<guillemotright> by (rule \<open>f:_\<close>)
-  \<guillemotright> apply (elim "prf")
-    focus vars g HH
-      apply intro
-        \<^item> by reduce (snd HH)
-        \<^item> by reduce (fst HH)
-    done
-    done
+Lemma is_qinvI:
+  assumes
+    "A: U i" "B: U i" "f: A \<rightarrow> B"
+    "g: B \<rightarrow> A"
+    "H1: g \<circ> f ~ id A"
+    "H2: f \<circ> g ~ id B"
+  shows "is_qinv f"
+  unfolding is_qinv_def
+  proof intro
+    show "g: B \<rightarrow> A" by fact
+    show "g \<circ> f ~ id A \<and> f \<circ> g ~ id B" by (intro; fact)
+  qed
+
+Lemma is_qinv_components [typechk]:
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "pf: is_qinv f"
+  shows
+    fst_of_is_qinv: "fst pf: B \<rightarrow> A" and
+    p\<^sub>2\<^sub>1_of_is_qinv: "p\<^sub>2\<^sub>1 pf: fst pf \<circ> f ~ id A" and
+    p\<^sub>2\<^sub>2_of_is_qinv: "p\<^sub>2\<^sub>2 pf: f \<circ> fst pf ~ id B"
+  using assms unfolding is_qinv_def
+  by typechk+
+
+Lemma (def) qinv_is_qinv:
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "pf: is_qinv f"
+  shows "is_qinv (fst pf)"
+using [[debug_typechk]]
+  using [[solve_side_conds=2]]
+  apply (rule is_qinvI)
+  back \<comment> \<open>Typechecking/inference goes too far here. Problem would likely be
+    solved with definitional unfolding\<close>
+  \<^item> by (fact \<open>f:_\<close>)
+  \<^item> by (rule p\<^sub>2\<^sub>2_of_is_qinv)
+  \<^item> by (rule p\<^sub>2\<^sub>1_of_is_qinv)
   done
 
-Lemma (derive) funcomp_qinv:
+Lemma (def) funcomp_is_qinv:
   assumes
     "A: U i" "B: U i" "C: U i"
     "f: A \<rightarrow> B" "g: B \<rightarrow> C"
-  shows "qinv f \<rightarrow> qinv g \<rightarrow> qinv (g \<circ> f)"
-  apply (intros, unfold qinv_def, elims)
-  focus prems vars _ _ finv _ ginv
-    apply (intro, rule funcompI[where ?f=ginv and ?g=finv])
-    proof (reduce, intro)
-      have "finv \<circ> ginv \<circ> g \<circ> f ~ finv \<circ> (ginv \<circ> g) \<circ> f" by reduce refl
-      also have ".. ~ finv \<circ> id B \<circ> f" by (o_htpy, htpy_o) fact
-      also have ".. ~ id A" by reduce fact
-      finally show "finv \<circ> ginv \<circ> g \<circ> f ~ id A" by this
-
-      have "g \<circ> f \<circ> finv \<circ> ginv ~ g \<circ> (f \<circ> finv) \<circ> ginv" by reduce refl
-      also have ".. ~ g \<circ> id B \<circ> ginv" by (o_htpy, htpy_o) fact
-      also have ".. ~ id C" by reduce fact
-      finally show "g \<circ> f \<circ> finv \<circ> ginv ~ id C" by this
-    qed
-  done
-
-subsection \<open>Bi-invertible maps\<close>
-
-definition "biinv A B f \<equiv>
-  (\<Sum>g: B \<rightarrow> A. homotopy A (fn _. A) (g \<circ>\<^bsub>A\<^esub> f) (id A))
-    \<times> (\<Sum>g: B \<rightarrow> A. homotopy B (fn _. B) (f \<circ>\<^bsub>B\<^esub> g) (id B))"
-
-lemma biinv_type [typechk]:
-  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
-  shows "biinv A B f: U i"
-  unfolding biinv_def by typechk
-
-definition biinv_i ("biinv")
-  where [implicit]: "biinv f \<equiv> Equivalence.biinv ? ? f"
-
-translations "biinv f" \<leftharpoondown> "CONST Equivalence.biinv A B f"
-
-Lemma (derive) qinv_imp_biinv:
-  assumes
-    "A: U i" "B: U i"
-    "f: A \<rightarrow> B"
-  shows "?prf: qinv f \<rightarrow> biinv f"
+  shows "is_qinv f \<rightarrow> is_qinv g \<rightarrow> is_qinv (g \<circ> f)"
   apply intros
-  unfolding qinv_def biinv_def
-  by (rule Sig_dist_exp)
-
-text \<open>
-  Show that bi-invertible maps are quasi-inverses, as a demonstration of how to
-  work in this system.
-\<close>
-
-Lemma (derive) biinv_imp_qinv:
-  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
-  shows "biinv f \<rightarrow> qinv f"
-
-  text \<open>Split the hypothesis \<^term>\<open>biinv f\<close> into its components:\<close>
-  apply intro
-  unfolding biinv_def
-  apply elims
-
-  text \<open>Name the components:\<close>
-  focus prems vars _ _ _ g H1 h H2
-  thm \<open>g:_\<close> \<open>h:_\<close> \<open>H1:_\<close> \<open>H2:_\<close>
-
-  text \<open>
-    \<^term>\<open>g\<close> is a quasi-inverse to \<^term>\<open>f\<close>, so the proof will be a triple
-    \<^term>\<open><g, <?H1, ?H2>>\<close>.
-  \<close>
-  unfolding qinv_def
-  apply intro
-    \<guillemotright> by (fact \<open>g: _\<close>)
-    \<guillemotright> apply intro
-      text \<open>The first part \<^prop>\<open>?H1: g \<circ> f ~ id A\<close> is given by \<^term>\<open>H1\<close>.\<close>
-      apply (fact \<open>H1: _\<close>)
-
-      text \<open>
-        It remains to prove \<^prop>\<open>?H2: f \<circ> g ~ id B\<close>. First show that \<open>g ~ h\<close>,
-        then the result follows from @{thm \<open>H2: f \<circ> h ~ id B\<close>}. Here a proof
-        block is used to calculate "forward".
-      \<close>
-      proof -
-        have "g ~ g \<circ> (id B)" by reduce refl
-        also have ".. ~ g \<circ> f \<circ> h" by o_htpy (rule \<open>H2:_\<close>[symmetric])
-        also have ".. ~ (id A) \<circ> h" by (subst funcomp_assoc[symmetric]) (htpy_o, fact)
-        also have ".. ~ h" by reduce refl
-        finally have "g ~ h" by this
-        then have "f \<circ> g ~ f \<circ> h" by (o_htpy, this)
-        also note \<open>H2:_\<close>
-        finally show "f \<circ> g ~ id B" by this
+  unfolding is_qinv_def apply elims
+  focus vars _ _ finv _ ginv
+    apply intro
+    \<^item> by (rule funcompI[where ?f=ginv and ?g=finv])
+    \<^item> proof intro
+        show "(finv \<circ> ginv) \<circ> g \<circ> f ~ id A"
+        proof -
+          have "(finv \<circ> ginv) \<circ> g \<circ> f ~ finv \<circ> (ginv \<circ> g) \<circ> f" by reduce refl
+          also have ".. ~ finv \<circ> id B \<circ> f" by (rhtpy, lhtpy) fact
+          also have ".. ~ id A" by reduce fact
+          finally show "{}" by this
+        qed
+    
+        show "(g \<circ> f) \<circ> finv \<circ> ginv ~ id C"
+        proof -
+          have "(g \<circ> f) \<circ> finv \<circ> ginv ~ g \<circ> (f \<circ> finv) \<circ> ginv" by reduce refl
+          also have ".. ~ g \<circ> id B \<circ> ginv" by (rhtpy, lhtpy) fact
+          also have ".. ~ id C" by reduce fact
+          finally show "{}" by this
+        qed
       qed
     done
   done
 
-Lemma (derive) id_biinv:
-  "A: U i \<Longrightarrow> biinv (id A)"
-  by (rule qinv_imp_biinv) (rule id_qinv)
+subsection \<open>Bi-invertible maps\<close>
 
-Lemma (derive) funcomp_biinv:
+definition "is_biinv A B f \<equiv>
+  (\<Sum>g: B \<rightarrow> A. homotopy A (fn _. A) (g \<circ>\<^bsub>A\<^esub> f) (id A))
+    \<times> (\<Sum>g: B \<rightarrow> A. homotopy B (fn _. B) (f \<circ>\<^bsub>B\<^esub> g) (id B))"
+
+lemma is_biinv_type [typechk]:
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
+  shows "is_biinv A B f: U i"
+  unfolding is_biinv_def by typechk
+
+definition is_biinv_i ("is'_biinv")
+  where [implicit]: "is_biinv f \<equiv> Equivalence.is_biinv ? ? f"
+
+translations "is_biinv f" \<leftharpoondown> "CONST Equivalence.is_biinv A B f"
+
+Lemma is_biinvI:
+  assumes
+    "A: U i" "B: U i" "f: A \<rightarrow> B"
+    "g: B \<rightarrow> A" "h: B \<rightarrow> A"
+    "H1: g \<circ> f ~ id A" "H2: f \<circ> h ~ id B"
+  shows "is_biinv f"
+  unfolding is_biinv_def
+  proof intro
+    show "<g, H1>: {}" by typechk
+    show "<h, H2>: {}" by typechk
+  qed
+
+Lemma is_biinv_components [typechk]:
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "pf: is_biinv f"
+  shows
+    p\<^sub>1\<^sub>1_of_is_biinv: "p\<^sub>1\<^sub>1 pf: B \<rightarrow> A" and
+    p\<^sub>2\<^sub>1_of_is_biinv: "p\<^sub>2\<^sub>1 pf: B \<rightarrow> A" and
+    p\<^sub>1\<^sub>2_of_is_biinv: "p\<^sub>1\<^sub>2 pf: p\<^sub>1\<^sub>1 pf \<circ> f ~ id A" and
+    p\<^sub>2\<^sub>2_of_is_biinv: "p\<^sub>2\<^sub>2 pf: f \<circ> p\<^sub>2\<^sub>1 pf ~ id B"
+  using assms unfolding is_biinv_def
+  by typechk+
+
+Lemma (def) is_qinv_imp_is_biinv:
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
+  shows "is_qinv f \<rightarrow> is_biinv f"
+  apply intros
+  unfolding is_qinv_def is_biinv_def
+  by (rule distribute_Sig)
+
+Lemma (def) is_biinv_imp_is_qinv:
+  assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
+  shows "is_biinv f \<rightarrow> is_qinv f"
+  apply intro
+
+  text \<open>Split the hypothesis \<^term>\<open>is_biinv f\<close> into its components and name them.\<close>
+  unfolding is_biinv_def apply elims
+  focus vars _ _ _ g H1 h H2
+    text \<open>Need to give the required function and homotopies.\<close>
+    apply (rule is_qinvI)
+      text \<open>We claim that \<^term>\<open>g\<close> is a quasi-inverse to \<^term>\<open>f\<close>.\<close>
+      \<^item> by (fact \<open>g: _\<close>)
+  
+      text \<open>The first part \<^prop>\<open>?H1: g \<circ> f ~ id A\<close> is given by \<^term>\<open>H1\<close>.\<close>
+      \<^item> by (fact \<open>H1: _\<close>)
+  
+      text \<open>
+        It remains to prove \<^prop>\<open>?H2: f \<circ> g ~ id B\<close>. First show that \<open>g ~ h\<close>,
+        then the result follows from @{thm \<open>H2: f \<circ> h ~ id B\<close>}. Here a proof
+        block is used for calculational reasoning.
+      \<close>
+      \<^item> proof -
+          have "g ~ g \<circ> (id B)" by reduce refl
+          also have ".. ~ g \<circ> f \<circ> h" by rhtpy (rule \<open>H2:_\<close>[symmetric])
+          also have ".. ~ (id A) \<circ> h" by (rewrite funcomp_assoc[symmetric]) (lhtpy, fact)
+          also have ".. ~ h" by reduce refl
+          finally have "g ~ h" by this
+          then have "f \<circ> g ~ f \<circ> h" by (rhtpy, this)
+          also note \<open>H2:_\<close>
+          finally show "f \<circ> g ~ id B" by this
+        qed
+    done
+  done
+
+Lemma (def) id_is_biinv:
+  "A: U i \<Longrightarrow> is_biinv (id A)"
+  by (rule is_qinv_imp_is_biinv) (rule id_is_qinv)
+
+Lemma (def) funcomp_is_biinv:
   assumes
     "A: U i" "B: U i" "C: U i"
     "f: A \<rightarrow> B" "g: B \<rightarrow> C"
-  shows "biinv f \<rightarrow> biinv g \<rightarrow> biinv (g \<circ> f)"
+  shows "is_biinv f \<rightarrow> is_biinv g \<rightarrow> is_biinv (g \<circ> f)"
   apply intros
-  focus vars biinv\<^sub>f biinv\<^sub>g
-    by (rule qinv_imp_biinv) (rule funcomp_qinv; rule biinv_imp_qinv)
+  focus vars pf pg
+    by (rule is_qinv_imp_is_biinv)
+       (rule funcomp_is_qinv; rule is_biinv_imp_is_qinv, fact)
   done
 
 
@@ -304,19 +348,19 @@ text \<open>
 \<close>
 
 definition equivalence (infix "\<simeq>" 110)
-  where "A \<simeq> B \<equiv> \<Sum>f: A \<rightarrow> B. Equivalence.biinv A B f"
+  where "A \<simeq> B \<equiv> \<Sum>f: A \<rightarrow> B. Equivalence.is_biinv A B f"
 
 lemma equivalence_type [typechk]:
   assumes "A: U i" "B: U i"
   shows "A \<simeq> B: U i"
   unfolding equivalence_def by typechk
 
-Lemma (derive) equivalence_refl:
+Lemma (def) equivalence_refl:
   assumes "A: U i"
   shows "A \<simeq> A"
   unfolding equivalence_def
   proof intro
-    show "biinv (id A)" by (rule qinv_imp_biinv) (rule id_qinv)
+    show "is_biinv (id A)" by (rule is_qinv_imp_is_biinv) (rule id_is_qinv)
   qed typechk
 
 text \<open>
@@ -324,32 +368,30 @@ text \<open>
   univalence?)...
 \<close>
 
-Lemma (derive) equivalence_symmetric:
+Lemma (def) equivalence_symmetric:
   assumes "A: U i" "B: U i"
   shows "A \<simeq> B \<rightarrow> B \<simeq> A"
   apply intros
   unfolding equivalence_def
   apply elim
-  \<guillemotright> vars _ f "prf"
-    apply (dest (4) biinv_imp_qinv)
-    apply intro
-      \<^item> unfolding qinv_def by (rule fst[of "(biinv_imp_qinv A B f) prf"])
-      \<^item> by (rule qinv_imp_biinv) (rule quasiinv_qinv)
-    done
+  apply (dest (4) is_biinv_imp_is_qinv)
+  apply intro
+    \<^item> by (rule fst_of_is_qinv) facts
+    \<^item> by (rule is_qinv_imp_is_biinv) (rule qinv_is_qinv)
   done
 
-Lemma (derive) equivalence_transitive:
+Lemma (def) equivalence_transitive:
   assumes "A: U i" "B: U i" "C: U i"
   shows "A \<simeq> B \<rightarrow> B \<simeq> C \<rightarrow> A \<simeq> C"
   proof intros
     fix AB BC assume *: "AB: A \<simeq> B" "BC: B \<simeq> C"
     then have
-      "fst AB: A \<rightarrow> B" and 1: "snd AB: biinv (fst AB)"
-      "fst BC: B \<rightarrow> C" and 2: "snd BC: biinv (fst BC)"
+      "fst AB: A \<rightarrow> B" and 1: "snd AB: is_biinv (fst AB)"
+      "fst BC: B \<rightarrow> C" and 2: "snd BC: is_biinv (fst BC)"
       unfolding equivalence_def by typechk+
     then have "fst BC \<circ> fst AB: A \<rightarrow> C" by typechk
-    moreover have "biinv (fst BC \<circ> fst AB)"
-      using * unfolding equivalence_def by (rules funcomp_biinv 1 2)
+    moreover have "is_biinv (fst BC \<circ> fst AB)"
+      using * unfolding equivalence_def by (rule funcomp_is_biinv 1 2) facts
     ultimately show "A \<simeq> C"
       unfolding equivalence_def by intro facts
   qed
@@ -370,14 +412,14 @@ text \<open>
   (2) we don't yet have universe automation.
 \<close>
 
-Lemma (derive) id_imp_equiv:
+Lemma (def) id_imp_equiv:
   assumes
     "A: U i" "B: U i" "p: A =\<^bsub>U i\<^esub> B"
   shows "<trans (id (U i)) p, ?isequiv>: A \<simeq> B"
   unfolding equivalence_def
   apply intros defer
-    \<guillemotright> apply (eq p)
-      \<^item> prems vars A B
+    \<^item> apply (eq p)
+      \<^enum> vars A B
         apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
         using [[solve_side_conds=1]]
         apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
@@ -385,16 +427,16 @@ Lemma (derive) id_imp_equiv:
         apply (rule lift_universe_codomain, rule Ui_in_USi)
         apply (typechk, rule Ui_in_USi)
         done
-      \<^item> prems vars A
+      \<^enum> vars A
         using [[solve_side_conds=1]]
         apply (subst transport_comp)
-          \<^enum> by (rule Ui_in_USi)
-          \<^enum> by reduce (rule in_USi_if_in_Ui)
-          \<^enum> by reduce (rule id_biinv)
+          \<circ> by (rule Ui_in_USi)
+          \<circ> by reduce (rule in_USi_if_in_Ui)
+          \<circ> by reduce (rule id_is_biinv)
         done
       done
 
-    \<guillemotright> \<comment> \<open>Similar proof as in the first subgoal above\<close>
+    \<^item> \<comment> \<open>Similar proof as in the first subgoal above\<close>
       apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
       using [[solve_side_conds=1]]
       apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
@@ -419,8 +461,8 @@ no_translations
   "lift P p u" \<leftharpoondown> "CONST pathlift A P x y p u"
   "apd f p" \<leftharpoondown> "CONST Identity.apd A P f x y p"
   "f ~ g" \<leftharpoondown> "CONST homotopy A B f g"
-  "qinv f" \<leftharpoondown> "CONST Equivalence.qinv A B f"
-  "biinv f" \<leftharpoondown> "CONST Equivalence.biinv A B f"
+  "is_qinv f" \<leftharpoondown> "CONST Equivalence.is_qinv A B f"
+  "is_biinv f" \<leftharpoondown> "CONST Equivalence.is_biinv A B f"
 *)
 
 

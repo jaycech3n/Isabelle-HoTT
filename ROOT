@@ -14,7 +14,7 @@ session Spartan in spartan = Spartan_Core +
   directories
     lib
   theories
-    More_Types
+    Prelude
     Maybe
     List
 
@@ -29,6 +29,4 @@ session HoTT in hott = Spartan +
     Identity
     Equivalence
     Nat
-    More_List
-    More_Nat
-
+    "List+"
