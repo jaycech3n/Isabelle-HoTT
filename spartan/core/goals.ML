@@ -151,7 +151,7 @@ fun gen_schematic_theorem
                 map (apsnd (map (Local_Defs.fold new_lthy prf_tm_defs))) res
             in
               Local_Theory.notes_kind kind
-                [((name, @{attributes [typechk]} @ atts),
+                [((name, @{attributes [type]} @ atts),
                   [(maps #2 res_folded, [])])]
                 new_lthy
             end

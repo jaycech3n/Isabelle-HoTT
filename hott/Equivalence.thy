@@ -12,7 +12,7 @@ definition homotopy_i (infix "~" 100)
 
 translations "f ~ g" \<leftharpoondown> "CONST homotopy A B f g"
 
-Lemma homotopy_type [typechk]:
+Lemma homotopy_type [type]:
   assumes
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> B x: U i"
@@ -161,7 +161,7 @@ subsection \<open>Quasi-inverses\<close>
 definition "is_qinv A B f \<equiv> \<Sum>g: B \<rightarrow> A.
   homotopy A (fn _. A) (g \<circ>\<^bsub>A\<^esub> f) (id A) \<times> homotopy B (fn _. B) (f \<circ>\<^bsub>B\<^esub> g) (id B)"
 
-lemma is_qinv_type [typechk]:
+lemma is_qinv_type [type]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "is_qinv A B f: U i"
   unfolding is_qinv_def
@@ -193,12 +193,12 @@ Lemma is_qinvI:
     show "g \<circ> f ~ id A \<and> f \<circ> g ~ id B" by (intro; fact)
   qed
 
-Lemma is_qinv_components [typechk]:
+Lemma is_qinv_components [type]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "pf: is_qinv f"
   shows
-    fst_of_is_qinv: "fst pf: B \<rightarrow> A" and
-    p\<^sub>2\<^sub>1_of_is_qinv: "p\<^sub>2\<^sub>1 pf: fst pf \<circ> f ~ id A" and
-    p\<^sub>2\<^sub>2_of_is_qinv: "p\<^sub>2\<^sub>2 pf: f \<circ> fst pf ~ id B"
+    qinv_of_is_qinv: "fst pf: B \<rightarrow> A" and
+    ret_of_is_qinv: "p\<^sub>2\<^sub>1 pf: fst pf \<circ> f ~ id A" and
+    sec_of_is_qinv: "p\<^sub>2\<^sub>2 pf: f \<circ> fst pf ~ id B"
   using assms unfolding is_qinv_def
   by typechk+
 
@@ -211,8 +211,8 @@ using [[debug_typechk]]
   back \<comment> \<open>Typechecking/inference goes too far here. Problem would likely be
     solved with definitional unfolding\<close>
   \<^item> by (fact \<open>f:_\<close>)
-  \<^item> by (rule p\<^sub>2\<^sub>2_of_is_qinv)
-  \<^item> by (rule p\<^sub>2\<^sub>1_of_is_qinv)
+  \<^item> by (rule sec_of_is_qinv)
+  \<^item> by (rule ret_of_is_qinv)
   done
 
 Lemma (def) funcomp_is_qinv:
@@ -251,7 +251,7 @@ definition "is_biinv A B f \<equiv>
   (\<Sum>g: B \<rightarrow> A. homotopy A (fn _. A) (g \<circ>\<^bsub>A\<^esub> f) (id A))
     \<times> (\<Sum>g: B \<rightarrow> A. homotopy B (fn _. B) (f \<circ>\<^bsub>B\<^esub> g) (id B))"
 
-lemma is_biinv_type [typechk]:
+lemma is_biinv_type [type]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "is_biinv A B f: U i"
   unfolding is_biinv_def by typechk
@@ -273,13 +273,13 @@ Lemma is_biinvI:
     show "<h, H2>: {}" by typechk
   qed
 
-Lemma is_biinv_components [typechk]:
+Lemma is_biinv_components [type]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "pf: is_biinv f"
   shows
-    p\<^sub>1\<^sub>1_of_is_biinv: "p\<^sub>1\<^sub>1 pf: B \<rightarrow> A" and
-    p\<^sub>2\<^sub>1_of_is_biinv: "p\<^sub>2\<^sub>1 pf: B \<rightarrow> A" and
-    p\<^sub>1\<^sub>2_of_is_biinv: "p\<^sub>1\<^sub>2 pf: p\<^sub>1\<^sub>1 pf \<circ> f ~ id A" and
-    p\<^sub>2\<^sub>2_of_is_biinv: "p\<^sub>2\<^sub>2 pf: f \<circ> p\<^sub>2\<^sub>1 pf ~ id B"
+    section_of_is_biinv: "p\<^sub>1\<^sub>1 pf: B \<rightarrow> A" and
+    retraction_of_is_biinv: "p\<^sub>2\<^sub>1 pf: B \<rightarrow> A" and
+    ret_of_is_biinv: "p\<^sub>1\<^sub>2 pf: p\<^sub>1\<^sub>1 pf \<circ> f ~ id A" and
+    sec_of_is_biinv: "p\<^sub>2\<^sub>2 pf: f \<circ> p\<^sub>2\<^sub>1 pf ~ id B"
   using assms unfolding is_biinv_def
   by typechk+
 
@@ -350,7 +350,7 @@ text \<open>
 definition equivalence (infix "\<simeq>" 110)
   where "A \<simeq> B \<equiv> \<Sum>f: A \<rightarrow> B. Equivalence.is_biinv A B f"
 
-lemma equivalence_type [typechk]:
+lemma equivalence_type [type]:
   assumes "A: U i" "B: U i"
   shows "A \<simeq> B: U i"
   unfolding equivalence_def by typechk
@@ -376,7 +376,7 @@ Lemma (def) equivalence_symmetric:
   apply elim
   apply (dest (4) is_biinv_imp_is_qinv)
   apply intro
-    \<^item> by (rule fst_of_is_qinv) facts
+    \<^item> by (rule qinv_of_is_qinv) facts
     \<^item> by (rule is_qinv_imp_is_biinv) (rule qinv_is_qinv)
   done
 

@@ -188,16 +188,15 @@ ML_file \<open>context_tactical.ML\<close>
 
 subsection \<open>Type-checking/inference\<close>
 
-named_theorems form and intro and intros and comp and typechk
-\<comment> \<open>`intros` stores the introduction rule variants used by the
-  `intro` and `intros` methods.\<close>
+\<comment> \<open>Rule attributes for the type-checker\<close>
+named_theorems form and intr and comp and type
 
-ML_file \<open>elimination.ML\<close> \<comment> \<open>elimination rules\<close>
+\<comment> \<open>Defines elimination automation and the `elim` attribute\<close>
+ML_file \<open>elimination.ML\<close>  
 
 lemmas
   [form] = PiF SigF and
-  [intro] = PiI SigI and
-  [intros] = PiI[rotated] SigI and
+  [intr] = PiI SigI and
   [elim ?f] = PiE and
   [elim ?p] = SigE and
   [comp] = beta Sig_comp and
@@ -221,6 +220,10 @@ ML_file \<open>elaborated_statement.ML\<close>
 ML_file \<open>goals.ML\<close>
 
 subsection \<open>Proof methods\<close>
+
+named_theorems intro \<comment> \<open>Logical introduction rules\<close>
+
+lemmas [intro] = PiI[rotated] SigI
 
 ML_file \<open>cases.ML\<close> \<comment> \<open>case reasoning rules\<close>
 ML_file \<open>tactics.ML\<close>
@@ -394,7 +397,7 @@ syntax
 translations
   "g \<circ>\<^bsub>A\<^esub> f" \<rightleftharpoons> "CONST funcomp A g f"
 
-lemma funcompI [typechk]:
+lemma funcompI [type]:
   assumes
     "A: U i"
     "B: U i"
@@ -444,7 +447,7 @@ subsection \<open>Identity function\<close>
 abbreviation id where "id A \<equiv> \<lambda>x: A. x"
 
 lemma
-  id_type [typechk]: "A: U i \<Longrightarrow> id A: A \<rightarrow> A" and
+  id_type [type]: "A: U i \<Longrightarrow> id A: A \<rightarrow> A" and
   id_comp [comp]: "x: A \<Longrightarrow> (id A) x \<equiv> x" \<comment> \<open>for the occasional manual rewrite\<close>
   by reduce+
 
@@ -458,7 +461,7 @@ lemma id_right [comp]:
   shows "f \<circ>\<^bsub>A\<^esub> (id A) \<equiv> f"
   by (subst eta_exp[of f]) (reduce, rule eta)
 
-lemma id_U [typechk]:
+lemma id_U [type]:
   "id (U i): U i \<rightarrow> U i"
   using Ui_in_USi by typechk
 
@@ -468,7 +471,7 @@ section \<open>Pairs\<close>
 definition "fst A B \<equiv> \<lambda>p: \<Sum>x: A. B x. SigInd A B (fn _. A) (fn x y. x) p"
 definition "snd A B \<equiv> \<lambda>p: \<Sum>x: A. B x. SigInd A B (fn p. B (fst A B p)) (fn x y. y) p"
 
-lemma fst_type [typechk]:
+lemma fst_type [type]:
   assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "fst A B: (\<Sum>x: A. B x) \<rightarrow> A"
   unfolding fst_def by typechk
@@ -479,7 +482,7 @@ lemma fst_comp [comp]:
   shows "fst A B <a, b> \<equiv> a"
   unfolding fst_def by reduce
 
-lemma snd_type [typechk]:
+lemma snd_type [type]:
   assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "snd A B: \<Prod>p: \<Sum>x: A. B x. B (fst A B p)"
   unfolding snd_def by typechk reduce
@@ -503,14 +506,14 @@ translations
 
 subsection \<open>Projections\<close>
 
-Lemma fst [typechk]:
+Lemma fst [type]:
   assumes
     "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
     "p: \<Sum>x: A. B x"
   shows "fst p: A"
   by typechk
 
-Lemma snd [typechk]:
+Lemma snd [type]:
   assumes
     "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
     "p: \<Sum>x: A. B x"

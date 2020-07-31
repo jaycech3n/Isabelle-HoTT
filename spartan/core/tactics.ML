@@ -57,7 +57,7 @@ end
 
 (*Applies some introduction rule*)
 fun intro_ctac i (ctxt, st) = TACTIC_CONTEXT ctxt (resolve_tac ctxt
-  (Named_Theorems.get ctxt \<^named_theorems>\<open>intros\<close>) i st)
+  (Named_Theorems.get ctxt \<^named_theorems>\<open>intro\<close>) i st)
 
 
 (* Induction/elimination *)

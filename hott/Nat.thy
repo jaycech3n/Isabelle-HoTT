@@ -39,7 +39,7 @@ where
 
 lemmas
   [form] = NatF and
-  [intro, intros] = Nat_zero Nat_suc and
+  [intr, intro] = Nat_zero Nat_suc and
   [elim "?n"] = NatE and
   [comp] = Nat_comp_zero Nat_comp_suc
 
@@ -62,7 +62,7 @@ subsection \<open>Addition\<close>
 
 definition add (infixl "+" 120) where "m + n \<equiv> NatRec Nat m (K suc) n"
 
-lemma add_type [typechk]:
+lemma add_type [type]:
   assumes "m: Nat" "n: Nat"
   shows "m + n: Nat"
   unfolding add_def by typechk
@@ -123,7 +123,7 @@ subsection \<open>Multiplication\<close>
 
 definition mul (infixl "*" 121) where "m * n \<equiv> NatRec Nat 0 (K $ add m) n"
 
-lemma mul_type [typechk]:
+lemma mul_type [type]:
   assumes "m: Nat" "n: Nat"
   shows "m * n: Nat"
   unfolding mul_def by typechk

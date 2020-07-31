@@ -41,7 +41,7 @@ axiomatization where
 
 lemmas
   [form] = IdF and
-  [intro, intros] = IdI and
+  [intr, intro] = IdI and
   [elim ?p ?a ?b] = IdE and
   [comp] = Id_comp and
   [refl] = IdI
@@ -567,7 +567,7 @@ interpretation \<Omega>2:
 notation \<Omega>2.horiz_pathcomp (infix "\<star>" 121)
 notation \<Omega>2.horiz_pathcomp' (infix "\<star>''" 121)
 
-Lemma [typechk]:
+Lemma [type]:
   assumes "\<alpha>: \<Omega>2 A a" and "\<beta>: \<Omega>2 A a"
   shows horiz_pathcomp_type: "\<alpha> \<star> \<beta>: \<Omega>2 A a"
     and horiz_pathcomp'_type: "\<alpha> \<star>' \<beta>: \<Omega>2 A a"

@@ -43,8 +43,8 @@ axiomatization where
 
 lemmas
   [form] = SumF and
-  [intro] = Sum_inl Sum_inr and
-  [intros] = Sum_inl[rotated] Sum_inr[rotated] and
+  [intr] = Sum_inl Sum_inr and
+  [intro] = Sum_inl[rotated] Sum_inr[rotated] and
   [elim ?s] = SumE and
   [comp] = Sum_comp_inl Sum_comp_inr
 
@@ -79,7 +79,7 @@ and
 
 lemmas
   [form] = TopF BotF and
-  [intro, intros] = TopI and
+  [intr, intro] = TopI and
   [elim ?a] = TopE and
   [elim ?x] = BotE and
   [comp] = Top_comp
@@ -129,7 +129,7 @@ Lemma if_false:
 
 lemmas
   [form] = BoolF and
-  [intro, intros] = Bool_true Bool_false and
+  [intr, intro] = Bool_true Bool_false and
   [comp] = if_true if_false and
   [elim ?x] = ifelse
 lemmas

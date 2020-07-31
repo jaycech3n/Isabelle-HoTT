@@ -56,7 +56,7 @@ Lemma Maybe_comp_some:
 
 lemmas
   [form] = MaybeF and
-  [intro, intros] = Maybe_none Maybe_some and
+  [intr, intro] = Maybe_none Maybe_some and
   [comp] = Maybe_comp_none Maybe_comp_some and
   MaybeE [elim "?m"] = MaybeInd[rotated 4]
 lemmas

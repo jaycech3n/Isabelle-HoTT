@@ -37,8 +37,7 @@ fun put_types typings = foldr1 (op o) (map put_type typings)
 
 (* Context tactics for type-checking *)
 
-val debug_typechk =
-  Attrib.setup_config_bool \<^binding>\<open>debug_typechk\<close> (K false)
+val debug_typechk = Attrib.setup_config_bool \<^binding>\<open>debug_typechk\<close> (K false)
 
 fun debug_tac ctxt s =
   if Config.get ctxt debug_typechk then print_tac ctxt s else all_tac
@@ -73,9 +72,9 @@ fun check_infer_step facts i (ctxt, st) =
           map (Simplifier.norm_hhf ctxt) facts
           (*MAYBE FIXME: Remove `typechk` from this list, and instead perform
             definitional unfolding to (w?)hnf.*)
-          @(Named_Theorems.get ctxt \<^named_theorems>\<open>typechk\<close>)
+          @(Named_Theorems.get ctxt \<^named_theorems>\<open>type\<close>)
           @(Named_Theorems.get ctxt \<^named_theorems>\<open>form\<close>)
-          @(Named_Theorems.get ctxt \<^named_theorems>\<open>intro\<close>)
+          @(Named_Theorems.get ctxt \<^named_theorems>\<open>intr\<close>)
           @(map #1 (Elim.rules ctxt)))
         in (resolve_from_net_tac ctxt net) i end
       else no_tac)

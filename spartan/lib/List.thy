@@ -45,7 +45,7 @@ where
 
 lemmas
   [form] = ListF and
-  [intro, intros] = List_nil List_cons and
+  [intr, intro] = List_nil List_cons and
   [elim "?xs"] = ListE and
   [comp] = List_comp_nil List_comp_cons
 
@@ -106,7 +106,7 @@ translations
   "head" \<leftharpoondown> "CONST List.head A"
   "tail" \<leftharpoondown> "CONST List.tail A"
 
-Lemma head_type [typechk]:
+Lemma head_type [type]:
   assumes "A: U i" "xs: List A"
   shows "head xs: Maybe A"
   unfolding head_def by typechk
@@ -116,7 +116,7 @@ Lemma head_of_cons [comp]:
   shows "head (x # xs) \<equiv> some x"
   unfolding head_def by reduce
 
-Lemma tail_type [typechk]:
+Lemma tail_type [type]:
   assumes "A: U i" "xs: List A"
   shows "tail xs: List A"
   unfolding tail_def by typechk
@@ -157,7 +157,7 @@ definition map_i ("map") where [implicit]: "map \<equiv> List.map ? ?"
 
 translations "map" \<leftharpoondown> "CONST List.map A B"
 
-Lemma map_type [typechk]:
+Lemma map_type [type]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
   shows "map f xs: List B"
   unfolding map_def by typechk
@@ -177,7 +177,7 @@ definition rev_i ("rev") where [implicit]: "rev \<equiv> List.rev ?"
 
 translations "rev" \<leftharpoondown> "CONST List.rev A"
 
-Lemma rev_type [typechk]:
+Lemma rev_type [type]:
   assumes "A: U i" "xs: List A"
   shows "rev xs: List A"
   unfolding rev_def by typechk
