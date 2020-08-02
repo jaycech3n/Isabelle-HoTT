@@ -283,14 +283,14 @@ Lemma is_biinv_components [type]:
   using assms unfolding is_biinv_def
   by typechk+
 
-Lemma (def) is_qinv_imp_is_biinv:
+Lemma (def) is_biinv_if_is_qinv:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "is_qinv f \<rightarrow> is_biinv f"
   apply intros
   unfolding is_qinv_def is_biinv_def
   by (rule distribute_Sig)
 
-Lemma (def) is_biinv_imp_is_qinv:
+Lemma (def) is_qinv_if_is_biinv:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "is_biinv f \<rightarrow> is_qinv f"
   apply intro
@@ -326,7 +326,7 @@ Lemma (def) is_biinv_imp_is_qinv:
 
 Lemma (def) id_is_biinv:
   "A: U i \<Longrightarrow> is_biinv (id A)"
-  by (rule is_qinv_imp_is_biinv) (rule id_is_qinv)
+  by (rule is_biinv_if_is_qinv) (rule id_is_qinv)
 
 Lemma (def) funcomp_is_biinv:
   assumes
@@ -335,8 +335,8 @@ Lemma (def) funcomp_is_biinv:
   shows "is_biinv f \<rightarrow> is_biinv g \<rightarrow> is_biinv (g \<circ> f)"
   apply intros
   focus vars pf pg
-    by (rule is_qinv_imp_is_biinv)
-       (rule funcomp_is_qinv; rule is_biinv_imp_is_qinv, fact)
+    by (rule is_biinv_if_is_qinv)
+       (rule funcomp_is_qinv; rule is_qinv_if_is_biinv, fact)
   done
 
 
@@ -360,7 +360,7 @@ Lemma (def) equivalence_refl:
   shows "A \<simeq> A"
   unfolding equivalence_def
   proof intro
-    show "is_biinv (id A)" by (rule is_qinv_imp_is_biinv) (rule id_is_qinv)
+    show "is_biinv (id A)" by (rule is_biinv_if_is_qinv) (rule id_is_qinv)
   qed typechk
 
 text \<open>
@@ -374,10 +374,10 @@ Lemma (def) equivalence_symmetric:
   apply intros
   unfolding equivalence_def
   apply elim
-  apply (dest (4) is_biinv_imp_is_qinv)
+  apply (dest (4) is_qinv_if_is_biinv)
   apply intro
     \<^item> by (rule qinv_of_is_qinv) facts
-    \<^item> by (rule is_qinv_imp_is_biinv) (rule qinv_is_qinv)
+    \<^item> by (rule is_biinv_if_is_qinv) (rule qinv_is_qinv)
   done
 
 Lemma (def) equivalence_transitive:
@@ -412,7 +412,7 @@ text \<open>
   (2) we don't yet have universe automation.
 \<close>
 
-Lemma (def) id_imp_equiv:
+Lemma (def) equiv_if_equal:
   assumes
     "A: U i" "B: U i" "p: A =\<^bsub>U i\<^esub> B"
   shows "<trans (id (U i)) p, ?isequiv>: A \<simeq> B"
