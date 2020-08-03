@@ -433,7 +433,7 @@ val _ =
         "single-step substitution" #>
       Method.setup \<^binding>\<open>subst\<close>
         (parser >> (fn ((asm, occs), inthms) => K (CONTEXT_METHOD (
-          CHEADGOAL o SIDE_CONDS
+          CHEADGOAL o SIDE_CONDS 0
             ((if asm then eqsubst_asm_ctac else eqsubst_ctac) occs inthms)))))
         "single-step substitution with automatic discharge of side conditions"
     )

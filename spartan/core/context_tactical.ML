@@ -28,6 +28,7 @@ val CAPPEND': context_tactic' * context_tactic' -> context_tactic'
 val CTRY: context_tactic -> context_tactic
 val CREPEAT: context_tactic -> context_tactic
 val CREPEAT1: context_tactic -> context_tactic
+val CREPEAT_N: int -> context_tactic -> context_tactic
 val CFILTER: (context_state -> bool) -> context_tactic -> context_tactic
 val CCHANGED: context_tactic -> context_tactic
 val CTHEN_ALL_NEW: context_tactic' * context_tactic' -> context_tactic'
@@ -90,6 +91,9 @@ fun CREPEAT ctac =
   in fn cst => Seq.make_results (Seq.make (fn () => rep [] cst)) end
 
 fun CREPEAT1 ctac = ctac CTHEN CREPEAT ctac
+
+fun CREPEAT_N 0 _ = all_ctac
+  | CREPEAT_N n ctac = ctac CTHEN CREPEAT_N (n - 1) ctac
 
 fun CFILTER pred ctac cst =
   ctac cst

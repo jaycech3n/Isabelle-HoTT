@@ -8,7 +8,7 @@ structure Tactics:
 sig
 
 val solve_side_conds: int Config.T
-val SIDE_CONDS: context_tactic' -> thm list -> context_tactic'
+val SIDE_CONDS: int -> context_tactic' -> thm list -> context_tactic'
 val rule_ctac: thm list -> context_tactic'
 val dest_ctac: int option -> thm list -> context_tactic'
 val intro_ctac: context_tactic'
@@ -21,12 +21,12 @@ end = struct
 (* Side conditions *)
 val solve_side_conds = Attrib.setup_config_int \<^binding>\<open>solve_side_conds\<close> (K 2)
 
-fun SIDE_CONDS ctac facts i (cst as (ctxt, st)) = cst |> (ctac i CTHEN
+fun SIDE_CONDS j ctac facts i (cst as (ctxt, st)) = cst |>
   (case Config.get ctxt solve_side_conds of
-    1 => CALLGOALS (CTRY o Types.known_ctac facts)
-  | 2 => CREPEAT_IN_RANGE i (Thm.nprems_of st - i)
+    1 => (ctac CTHEN_ALL_NEW (CTRY o Types.known_ctac facts)) i
+  | 2 => ctac i CTHEN CREPEAT_IN_RANGE (i + j) (Thm.nprems_of st - i)
       (CTRY o CREPEAT_ALL_NEW_FWD (Types.check_infer facts))
-  | _ => all_ctac))
+  | _ => ctac i)
 
 
 (* rule, dest, intro *)
@@ -55,9 +55,13 @@ fun dest_ctac opt_n ths i (ctxt, st) =
 
 end
 
-(*Applies some introduction rule*)
-fun intro_ctac i (ctxt, st) = TACTIC_CONTEXT ctxt (resolve_tac ctxt
-  (Named_Theorems.get ctxt \<^named_theorems>\<open>intro\<close>) i st)
+(*Applies an appropriate introduction rule*)
+val intro_ctac = CONTEXT_TACTIC' (fn ctxt => SUBGOAL (fn (goal, i) =>
+  let val concl = Logic.strip_assums_concl goal in
+    if Lib.is_typing concl andalso Lib.is_rigid (Lib.type_of_typing concl)
+    then resolve_tac ctxt (Named_Theorems.get ctxt \<^named_theorems>\<open>intro\<close>) i
+    else no_tac
+  end))
 
 
 (* Induction/elimination *)

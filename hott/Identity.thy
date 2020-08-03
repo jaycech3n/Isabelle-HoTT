@@ -54,7 +54,7 @@ section \<open>Path induction\<close>
 
 method_setup eq =
   \<open>Args.term >> (fn tm => K (CONTEXT_METHOD (
-    CHEADGOAL o SIDE_CONDS (
+    CHEADGOAL o SIDE_CONDS 0 (
       CONTEXT_SUBGOAL (fn (goal, i) => fn cst as (ctxt, st) =>
         let
           val facts = Proof_Context.facts_of ctxt

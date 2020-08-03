@@ -192,7 +192,7 @@ subsection \<open>Type-checking/inference\<close>
 named_theorems form and intr and comp and type
 
 \<comment> \<open>Defines elimination automation and the `elim` attribute\<close>
-ML_file \<open>elimination.ML\<close>  
+ML_file \<open>elimination.ML\<close>
 
 lemmas
   [form] = PiF SigF and
@@ -225,36 +225,40 @@ named_theorems intro \<comment> \<open>Logical introduction rules\<close>
 
 lemmas [intro] = PiI[rotated] SigI
 
-ML_file \<open>cases.ML\<close> \<comment> \<open>case reasoning rules\<close>
+\<comment> \<open>Case reasoning rules\<close>
+ML_file \<open>cases.ML\<close>
+
 ML_file \<open>tactics.ML\<close>
 
 method_setup rule =
   \<open>Attrib.thms >> (fn ths => K (CONTEXT_METHOD (
-    CHEADGOAL o SIDE_CONDS (rule_ctac ths))))\<close>
+    CHEADGOAL o SIDE_CONDS 0 (rule_ctac ths))))\<close>
 
 method_setup dest =
-  \<open>Scan.lift (Scan.option (Args.parens Parse.int))
+  \<open>Scan.lift (Scan.option (Args.parens Parse.nat))
     -- Attrib.thms >> (fn (n_opt, ths) => K (CONTEXT_METHOD (
-      CHEADGOAL o SIDE_CONDS (dest_ctac n_opt ths))))\<close>
+      CHEADGOAL o SIDE_CONDS 0 (dest_ctac n_opt ths))))\<close>
 
 method_setup intro =
   \<open>Scan.succeed (K (CONTEXT_METHOD (
-    CHEADGOAL o SIDE_CONDS (intro_ctac))))\<close>
+    CHEADGOAL o SIDE_CONDS 0 intro_ctac)))\<close>
 
 method_setup intros =
-  \<open>Scan.succeed (K (CONTEXT_METHOD (
-    CHEADGOAL o SIDE_CONDS (CREPEAT o intro_ctac))))\<close>
+  \<open>Scan.lift (Scan.option Parse.nat) >> (fn n_opt =>
+    K (CONTEXT_METHOD (fn facts =>
+      case n_opt of
+        SOME n => CREPEAT_N n (CHEADGOAL (SIDE_CONDS 0 intro_ctac facts))
+      | NONE => CREPEAT (CCHANGED (CHEADGOAL (SIDE_CONDS 0 intro_ctac facts))))))\<close>
 
 method_setup elim =
   \<open>Scan.repeat Args.term >> (fn tms => K (CONTEXT_METHOD (
-    CHEADGOAL o SIDE_CONDS (elim_ctac tms))))\<close>
-
-method elims = elim+
+    CHEADGOAL o SIDE_CONDS 0 (elim_ctac tms))))\<close>
 
 method_setup cases =
   \<open>Args.term >> (fn tm => K (CONTEXT_METHOD (
-    CHEADGOAL o SIDE_CONDS (cases_ctac tm))))\<close>
+    CHEADGOAL o SIDE_CONDS 0 (cases_ctac tm))))\<close>
 
+method elims = elim+
 method facts = fact+
 
 
@@ -267,7 +271,7 @@ subsection \<open>Trivial proofs (modulo automatic discharge of side conditions)
 
 method_setup this =
   \<open>Scan.succeed (K (CONTEXT_METHOD (fn facts =>
-    CHEADGOAL (SIDE_CONDS
+    CHEADGOAL (SIDE_CONDS 0
       (CONTEXT_TACTIC' (fn ctxt => resolve_tac ctxt facts))
       facts))))\<close>
 

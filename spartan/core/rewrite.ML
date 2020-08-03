@@ -458,7 +458,7 @@ val _ =
       "single-step rewriting, allowing subterm selection via patterns" #>
     Method.setup \<^binding>\<open>rewrite\<close> (subst_parser >>
       (fn (pattern, inthms, (to, pat_ctxt)) => K (CONTEXT_METHOD (
-        CHEADGOAL o SIDE_CONDS
+        CHEADGOAL o SIDE_CONDS 0
           (rewrite_export_ctac ((pattern, to), SOME pat_ctxt) inthms)))))
       "single-step rewriting with auto-typechecking"
   end

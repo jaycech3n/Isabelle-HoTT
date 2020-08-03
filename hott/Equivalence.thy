@@ -40,7 +40,7 @@ Lemma (def) homotopy_refl [refl]:
     "f: \<Prod>x: A. B x"
   shows "f ~ f"
   unfolding homotopy_def
-  by intros
+  by intros fact
 
 Lemma (def) hsym:
   assumes
@@ -205,11 +205,8 @@ Lemma is_qinv_components [type]:
 Lemma (def) qinv_is_qinv:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "pf: is_qinv f"
   shows "is_qinv (fst pf)"
-using [[debug_typechk]]
-  using [[solve_side_conds=2]]
+  using \<open>pf:_\<close>[unfolded is_qinv_def] \<comment> \<open>Should be unfolded by the typechecker\<close>
   apply (rule is_qinvI)
-  back \<comment> \<open>Typechecking/inference goes too far here. Problem would likely be
-    solved with definitional unfolding\<close>
   \<^item> by (fact \<open>f:_\<close>)
   \<^item> by (rule sec_of_is_qinv)
   \<^item> by (rule ret_of_is_qinv)
@@ -233,7 +230,7 @@ Lemma (def) funcomp_is_qinv:
           also have ".. ~ id A" by reduce fact
           finally show "{}" by this
         qed
-    
+
         show "(g \<circ> f) \<circ> finv \<circ> ginv ~ id C"
         proof -
           have "(g \<circ> f) \<circ> finv \<circ> ginv ~ g \<circ> (f \<circ> finv) \<circ> ginv" by reduce refl
@@ -363,11 +360,6 @@ Lemma (def) equivalence_refl:
     show "is_biinv (id A)" by (rule is_biinv_if_is_qinv) (rule id_is_qinv)
   qed typechk
 
-text \<open>
-  The following could perhaps be easier with transport (but then I think we need
-  univalence?)...
-\<close>
-
 Lemma (def) equivalence_symmetric:
   assumes "A: U i" "B: U i"
   shows "A \<simeq> B \<rightarrow> B \<simeq> A"
@@ -408,8 +400,8 @@ Lemma
   by (eq p) (rule equivalence_refl)
 
 text \<open>
-  The following proof is wordy because (1) the typechecker doesn't rewrite, and
-  (2) we don't yet have universe automation.
+  The following proof is wordy because (1) the typechecker doesn't normalize,
+  and (2) we don't yet have universe level inference.
 \<close>
 
 Lemma (def) equiv_if_equal:
@@ -417,7 +409,7 @@ Lemma (def) equiv_if_equal:
     "A: U i" "B: U i" "p: A =\<^bsub>U i\<^esub> B"
   shows "<trans (id (U i)) p, ?isequiv>: A \<simeq> B"
   unfolding equivalence_def
-  apply intros defer
+  apply intro defer
     \<^item> apply (eq p)
       \<^enum> vars A B
         apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
