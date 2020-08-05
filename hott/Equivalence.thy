@@ -144,6 +144,8 @@ Lemma (def) commute_homotopy:
   apply (transport eq: pathcomp_refl, transport eq: refl_pathcomp)
   by refl
 
+\<comment> \<open>TODO: *Really* need normalization during type-checking and better equality
+  type rewriting to do the proof below properly\<close>
 Corollary (def) commute_homotopy':
   assumes
     "A: U i"
@@ -151,7 +153,24 @@ Corollary (def) commute_homotopy':
     "f: A \<rightarrow> A"
     "H: f ~ (id A)"
   shows "H (f x) = f [H x]"
-oops
+  proof -
+    from \<open>H: f ~ id A\<close> have "H: \<Prod>x: A. f x = x"
+      by (reduce add: homotopy_def)
+
+    have "(id A)[H x]: f x = x"
+      by (rewrite at "\<hole> = _" id_comp[symmetric],
+          rewrite at "_ = \<hole>" id_comp[symmetric])
+
+    have "H (f x) \<bullet> H x = H (f x) \<bullet> (id A)[H x]"
+      by (rule left_whisker) (fact, rule
+        ap_id[where ?A=A and ?x="f x" and ?y=x, simplified id_comp, symmetric])
+    also have [simplified id_comp]: "H (f x) \<bullet> (id A)[H x] = f[H x] \<bullet> H x"
+      by (rule commute_homotopy)
+    finally have *: "{}" by this
+
+    show "H (f x) = f [H x]"
+      by pathcomp_cancelr (fact, typechk+)
+  qed
 
 
 section \<open>Quasi-inverse and bi-invertibility\<close>

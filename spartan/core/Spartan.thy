@@ -248,7 +248,8 @@ method_setup intros =
     K (CONTEXT_METHOD (fn facts =>
       case n_opt of
         SOME n => CREPEAT_N n (CHEADGOAL (SIDE_CONDS 0 intro_ctac facts))
-      | NONE => CREPEAT (CCHANGED (CHEADGOAL (SIDE_CONDS 0 intro_ctac facts))))))\<close>
+      | NONE => CCHANGED (CREPEAT (CCHANGED (
+          CHEADGOAL (SIDE_CONDS 0 intro_ctac facts)))))))\<close>
 
 method_setup elim =
   \<open>Scan.repeat Args.term >> (fn tms => K (CONTEXT_METHOD (

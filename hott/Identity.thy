@@ -292,6 +292,46 @@ Lemma apply_transport:
 
 method transport uses eq = (rule apply_transport[OF _ _ _ _ eq])
 
+Lemma (def) pathcomp_cancel_left:
+  assumes
+    "A: U i" "x: A" "y: A" "z: A"
+    "p: x = y" "q: y = z" "r: y = z"
+    "\<alpha>: p \<bullet> q = p \<bullet> r"
+  shows "q = r"
+  proof -
+    have "q = (p\<inverse> \<bullet> p) \<bullet> q"
+      by (transport eq: inv_pathcomp, transport eq: refl_pathcomp) refl
+    also have ".. = p\<inverse> \<bullet> (p \<bullet> r)"
+      by (transport eq: pathcomp_assoc[symmetric], transport eq: \<open>\<alpha>:_\<close>) refl
+    also have ".. = r" thm inv_pathcomp
+      by (transport eq: pathcomp_assoc,
+          transport eq: inv_pathcomp,
+          transport eq: refl_pathcomp) refl
+    finally show "{}" by this
+  qed
+
+Lemma (def) pathcomp_cancel_right:
+  assumes
+    "A: U i" "x: A" "y: A" "z: A"
+    "p: x = y" "q: x = y" "r: y = z"
+    "\<alpha>: p \<bullet> r = q \<bullet> r"
+  shows "p = q"
+  proof -
+    have "p = p \<bullet> r \<bullet> r\<inverse>"
+      by (transport eq: pathcomp_assoc[symmetric],
+          transport eq: pathcomp_inv,
+          transport eq: pathcomp_refl) refl
+    also have ".. = q"
+      by (transport eq: \<open>\<alpha>:_\<close>,
+          transport eq: pathcomp_assoc[symmetric],
+          transport eq: pathcomp_inv,
+          transport eq: pathcomp_refl) refl
+    finally show "{}" by this
+  qed
+
+method pathcomp_cancell = rule pathcomp_cancel_left[rotated 7]
+method pathcomp_cancelr = rule pathcomp_cancel_right[rotated 7]
+
 Lemma (def) transport_left_inv:
   assumes
     "A: U i"

@@ -92,7 +92,7 @@ fun CREPEAT ctac =
 
 fun CREPEAT1 ctac = ctac CTHEN CREPEAT ctac
 
-fun CREPEAT_N 0 _ = all_ctac
+fun CREPEAT_N 0 _ = no_ctac
   | CREPEAT_N n ctac = ctac CTHEN CREPEAT_N (n - 1) ctac
 
 fun CFILTER pred ctac cst =
