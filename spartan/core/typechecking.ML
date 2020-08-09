@@ -50,18 +50,15 @@ fun known_ctac facts = CONTEXT_SUBGOAL (fn (goal, i) => fn (ctxt, st) =>
       if Lib.no_vars concl orelse
         (Lib.is_typing concl andalso Lib.no_vars (Lib.term_of_typing concl))
       then
-        let val ths = map (Simplifier.norm_hhf ctxt)
-          (facts @ map fst (Facts.props (Proof_Context.facts_of ctxt)))
-          (*FIXME: Shouldn't pull nameless facts directly from context*)
-        in
-          (debug_tac ctxt "resolve" THEN resolve_tac ctxt ths i ORELSE
-          debug_tac ctxt "assume" THEN assume_tac ctxt i) st
+        let val ths = map (Simplifier.norm_hhf ctxt) facts
+        in st |>
+          (assume_tac ctxt ORELSE' resolve_tac ctxt ths THEN_ALL_NEW K no_tac) i
         end
       else Seq.empty
     end)
 
 (*Simple bidirectional typing tactic, with some nondeterminism from backtracking
-  search over arbitrary `typechk` rules. The current implementation does not
+  search over arbitrary `type` rules. The current implementation does not
   perform any normalization.*)
 fun check_infer_step facts i (ctxt, st) =
   let
@@ -69,8 +66,12 @@ fun check_infer_step facts i (ctxt, st) =
       if Lib.rigid_typing_concl goal
       then
         let val net = Tactic.build_net (
-          map (Simplifier.norm_hhf ctxt) facts
-          (*MAYBE FIXME: Remove `typechk` from this list, and instead perform
+          map (Simplifier.norm_hhf ctxt)
+            (*FIXME: Shouldn't pull nameless facts directly from context. Note
+              that we *do* need to be able to resolve with conditional
+              statements expressing type family judgments*)
+            (facts @ map fst (Facts.props (Proof_Context.facts_of ctxt)))
+          (*MAYBE FIXME: Remove `type` from this list, and instead perform
             definitional unfolding to (w?)hnf.*)
           @(Named_Theorems.get ctxt \<^named_theorems>\<open>type\<close>)
           @(Named_Theorems.get ctxt \<^named_theorems>\<open>form\<close>)

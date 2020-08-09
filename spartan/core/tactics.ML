@@ -82,8 +82,8 @@ fun internalize_fact_tac t =
         Drule.infer_instantiate' ctxt [NONE, NONE, SOME B, SOME a] @{thm PiE}
     in
       HEADGOAL (resolve_tac ctxt [resolvent])
-      (*known_tac infers the correct type T inferred by unification*)
-      THEN SOMEGOAL (NO_CONTEXT_TACTIC ctxt o Types.known_ctac [])
+      (*Infer the correct type T*)
+      THEN SOMEGOAL (NO_CONTEXT_TACTIC ctxt o Types.check_infer [])
     end)
 
 fun elim_core_tac tms types ctxt =

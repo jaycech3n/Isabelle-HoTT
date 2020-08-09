@@ -162,8 +162,7 @@ Corollary (def) commute_homotopy':
           rewrite at "_ = \<hole>" id_comp[symmetric])
 
     have "H (f x) \<bullet> H x = H (f x) \<bullet> (id A)[H x]"
-      by (rule left_whisker) (fact, rule
-        ap_id[where ?A=A and ?x="f x" and ?y=x, simplified id_comp, symmetric])
+      by (rule left_whisker, transport eq: ap_id) (reduce+, refl)
     also have [simplified id_comp]: "H (f x) \<bullet> (id A)[H x] = f[H x] \<bullet> H x"
       by (rule commute_homotopy)
     finally have *: "{}" by this
@@ -433,28 +432,28 @@ Lemma (def) equiv_if_equal:
       \<^enum> vars A B
         apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
         using [[solve_side_conds=1]]
-        apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
+        apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric], fact)
         apply (rule transport, rule Ui_in_USi)
         apply (rule lift_universe_codomain, rule Ui_in_USi)
         apply (typechk, rule Ui_in_USi)
-        done
+        by facts
       \<^enum> vars A
         using [[solve_side_conds=1]]
         apply (subst transport_comp)
           \<circ> by (rule Ui_in_USi)
           \<circ> by reduce (rule in_USi_if_in_Ui)
-          \<circ> by reduce (rule id_is_biinv)
+          \<circ> by reduce (rule id_is_biinv, fact)
         done
       done
 
     \<^item> \<comment> \<open>Similar proof as in the first subgoal above\<close>
       apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
       using [[solve_side_conds=1]]
-      apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
+      apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric], fact)
       apply (rule transport, rule Ui_in_USi)
       apply (rule lift_universe_codomain, rule Ui_in_USi)
       apply (typechk, rule Ui_in_USi)
-      done
+      by facts
   done
 
 (*Uncomment this to see all implicits from here on.
