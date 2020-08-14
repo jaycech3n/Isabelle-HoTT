@@ -117,7 +117,8 @@ fun gen_schematic_subgoal prep_atts raw_result_binding param_specs state =
     |> Proof.map_context (fn _ =>
       #context subgoal_focus
       |> Proof_Context.note_thmss "" [((Binding.name "prems", []), [(prems, [])])]
-      |> #2)
+      |> snd
+      |> Context_Facts.register_facts prems)
     |> Proof.internal_goal (K (K ())) (Proof_Context.get_mode ctxt) true "subgoal"
         NONE after_qed [] [] [(Binding.empty_atts, [(Thm.term_of (#concl subgoal_focus), [])])]
     |> #2

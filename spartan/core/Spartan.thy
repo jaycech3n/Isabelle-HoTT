@@ -189,7 +189,7 @@ ML_file \<open>context_tactical.ML\<close>
 subsection \<open>Type-checking/inference\<close>
 
 \<comment> \<open>Rule attributes for the type-checker\<close>
-named_theorems form and intr and comp and type
+named_theorems form and intr and comp
 
 \<comment> \<open>Defines elimination automation and the `elim` attribute\<close>
 ML_file \<open>elimination.ML\<close>
@@ -202,7 +202,7 @@ lemmas
   [comp] = beta Sig_comp and
   [cong] = Pi_cong lam_cong Sig_cong
 
-ML_file \<open>typechecking.ML\<close>
+ML_file \<open>types.ML\<close>
 
 method_setup typechk =
   \<open>Scan.succeed (K (CONTEXT_METHOD (
@@ -214,6 +214,7 @@ method_setup known =
 
 subsection \<open>Statement commands\<close>
 
+ML_file \<open>context_facts.ML\<close>
 ML_file \<open>focus.ML\<close>
 ML_file \<open>elaboration.ML\<close>
 ML_file \<open>elaborated_statement.ML\<close>
@@ -374,12 +375,12 @@ translations "f x" \<leftharpoondown> "f `x"
 
 section \<open>Functions\<close>
 
-lemma eta_exp:
+Lemma eta_exp:
   assumes "f: \<Prod>x: A. B x"
   shows "f \<equiv> \<lambda>x: A. f x"
   by (rule eta[symmetric])
 
-lemma refine_codomain:
+Lemma refine_codomain:
   assumes
     "A: U i"
     "f: \<Prod>x: A. B x"
@@ -387,7 +388,7 @@ lemma refine_codomain:
   shows "f: \<Prod>x: A. C x"
   by (subst eta_exp)
 
-lemma lift_universe_codomain:
+Lemma lift_universe_codomain:
   assumes "A: U i" "f: A \<rightarrow> U j"
   shows "f: A \<rightarrow> U (S j)"
   using in_USi_if_in_Ui[of "f {}"]
@@ -402,7 +403,7 @@ syntax
 translations
   "g \<circ>\<^bsub>A\<^esub> f" \<rightleftharpoons> "CONST funcomp A g f"
 
-lemma funcompI [type]:
+Lemma funcompI [type]:
   assumes
     "A: U i"
     "B: U i"
@@ -413,7 +414,7 @@ lemma funcompI [type]:
     "g \<circ>\<^bsub>A\<^esub> f: \<Prod>x: A. C (f x)"
   unfolding funcomp_def by typechk
 
-lemma funcomp_assoc [comp]:
+Lemma funcomp_assoc [comp]:
   assumes
     "A: U i"
     "f: A \<rightarrow> B"
@@ -423,7 +424,7 @@ lemma funcomp_assoc [comp]:
     "(h \<circ>\<^bsub>B\<^esub> g) \<circ>\<^bsub>A\<^esub> f \<equiv> h \<circ>\<^bsub>A\<^esub> g \<circ>\<^bsub>A\<^esub> f"
   unfolding funcomp_def by reduce
 
-lemma funcomp_lambda_comp [comp]:
+Lemma funcomp_lambda_comp [comp]:
   assumes
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> b x: B"
@@ -432,7 +433,7 @@ lemma funcomp_lambda_comp [comp]:
     "(\<lambda>x: B. c x) \<circ>\<^bsub>A\<^esub> (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
   unfolding funcomp_def by reduce
 
-lemma funcomp_apply_comp [comp]:
+Lemma funcomp_apply_comp [comp]:
   assumes
     "A: U i" "B: U i" "\<And>x y. x: B \<Longrightarrow> C x: U i"
     "f: A \<rightarrow> B" "g: \<Prod>x: B. C x"
@@ -456,12 +457,12 @@ lemma
   id_comp [comp]: "x: A \<Longrightarrow> (id A) x \<equiv> x" \<comment> \<open>for the occasional manual rewrite\<close>
   by reduce+
 
-lemma id_left [comp]:
+Lemma id_left [comp]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "(id B) \<circ>\<^bsub>A\<^esub> f \<equiv> f"
   by (subst eta_exp[of f]) (reduce, rule eta)
 
-lemma id_right [comp]:
+Lemma id_right [comp]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "f \<circ>\<^bsub>A\<^esub> (id A) \<equiv> f"
   by (subst eta_exp[of f]) (reduce, rule eta)
@@ -476,23 +477,23 @@ section \<open>Pairs\<close>
 definition "fst A B \<equiv> \<lambda>p: \<Sum>x: A. B x. SigInd A B (fn _. A) (fn x y. x) p"
 definition "snd A B \<equiv> \<lambda>p: \<Sum>x: A. B x. SigInd A B (fn p. B (fst A B p)) (fn x y. y) p"
 
-lemma fst_type [type]:
+Lemma fst_type [type]:
   assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "fst A B: (\<Sum>x: A. B x) \<rightarrow> A"
   unfolding fst_def by typechk
 
-lemma fst_comp [comp]:
+Lemma fst_comp [comp]:
   assumes
     "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i" "a: A" "b: B a"
   shows "fst A B <a, b> \<equiv> a"
   unfolding fst_def by reduce
 
-lemma snd_type [type]:
+Lemma snd_type [type]:
   assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "snd A B: \<Prod>p: \<Sum>x: A. B x. B (fst A B p)"
   unfolding snd_def by typechk reduce
 
-lemma snd_comp [comp]:
+Lemma snd_comp [comp]:
   assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i" "a: A" "b: B a"
   shows "snd A B <a, b> \<equiv> b"
   unfolding snd_def by reduce

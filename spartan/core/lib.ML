@@ -27,6 +27,9 @@ val typing_of_term: term -> term
 val decompose_goal: Proof.context -> term -> term list * term
 val rigid_typing_concl: term -> bool
 
+(*Theorems*)
+val partition_judgments: thm list -> thm list * thm list * thm list
+
 (*Subterms*)
 val has_subterm: term list -> term -> bool
 val subterm_count: term -> term -> int
@@ -119,6 +122,19 @@ fun decompose_goal ctxt goal =
 fun rigid_typing_concl goal =
   let val concl = Logic.strip_assums_concl goal
   in is_typing concl andalso is_rigid (term_of_typing concl) end
+
+
+(** Theorems **)
+fun partition_judgments ths =
+  let
+    fun part [] facts conds eqs = (facts, conds, eqs)
+      | part (th::ths) facts conds eqs =
+          if is_typing (Thm.prop_of th) then
+            part ths (th::facts) conds eqs
+          else if is_typing (Thm.concl_of th) then
+            part ths facts (th::conds) eqs
+          else part ths facts conds (th::eqs)
+  in part ths [] [] [] end
 
 
 (** Subterms **)

@@ -25,10 +25,10 @@ Definition MaybeInd:
     "\<And>a. a: A \<Longrightarrow> f a: C (some A a)"
     "m: Maybe A"
   shows "C m"
-  using assms[unfolded Maybe_def none_def some_def]
+  using assms[unfolded Maybe_def none_def some_def, type]
   apply (elim m)
-    apply (rule \<open>_ \<Longrightarrow> _: C (inl _ _ _)\<close>)
-    apply (elim, rule \<open>_: C (inr _ _ _)\<close>)
+    apply fact
+    apply (elim, fact)
   done
 
 Lemma Maybe_comp_none:

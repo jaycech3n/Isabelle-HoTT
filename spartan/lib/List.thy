@@ -149,7 +149,7 @@ Definition map:
 proof (elim xs)
   show "[]: List B" by intro
   next fix x ys
-    assume "x: A" "ys: List B"
+  assuming "x: A" "ys: List B"
   show "f x # ys: List B" by typechk
 qed
 

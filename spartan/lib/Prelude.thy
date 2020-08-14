@@ -105,7 +105,8 @@ Definition ifelse [rotated 1]:
     "a: C true"
     "b: C false"
   shows "C x"
-  by (elim x) (elim, rule *)+
+  using assms[unfolded Bool_def true_def false_def, type]
+  by (elim x) (elim, fact)+
 
 Lemma if_true:
   assumes

@@ -82,8 +82,8 @@ fun internalize_fact_tac t =
         Drule.infer_instantiate' ctxt [NONE, NONE, SOME B, SOME a] @{thm PiE}
     in
       HEADGOAL (resolve_tac ctxt [resolvent])
-      (*Infer the correct type T*)
-      THEN SOMEGOAL (NO_CONTEXT_TACTIC ctxt o Types.check_infer [])
+      (*Unify with the correct type T*)
+      THEN SOMEGOAL (NO_CONTEXT_TACTIC ctxt o Types.known_ctac [])
     end)
 
 fun elim_core_tac tms types ctxt =
@@ -111,18 +111,16 @@ fun elim_ctac tms =
     [] => CONTEXT_TACTIC' (fn ctxt => eresolve_tac ctxt (map #1 (Elim.rules ctxt)))
   | major :: _ => CONTEXT_SUBGOAL (fn (goal, _) => fn cst as (ctxt, st) =>
       let
-        val facts = Proof_Context.facts_of ctxt
+        val facts = map Thm.prop_of (Types.known ctxt)
         val prems = Logic.strip_assums_hyp goal
         val template = Lib.typing_of_term major
-        val types =
-          map (Thm.prop_of o #1) (Facts.could_unify facts template)
-          @ filter (fn prem => Term.could_unify (template, prem)) prems
+        val types = filter (fn th => Term.could_unify (template, th)) (facts @ prems)
           |> map Lib.type_of_typing
       in case types of
           [] => no_ctac cst
         | _ =>
             let
-              val inserts = map (Thm.prop_of o fst) (Facts.props facts) @ prems
+              val inserts = facts @ prems
                 |> filter Lib.is_typing
                 |> map Lib.dest_typing
                 |> filter_out (fn (t, _) =>
@@ -170,7 +168,7 @@ fun cases_ctac tm =
           | [] => raise Option
           | _ => raise error (Syntax.string_of_term ctxt tm ^ "not uniquely typed"))
           handle Option =>
-            error ("no case rule known for " ^ (Syntax.string_of_term ctxt tm))
+            error ("No case rule known for " ^ (Syntax.string_of_term ctxt tm))
       in
         resolve_tac ctxt [res] i
       end)

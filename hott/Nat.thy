@@ -62,17 +62,17 @@ subsection \<open>Addition\<close>
 
 definition add (infixl "+" 120) where "m + n \<equiv> NatRec Nat m (K suc) n"
 
-lemma add_type [type]:
+Lemma add_type [type]:
   assumes "m: Nat" "n: Nat"
   shows "m + n: Nat"
   unfolding add_def by typechk
 
-lemma add_zero [comp]:
+Lemma add_zero [comp]:
   assumes "m: Nat"
   shows "m + 0 \<equiv> m"
   unfolding add_def by reduce
 
-lemma add_suc [comp]:
+Lemma add_suc [comp]:
   assumes "m: Nat" "n: Nat"
   shows "m + suc n \<equiv> suc (m + n)"
   unfolding add_def by reduce
@@ -123,22 +123,22 @@ subsection \<open>Multiplication\<close>
 
 definition mul (infixl "*" 121) where "m * n \<equiv> NatRec Nat 0 (K $ add m) n"
 
-lemma mul_type [type]:
+Lemma mul_type [type]:
   assumes "m: Nat" "n: Nat"
   shows "m * n: Nat"
   unfolding mul_def by typechk
 
-lemma mul_zero [comp]:
+Lemma mul_zero [comp]:
   assumes "n: Nat"
   shows "n * 0 \<equiv> 0"
   unfolding mul_def by reduce
 
-lemma mul_one [comp]:
+Lemma mul_one [comp]:
   assumes "n: Nat"
   shows "n * 1 \<equiv> n"
   unfolding mul_def by reduce
 
-lemma mul_suc [comp]:
+Lemma mul_suc [comp]:
   assumes "m: Nat" "n: Nat"
   shows "m * suc n \<equiv> m + m * n"
   unfolding mul_def by reduce

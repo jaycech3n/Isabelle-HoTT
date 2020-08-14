@@ -41,7 +41,7 @@ val _ = Theory.setup (
       (Thm.declaration_attribute o register_rule))
     ""
   #> Global_Theory.add_thms_dynamic (\<^binding>\<open>elim\<close>,
-      fn context => (map #1 (rules (Context.proof_of context))))
+      fn context => map #1 (rules (Context.proof_of context)))
 )
 
 

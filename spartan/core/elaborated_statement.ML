@@ -416,6 +416,35 @@ val structured_statement =
   Parse_Spec.statement -- Parse_Spec.if_statement' -- Parse.for_fixes
     >> (fn ((shows, assumes), fixes) => (fixes, assumes, shows))
 
+fun these_factss more_facts (named_factss, state) =
+  (named_factss, state |> Proof.set_facts (maps snd named_factss @ more_facts))
+
+fun gen_assume prep_statement prep_att export raw_fixes raw_prems raw_concls state =
+  let
+    val ctxt = Proof.context_of state;
+
+    val bindings = map (apsnd (map (prep_att ctxt)) o fst) raw_concls;
+    val {fixes = params, assumes = prems_propss, shows = concl_propss, result_binds, text, ...} =
+      #1 (prep_statement raw_fixes raw_prems (map snd raw_concls) ctxt);
+    val propss = (map o map) (Logic.close_prop params (flat prems_propss)) concl_propss;
+  in
+    state
+    |> Proof.assert_forward
+    |> Proof.map_context_result (fn ctxt =>
+      ctxt
+      |> Proof_Context.augment text
+      |> fold Variable.maybe_bind_term result_binds
+      |> fold_burrow (Assumption.add_assms export o map (Thm.cterm_of ctxt)) propss
+      |-> (fn premss => fn ctxt =>
+            (premss, Context_Facts.register_facts (flat premss) ctxt))
+      |-> (fn premss =>
+        Proof_Context.note_thmss "" (bindings ~~ (map o map) (fn th => ([th], [])) premss)))
+    |> these_factss [] |> #2
+  end
+
+val assume =
+  gen_assume Proof_Context.cert_statement (K I) Assumption.assume_export
+
 in
 
 val _ = Outer_Syntax.command \<^command_keyword>\<open>assuming\<close> "elaborated assumption"
@@ -433,7 +462,7 @@ val _ = Outer_Syntax.command \<^command_keyword>\<open>assuming\<close> "elabora
       val c' = c |> map (fn ((b, atts), ss) =>
         ((b, map (Attrib.attribute_cmd ctxt) atts), map read_terms ss))
       val c'' = Elab.elaborate ctxt [] c'
-    in Proof.assume a' b' c'' state end)))
+    in assume a' b' c'' state end)))
 
 end
 

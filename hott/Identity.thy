@@ -82,7 +82,7 @@ Lemma (def) pathinv:
   shows "y =\<^bsub>A\<^esub> x"
   by (eq p) intro
 
-lemma pathinv_comp [comp]:
+Lemma pathinv_comp [comp]:
   assumes "A: U i" "x: A"
   shows "pathinv A x x (refl x) \<equiv> refl x"
   unfolding pathinv_def by reduce
@@ -94,11 +94,11 @@ Lemma (def) pathcomp:
   shows
     "x =\<^bsub>A\<^esub> z"
   proof (eq p)
-    fix x q assume "x: A" and "q: x =\<^bsub>A\<^esub> z"
+    fix x q assuming "x: A" and "q: x =\<^bsub>A\<^esub> z"
     show "x =\<^bsub>A\<^esub> z" by (eq q) refl
   qed
 
-lemma pathcomp_comp [comp]:
+Lemma pathcomp_comp [comp]:
   assumes "A: U i" "a: A"
   shows "pathcomp A a a a (refl a) (refl a) \<equiv> refl a"
   unfolding pathcomp_def by reduce
@@ -491,9 +491,9 @@ Lemma (def) right_whisker:
   shows "p \<bullet> r = q \<bullet> r"
   apply (eq r)
     focus vars x s t proof -
-      have "t \<bullet> refl x = t" by (rule pathcomp_refl)
-      also have ".. = s" by fact
-      also have ".. = s \<bullet> refl x" by (rule pathcomp_refl[symmetric])
+      have "s \<bullet> refl x = s" by (rule pathcomp_refl)
+      also have ".. = t" by fact
+      also have ".. = t \<bullet> refl x" by (rule pathcomp_refl[symmetric])
       finally show "{}" by this
     qed
   done
@@ -505,9 +505,9 @@ Lemma (def) left_whisker:
   shows "r \<bullet> p = r \<bullet> q"
   apply (eq r)
     focus vars x s t proof -
-      have "refl x \<bullet> t = t" by (rule refl_pathcomp)
-      also have ".. = s" by fact
-      also have ".. = refl x \<bullet> s" by (rule refl_pathcomp[symmetric])
+      have "refl x \<bullet> s = s" by (rule refl_pathcomp)
+      also have ".. = t" by fact
+      also have ".. = refl x \<bullet> t" by (rule refl_pathcomp[symmetric])
       finally show "{}" by this
     qed
   done
@@ -542,14 +542,13 @@ text \<open>Conditions under which horizontal path-composition is defined.\<clos
 locale horiz_pathcomposable =
 fixes
   i A a b c p q r s
-assumes assums:
+assumes [type]:
   "A: U i" "a: A" "b: A" "c: A"
   "p: a =\<^bsub>A\<^esub> b" "q: a =\<^bsub>A\<^esub> b"
   "r: b =\<^bsub>A\<^esub> c" "s: b =\<^bsub>A\<^esub> c"
 begin
 
 Lemma (def) horiz_pathcomp:
-  notes assums
   assumes "\<alpha>: p = q" "\<beta>: r = s"
   shows "p \<bullet> r = q \<bullet> s"
 proof (rule pathcomp)
@@ -560,7 +559,6 @@ qed typechk
 text \<open>A second horizontal composition:\<close>
 
 Lemma (def) horiz_pathcomp':
-  notes assums
   assumes "\<alpha>: p = q" "\<beta>: r = s"
   shows "p \<bullet> r = q \<bullet> s"
 proof (rule pathcomp)
@@ -572,13 +570,12 @@ notation horiz_pathcomp (infix "\<star>" 121)
 notation horiz_pathcomp' (infix "\<star>''" 121)
 
 Lemma (def) horiz_pathcomp_eq_horiz_pathcomp':
-  notes assums
   assumes "\<alpha>: p = q" "\<beta>: r = s"
   shows "\<alpha> \<star> \<beta> = \<alpha> \<star>' \<beta>"
   unfolding horiz_pathcomp_def horiz_pathcomp'_def
   apply (eq \<alpha>, eq \<beta>)
     focus vars p apply (eq p)
-      focus vars a q by (eq q) (reduce, refl)
+      focus vars a _ _ _ r by (eq r) (reduce, refl)
     done
   done
 
@@ -597,7 +594,7 @@ Lemma \<Omega>2_alt_def:
 
 section \<open>Eckmann-Hilton\<close>
 
-context fixes i A a assumes "A: U i" "a: A"
+context fixes i A a assumes [type]: "A: U i" "a: A"
 begin
 
 interpretation \<Omega>2:
@@ -619,14 +616,18 @@ Lemma (def) pathcomp_eq_horiz_pathcomp:
   assumes "\<alpha>: \<Omega>2 A a" "\<beta>: \<Omega>2 A a"
   shows "\<alpha> \<bullet> \<beta> = \<alpha> \<star> \<beta>"
   unfolding \<Omega>2.horiz_pathcomp_def
-  using assms[unfolded \<Omega>2_alt_def]
+  (*FIXME: Definitional unfolding + normalization; shouldn't need explicit
+    unfolding*)
+  using assms[unfolded \<Omega>2_alt_def, type]
   proof (reduce, rule pathinv)
     \<comment> \<open>Propositional equality rewriting needs to be improved\<close>
-    have "{} = refl (refl a) \<bullet> \<alpha>" by (rule pathcomp_refl)
+    have "refl (refl a) \<bullet> \<alpha> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<alpha>"
+      by (rule pathcomp_refl)
     also have ".. = \<alpha>" by (rule refl_pathcomp)
     finally have eq\<alpha>: "{} = \<alpha>" by this
 
-    have "{} = refl (refl a) \<bullet> \<beta>" by (rule pathcomp_refl)
+    have "refl (refl a) \<bullet> \<beta> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<beta>"
+      by (rule pathcomp_refl)
     also have ".. = \<beta>" by (rule refl_pathcomp)
     finally have eq\<beta>: "{} = \<beta>" by this
 
@@ -640,13 +641,15 @@ Lemma (def) pathcomp_eq_horiz_pathcomp':
   assumes "\<alpha>: \<Omega>2 A a" "\<beta>: \<Omega>2 A a"
   shows "\<alpha> \<star>' \<beta> = \<beta> \<bullet> \<alpha>"
   unfolding \<Omega>2.horiz_pathcomp'_def
-  using assms[unfolded \<Omega>2_alt_def]
+  using assms[unfolded \<Omega>2_alt_def, type]
   proof reduce
-    have "{} = refl (refl a) \<bullet> \<beta>" by (rule pathcomp_refl)
+    have "refl (refl a) \<bullet> \<beta> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<beta>"
+      by (rule pathcomp_refl)
     also have ".. = \<beta>" by (rule refl_pathcomp)
     finally have eq\<beta>: "{} = \<beta>" by this
 
-    have "{} = refl (refl a) \<bullet> \<alpha>" by (rule pathcomp_refl)
+    have "refl (refl a) \<bullet> \<alpha> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<alpha>"
+      by (rule pathcomp_refl)
     also have ".. = \<alpha>" by (rule refl_pathcomp)
     finally have eq\<alpha>: "{} = \<alpha>" by this
 
@@ -659,7 +662,7 @@ Lemma (def) pathcomp_eq_horiz_pathcomp':
 Lemma (def) eckmann_hilton:
   assumes "\<alpha>: \<Omega>2 A a" "\<beta>: \<Omega>2 A a"
   shows "\<alpha> \<bullet> \<beta> = \<beta> \<bullet> \<alpha>"
-  using assms[unfolded \<Omega>2_alt_def]
+  using assms[unfolded \<Omega>2_alt_def, type]
   proof -
     have "\<alpha> \<bullet> \<beta> = \<alpha> \<star> \<beta>"
       by (rule pathcomp_eq_horiz_pathcomp)

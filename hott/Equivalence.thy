@@ -52,7 +52,7 @@ Lemma (def) hsym:
   shows "g ~ f"
   unfolding homotopy_def
   proof intro
-    fix x assume "x: A" then have "f x = g x"
+    fix x assuming "x: A" then have "f x = g x"
       by (htpy H)
     thus "g x = f x"
       by (rule pathinv) fact
@@ -70,7 +70,7 @@ Lemma (def) htrans:
   shows "f ~ h"
   unfolding homotopy_def
   proof intro
-    fix x assume "x: A"
+    fix x assuming "x: A"
     have *: "f x = g x" "g x = h x"
       by (htpy H1, htpy H2)
     show "f x = h x"
@@ -119,7 +119,7 @@ Lemma funcomp_right_htpy:
   shows "(g \<circ> f) ~ (g \<circ> f')"
   unfolding homotopy_def
   proof (intro, reduce)
-    fix x assume "x: A"
+    fix x assuming "x: A"
     have *: "f x = f' x"
       by (htpy H)
     show "g (f x) = g (f' x)"
@@ -154,18 +154,18 @@ Corollary (def) commute_homotopy':
     "H: f ~ (id A)"
   shows "H (f x) = f [H x]"
   proof -
-    from \<open>H: f ~ id A\<close> have "H: \<Prod>x: A. f x = x"
+    from \<open>H: f ~ id A\<close> have [type]: "H: \<Prod>x: A. f x = x"
       by (reduce add: homotopy_def)
 
-    have "(id A)[H x]: f x = x"
+    have *: "(id A)[H x]: f x = x"
       by (rewrite at "\<hole> = _" id_comp[symmetric],
           rewrite at "_ = \<hole>" id_comp[symmetric])
 
     have "H (f x) \<bullet> H x = H (f x) \<bullet> (id A)[H x]"
-      by (rule left_whisker, transport eq: ap_id) (reduce+, refl)
+      by (rule left_whisker, fact *, transport eq: ap_id) (reduce+, refl)
     also have [simplified id_comp]: "H (f x) \<bullet> (id A)[H x] = f[H x] \<bullet> H x"
       by (rule commute_homotopy)
-    finally have *: "{}" by this
+    finally have *: "{}" using * by this
 
     show "H (f x) = f [H x]"
       by pathcomp_cancelr (fact, typechk+)
@@ -179,7 +179,7 @@ subsection \<open>Quasi-inverses\<close>
 definition "is_qinv A B f \<equiv> \<Sum>g: B \<rightarrow> A.
   homotopy A (fn _. A) (g \<circ>\<^bsub>A\<^esub> f) (id A) \<times> homotopy B (fn _. B) (f \<circ>\<^bsub>B\<^esub> g) (id B)"
 
-lemma is_qinv_type [type]:
+Lemma is_qinv_type [type]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "is_qinv A B f: U i"
   unfolding is_qinv_def
@@ -266,7 +266,7 @@ definition "is_biinv A B f \<equiv>
   (\<Sum>g: B \<rightarrow> A. homotopy A (fn _. A) (g \<circ>\<^bsub>A\<^esub> f) (id A))
     \<times> (\<Sum>g: B \<rightarrow> A. homotopy B (fn _. B) (f \<circ>\<^bsub>B\<^esub> g) (id B))"
 
-lemma is_biinv_type [type]:
+Lemma is_biinv_type [type]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "is_biinv A B f: U i"
   unfolding is_biinv_def by typechk
@@ -365,7 +365,7 @@ text \<open>
 definition equivalence (infix "\<simeq>" 110)
   where "A \<simeq> B \<equiv> \<Sum>f: A \<rightarrow> B. Equivalence.is_biinv A B f"
 
-lemma equivalence_type [type]:
+Lemma equivalence_type [type]:
   assumes "A: U i" "B: U i"
   shows "A \<simeq> B: U i"
   unfolding equivalence_def by typechk
@@ -432,28 +432,24 @@ Lemma (def) equiv_if_equal:
       \<^enum> vars A B
         apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
         using [[solve_side_conds=1]]
-        apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric], fact)
+        apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
         apply (rule transport, rule Ui_in_USi)
-        apply (rule lift_universe_codomain, rule Ui_in_USi)
-        apply (typechk, rule Ui_in_USi)
-        by facts
+        by (rule lift_universe_codomain, rule Ui_in_USi)
       \<^enum> vars A
         using [[solve_side_conds=1]]
         apply (subst transport_comp)
           \<circ> by (rule Ui_in_USi)
           \<circ> by reduce (rule in_USi_if_in_Ui)
-          \<circ> by reduce (rule id_is_biinv, fact)
+          \<circ> by reduce (rule id_is_biinv)
         done
       done
 
     \<^item> \<comment> \<open>Similar proof as in the first subgoal above\<close>
       apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
       using [[solve_side_conds=1]]
-      apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric], fact)
+      apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
       apply (rule transport, rule Ui_in_USi)
-      apply (rule lift_universe_codomain, rule Ui_in_USi)
-      apply (typechk, rule Ui_in_USi)
-      by facts
+      by (rule lift_universe_codomain, rule Ui_in_USi)
   done
 
 (*Uncomment this to see all implicits from here on.

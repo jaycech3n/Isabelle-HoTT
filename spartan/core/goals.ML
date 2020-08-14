@@ -175,7 +175,8 @@ fun gen_schematic_theorem
   in
     goal_ctxt
     |> not (null prems) ?
-      (Proof_Context.note_thmss "" [((Binding.name prems_name, []), [(prems, [])])] #> snd)
+      (Proof_Context.note_thmss "" [((Binding.name prems_name, []), [(prems, [])])]
+        #> snd #> Context_Facts.register_facts prems)
     |> Proof.theorem before_qed gen_and_after_qed (map snd stmt)
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)
   end
@@ -188,12 +189,12 @@ val schematic_theorem_cmd =
 
 fun theorem spec descr =
   Outer_Syntax.local_theory_to_proof' spec ("state " ^ descr) 
-    ( Scan.option (Args.parens (Args.$$$ "def"))
+    (Scan.option (Args.parens (Args.$$$ "def"))
       -- (long_statement || short_statement) >>
         (fn (opt_derive, (long, binding, includes, elems, concl)) =>
           schematic_theorem_cmd
             (case opt_derive of SOME "def" => true | _ => false)
-            long descr NONE (K I) binding includes elems concl) )
+            long descr NONE (K I) binding includes elems concl))
 
 fun definition spec descr =
   Outer_Syntax.local_theory_to_proof' spec "definition via proof"
