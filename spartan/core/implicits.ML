@@ -1,3 +1,9 @@
+(*  Title:      implicits.ML
+    Author:     Joshua Chen
+
+Implicit arguments.
+*)
+
 structure Implicits :
 sig
 

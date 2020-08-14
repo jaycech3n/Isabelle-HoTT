@@ -362,6 +362,8 @@ translations
   "_lam_i2 x b" \<rightharpoonup> "\<lambda>x. b"
   "\<lambda>x. b"    \<rightleftharpoons> "CONST lam_i (fn x. b)"
 
+translations "\<lambda>x. b" \<leftharpoondown> "\<lambda>x: A. b"
+
 subsection \<open>Lambda coercion\<close>
 
 \<comment> \<open>Coerce object lambdas to meta-lambdas\<close>
