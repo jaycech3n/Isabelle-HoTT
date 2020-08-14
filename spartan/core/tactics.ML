@@ -111,7 +111,7 @@ fun elim_ctac tms =
     [] => CONTEXT_TACTIC' (fn ctxt => eresolve_tac ctxt (map #1 (Elim.rules ctxt)))
   | major :: _ => CONTEXT_SUBGOAL (fn (goal, _) => fn cst as (ctxt, st) =>
       let
-        val facts = map Thm.prop_of (Types.known ctxt)
+        val facts = map Thm.prop_of (Context_Facts.known ctxt)
         val prems = Logic.strip_assums_hyp goal
         val template = Lib.typing_of_term major
         val types = filter (fn th => Term.could_unify (template, th)) (facts @ prems)

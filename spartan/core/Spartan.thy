@@ -184,6 +184,7 @@ axiomatization where
 section \<open>Infrastructure\<close>
 
 ML_file \<open>lib.ML\<close>
+ML_file \<open>context_facts.ML\<close>
 ML_file \<open>context_tactical.ML\<close>
 
 subsection \<open>Type-checking/inference\<close>
@@ -202,6 +203,7 @@ lemmas
   [comp] = beta Sig_comp and
   [cong] = Pi_cong lam_cong Sig_cong
 
+\<comment> \<open>Type-checking\<close>
 ML_file \<open>types.ML\<close>
 
 method_setup typechk =
@@ -214,7 +216,6 @@ method_setup known =
 
 subsection \<open>Statement commands\<close>
 
-ML_file \<open>context_facts.ML\<close>
 ML_file \<open>focus.ML\<close>
 ML_file \<open>elaboration.ML\<close>
 ML_file \<open>elaborated_statement.ML\<close>
