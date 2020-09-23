@@ -144,8 +144,6 @@ Lemma (def) commute_homotopy:
   apply (transport eq: pathcomp_refl, transport eq: refl_pathcomp)
   by refl
 
-\<comment> \<open>TODO: *Really* need normalization during type-checking and better equality
-  type rewriting to do the proof below properly\<close>
 Corollary (def) commute_homotopy':
   assumes
     "A: U i"
@@ -154,21 +152,18 @@ Corollary (def) commute_homotopy':
     "H: f ~ (id A)"
   shows "H (f x) = f [H x]"
   proof -
+    (*FIXME: Bug; if the following type declaration isn't made then bad things
+      happen on the next lines.*)
     from \<open>H: f ~ id A\<close> have [type]: "H: \<Prod>x: A. f x = x"
       by (reduce add: homotopy_def)
 
-    have *: "(id A)[H x]: f x = x"
-      by (rewrite at "\<hole> = _" id_comp[symmetric],
-          rewrite at "_ = \<hole>" id_comp[symmetric])
-
     have "H (f x) \<bullet> H x = H (f x) \<bullet> (id A)[H x]"
-      by (rule left_whisker, fact *, transport eq: ap_id) (reduce+, refl)
+      by (rule left_whisker, transport eq: ap_id, refl)
     also have [simplified id_comp]: "H (f x) \<bullet> (id A)[H x] = f[H x] \<bullet> H x"
       by (rule commute_homotopy)
-    finally have *: "{}" using * by this
+    finally have "{}" by this
 
-    show "H (f x) = f [H x]"
-      by pathcomp_cancelr (fact, typechk+)
+    thus "H (f x) = f [H x]" by pathcomp_cancelr (fact, typechk+)
   qed
 
 
@@ -309,23 +304,11 @@ Lemma (def) is_qinv_if_is_biinv:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "is_biinv f \<rightarrow> is_qinv f"
   apply intro
-
-  text \<open>Split the hypothesis \<^term>\<open>is_biinv f\<close> into its components and name them.\<close>
   unfolding is_biinv_def apply elims
   focus vars _ _ _ g H1 h H2
-    text \<open>Need to give the required function and homotopies.\<close>
     apply (rule is_qinvI)
-      text \<open>We claim that \<^term>\<open>g\<close> is a quasi-inverse to \<^term>\<open>f\<close>.\<close>
       \<^item> by (fact \<open>g: _\<close>)
-  
-      text \<open>The first part \<^prop>\<open>?H1: g \<circ> f ~ id A\<close> is given by \<^term>\<open>H1\<close>.\<close>
       \<^item> by (fact \<open>H1: _\<close>)
-  
-      text \<open>
-        It remains to prove \<^prop>\<open>?H2: f \<circ> g ~ id B\<close>. First show that \<open>g ~ h\<close>,
-        then the result follows from @{thm \<open>H2: f \<circ> h ~ id B\<close>}. Here a proof
-        block is used for calculational reasoning.
-      \<close>
       \<^item> proof -
           have "g ~ g \<circ> (id B)" by reduce refl
           also have ".. ~ g \<circ> f \<circ> h" by rhtpy (rule \<open>H2:_\<close>[symmetric])
@@ -437,7 +420,7 @@ Lemma (def) equiv_if_equal:
         by (rule lift_universe_codomain, rule Ui_in_USi)
       \<^enum> vars A
         using [[solve_side_conds=1]]
-        apply (subst transport_comp)
+        apply (rewrite transport_comp)
           \<circ> by (rule Ui_in_USi)
           \<circ> by reduce (rule in_USi_if_in_Ui)
           \<circ> by reduce (rule id_is_biinv)
@@ -451,25 +434,6 @@ Lemma (def) equiv_if_equal:
       apply (rule transport, rule Ui_in_USi)
       by (rule lift_universe_codomain, rule Ui_in_USi)
   done
-
-(*Uncomment this to see all implicits from here on.
-no_translations
-  "f x" \<leftharpoondown> "f `x"
-  "x = y" \<leftharpoondown> "x =\<^bsub>A\<^esub> y"
-  "g \<circ> f" \<leftharpoondown> "g \<circ>\<^bsub>A\<^esub> f"
-  "p\<inverse>" \<leftharpoondown> "CONST pathinv A x y p"
-  "p \<bullet> q" \<leftharpoondown> "CONST pathcomp A x y z p q"
-  "fst" \<leftharpoondown> "CONST Spartan.fst A B"
-  "snd" \<leftharpoondown> "CONST Spartan.snd A B"
-  "f[p]" \<leftharpoondown> "CONST ap A B x y f p"
-  "trans P p" \<leftharpoondown> "CONST transport A P x y p"
-  "trans_const B p" \<leftharpoondown> "CONST transport_const A B x y p"
-  "lift P p u" \<leftharpoondown> "CONST pathlift A P x y p u"
-  "apd f p" \<leftharpoondown> "CONST Identity.apd A P f x y p"
-  "f ~ g" \<leftharpoondown> "CONST homotopy A B f g"
-  "is_qinv f" \<leftharpoondown> "CONST Equivalence.is_qinv A B f"
-  "is_biinv f" \<leftharpoondown> "CONST Equivalence.is_biinv A B f"
-*)
 
 
 end

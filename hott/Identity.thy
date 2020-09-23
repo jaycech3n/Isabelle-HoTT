@@ -242,7 +242,7 @@ Lemma (def) ap_funcomp:
     "x: A" "y: A"
     "f: A \<rightarrow> B" "g: B \<rightarrow> C"
     "p: x = y"
-  shows "(g \<circ> f)[p] = g[f[p]]" thm ap
+  shows "(g \<circ> f)[p] = g[f[p]]"
   apply (eq p)
   \<^item> by reduce
   \<^item> by reduce refl
@@ -251,10 +251,7 @@ Lemma (def) ap_funcomp:
 Lemma (def) ap_id:
   assumes "A: U i" "x: A" "y: A" "p: x = y"
   shows "(id A)[p] = p"
-  apply (eq p)
-  \<^item> by reduce
-  \<^item> by reduce refl
-  done
+  by (eq p) (reduce, refl)
 
 
 section \<open>Transport\<close>
@@ -303,7 +300,7 @@ Lemma (def) pathcomp_cancel_left:
       by (transport eq: inv_pathcomp, transport eq: refl_pathcomp) refl
     also have ".. = p\<inverse> \<bullet> (p \<bullet> r)"
       by (transport eq: pathcomp_assoc[symmetric], transport eq: \<open>\<alpha>:_\<close>) refl
-    also have ".. = r" thm inv_pathcomp
+    also have ".. = r"
       by (transport eq: pathcomp_assoc,
           transport eq: inv_pathcomp,
           transport eq: refl_pathcomp) refl
@@ -339,7 +336,7 @@ Lemma (def) transport_left_inv:
     "x: A" "y: A"
     "p: x = y"
   shows "(trans P p\<inverse>) \<circ> (trans P p) = id (P x)"
-  by (eq p) (reduce; refl)
+  by (eq p) (reduce, refl)
 
 Lemma (def) transport_right_inv:
   assumes
@@ -440,10 +437,7 @@ Lemma (def) pathlift_fst:
     "u: P x"
     "p: x = y"
   shows "fst[lift P p u] = p"
-  apply (eq p)
-  \<^item> by reduce
-  \<^item> by reduce refl
-  done
+  by (eq p) (reduce, refl)
 
 
 section \<open>Dependent paths\<close>
@@ -585,10 +579,10 @@ end
 section \<open>Loop space\<close>
 
 definition \<Omega> where "\<Omega> A a \<equiv> a =\<^bsub>A\<^esub> a"
-definition \<Omega>2 where "\<Omega>2 A a \<equiv> \<Omega> (\<Omega> A a) (refl a)"
+definition \<Omega>2 where "\<Omega>2 A a \<equiv> refl a =\<^bsub>a =\<^bsub>A\<^esub> a\<^esub> refl a"
 
-Lemma \<Omega>2_alt_def:
-  "\<Omega>2 A a \<equiv> refl a = refl a"
+Lemma \<Omega>2_\<Omega>_of_\<Omega>:
+  "\<Omega>2 A a \<equiv> \<Omega> (\<Omega> A a) (refl a)"
   unfolding \<Omega>2_def \<Omega>_def .
 
 
@@ -604,23 +598,20 @@ interpretation \<Omega>2:
 notation \<Omega>2.horiz_pathcomp (infix "\<star>" 121)
 notation \<Omega>2.horiz_pathcomp' (infix "\<star>''" 121)
 
-Lemma [type]:
+Lemma
   assumes "\<alpha>: \<Omega>2 A a" and "\<beta>: \<Omega>2 A a"
-  shows horiz_pathcomp_type: "\<alpha> \<star> \<beta>: \<Omega>2 A a"
-    and horiz_pathcomp'_type: "\<alpha> \<star>' \<beta>: \<Omega>2 A a"
+  shows horiz_pathcomp_type [type]: "\<alpha> \<star> \<beta>: \<Omega>2 A a"
+    and horiz_pathcomp'_type [type]: "\<alpha> \<star>' \<beta>: \<Omega>2 A a"
   using assms
-  unfolding \<Omega>2.horiz_pathcomp_def \<Omega>2.horiz_pathcomp'_def \<Omega>2_alt_def
+  unfolding \<Omega>2.horiz_pathcomp_def \<Omega>2.horiz_pathcomp'_def \<Omega>2_def
   by reduce+
 
 Lemma (def) pathcomp_eq_horiz_pathcomp:
   assumes "\<alpha>: \<Omega>2 A a" "\<beta>: \<Omega>2 A a"
   shows "\<alpha> \<bullet> \<beta> = \<alpha> \<star> \<beta>"
   unfolding \<Omega>2.horiz_pathcomp_def
-  (*FIXME: Definitional unfolding + normalization; shouldn't need explicit
-    unfolding*)
-  using assms[unfolded \<Omega>2_alt_def, type]
+  using assms[unfolded \<Omega>2_def, type] (*TODO: A `noting` keyword that puts the noted theorem into [type]*)
   proof (reduce, rule pathinv)
-    \<comment> \<open>Propositional equality rewriting needs to be improved\<close>
     have "refl (refl a) \<bullet> \<alpha> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<alpha>"
       by (rule pathcomp_refl)
     also have ".. = \<alpha>" by (rule refl_pathcomp)
@@ -641,7 +632,7 @@ Lemma (def) pathcomp_eq_horiz_pathcomp':
   assumes "\<alpha>: \<Omega>2 A a" "\<beta>: \<Omega>2 A a"
   shows "\<alpha> \<star>' \<beta> = \<beta> \<bullet> \<alpha>"
   unfolding \<Omega>2.horiz_pathcomp'_def
-  using assms[unfolded \<Omega>2_alt_def, type]
+  using assms[unfolded \<Omega>2_def, type]
   proof reduce
     have "refl (refl a) \<bullet> \<beta> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<beta>"
       by (rule pathcomp_refl)
@@ -662,20 +653,18 @@ Lemma (def) pathcomp_eq_horiz_pathcomp':
 Lemma (def) eckmann_hilton:
   assumes "\<alpha>: \<Omega>2 A a" "\<beta>: \<Omega>2 A a"
   shows "\<alpha> \<bullet> \<beta> = \<beta> \<bullet> \<alpha>"
-  using assms[unfolded \<Omega>2_alt_def, type]
+  using \<Omega>2_def[comp]
   proof -
     have "\<alpha> \<bullet> \<beta> = \<alpha> \<star> \<beta>"
       by (rule pathcomp_eq_horiz_pathcomp)
     also have [simplified comp]: ".. = \<alpha> \<star>' \<beta>"
-      \<comment> \<open>Danger, Will Robinson! (Inferred implicit has an equivalent form but
-          needs to be manually simplified.)\<close>
+      \<comment> \<open>Danger! Inferred implicit has an equivalent form but needs to be
+          manually simplified.\<close>
       by (transport eq: \<Omega>2.horiz_pathcomp_eq_horiz_pathcomp') refl
     also have ".. = \<beta> \<bullet> \<alpha>"
       by (rule pathcomp_eq_horiz_pathcomp')
     finally show "\<alpha> \<bullet> \<beta> = \<beta> \<bullet> \<alpha>"
-      by (this; reduce add: \<Omega>2_alt_def[symmetric])
-      \<comment> \<open>TODO: The finishing call to `reduce` should be unnecessary with some
-          kind of definitional unfolding.\<close>
+      by this
   qed
 
 end

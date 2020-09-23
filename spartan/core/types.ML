@@ -43,41 +43,68 @@ fun known_ctac facts = CONTEXT_SUBGOAL (fn (goal, i) => fn (ctxt, st) =>
       if Lib.no_vars concl orelse
         (Lib.is_typing concl andalso Lib.no_vars (Lib.term_of_typing concl))
       then
-        let val ths = known ctxt @ map (Simplifier.norm_hhf ctxt) facts
+        let val ths = known ctxt @ facts
         in st |>
           (assume_tac ctxt ORELSE' resolve_tac ctxt ths THEN_ALL_NEW K no_tac) i
         end
       else Seq.empty
     end)
 
-(*Simple bidirectional typing tactic, with some nondeterminism from backtracking
-  search over input facts. The current implementation does not perform any
-  normalization.*)
+(*Simple bidirectional typing tactic with some backtracking search over input
+  facts.*)
 fun check_infer_step facts i (ctxt, st) =
   let
-    val tac = SUBGOAL (fn (goal, i) =>
+    val refine_tac = SUBGOAL (fn (goal, i) =>
       if Lib.rigid_typing_concl goal
       then
-        let val net = Tactic.build_net (
-          map (Simplifier.norm_hhf ctxt) facts
-          @(cond ctxt)
-          @(Named_Theorems.get ctxt \<^named_theorems>\<open>form\<close>)
-          @(Named_Theorems.get ctxt \<^named_theorems>\<open>intr\<close>)
-          @(map #1 (Elim.rules ctxt)))
-        in (resolve_from_net_tac ctxt net) i end
+        let
+          val net = Tactic.build_net (
+            map (Simplifier.norm_hhf ctxt) facts
+            @(cond ctxt)
+            @(Named_Theorems.get ctxt \<^named_theorems>\<open>form\<close>)
+            @(Named_Theorems.get ctxt \<^named_theorems>\<open>intr\<close>)
+            @(map #1 (Elim.rules ctxt)))
+        in resolve_from_net_tac ctxt net i end
       else no_tac)
+
+    val sub_tac = SUBGOAL (fn (goal, i) =>
+      let val concl = Logic.strip_assums_concl goal in
+      if Lib.is_typing concl
+        andalso Lib.is_rigid (Lib.term_of_typing concl)
+        andalso Lib.no_vars (Lib.type_of_typing concl)
+      then
+        (resolve_tac ctxt @{thms sub}
+        THEN' SUBGOAL (fn (_, i) =>
+          NO_CONTEXT_TACTIC ctxt (check_infer facts i))
+        THEN' compute_tac ctxt facts
+        THEN_ALL_NEW K no_tac) i
+      else no_tac end)
 
     val ctxt' = ctxt (*TODO: Use this to store already-derived typing judgments*)
   in
-    TACTIC_CONTEXT ctxt' (tac i st)
+    TACTIC_CONTEXT ctxt' (
+      (NO_CONTEXT_TACTIC ctxt' o known_ctac facts
+      ORELSE' refine_tac
+      ORELSE' sub_tac) i st)
   end
 
-fun check_infer facts i (cst as (_, st)) =
+and check_infer facts i (cst as (_, st)) =
   let
-    val ctac = known_ctac facts CORELSE' check_infer_step facts
+    val ctac = check_infer_step facts
   in
     cst |> (ctac i CTHEN
       CREPEAT_IN_RANGE i (Thm.nprems_of st - i) (CTRY o CREPEAT_ALL_NEW_FWD ctac))
+  end
+
+and compute_tac ctxt facts =
+  let
+    val comps = Named_Theorems.get ctxt \<^named_theorems>\<open>comp\<close>
+    val ctxt' = ctxt addsimps comps
+  in
+    SUBGOAL (fn (_, i) =>
+      ((CHANGED o asm_simp_tac ctxt' ORELSE' EqSubst.eqsubst_tac ctxt [0] comps)
+      THEN_ALL_NEW SUBGOAL (fn (_, i) =>
+        NO_CONTEXT_TACTIC ctxt (check_infer facts i))) i)
   end
 
 

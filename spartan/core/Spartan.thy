@@ -181,18 +181,16 @@ axiomatization where
     \<rbrakk> \<Longrightarrow> \<Sum>x: A. B x \<equiv> \<Sum>x: A. B' x"
 
 
-section \<open>Infrastructure\<close>
+section \<open>Type checking & inference\<close>
 
 ML_file \<open>lib.ML\<close>
 ML_file \<open>context_facts.ML\<close>
 ML_file \<open>context_tactical.ML\<close>
 
-subsection \<open>Type-checking/inference\<close>
-
-\<comment> \<open>Rule attributes for the type-checker\<close>
+\<comment> \<open>Rule attributes for the typechecker\<close>
 named_theorems form and intr and comp
 
-\<comment> \<open>Defines elimination automation and the `elim` attribute\<close>
+\<comment> \<open>Elimination/induction automation and the `elim` attribute\<close>
 ML_file \<open>elimination.ML\<close>
 
 lemmas
@@ -203,7 +201,20 @@ lemmas
   [comp] = beta Sig_comp and
   [cong] = Pi_cong lam_cong Sig_cong
 
-\<comment> \<open>Type-checking\<close>
+\<comment> \<open>Subsumption rule\<close>
+lemma sub:
+  assumes "a: A" "A \<equiv> A'"
+  shows "a: A'"
+  using assms by simp
+
+\<comment> \<open>Basic substitution of definitional equalities\<close>
+ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/isand.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/rw_inst.ML\<close>
+ML_file \<open>~~/src/Tools/IsaPlanner/zipper.ML\<close>
+ML_file \<open>~~/src/Tools/eqsubst.ML\<close>
+
+\<comment> \<open>Term normalization, type checking & inference\<close>
 ML_file \<open>types.ML\<close>
 
 method_setup typechk =
@@ -214,14 +225,26 @@ method_setup known =
   \<open>Scan.succeed (K (CONTEXT_METHOD (
     CHEADGOAL o Types.known_ctac)))\<close>
 
-subsection \<open>Statement commands\<close>
+setup \<open>
+let val typechk = fn ctxt =>
+  NO_CONTEXT_TACTIC ctxt o Types.check_infer
+    (Simplifier.prems_of ctxt @ Context_Facts.known ctxt)
+in
+  map_theory_simpset (fn ctxt => ctxt
+    addSolver (mk_solver "" typechk))
+end
+\<close>
+
+
+section \<open>Statements and goals\<close>
 
 ML_file \<open>focus.ML\<close>
 ML_file \<open>elaboration.ML\<close>
 ML_file \<open>elaborated_statement.ML\<close>
 ML_file \<open>goals.ML\<close>
 
-subsection \<open>Proof methods\<close>
+
+section \<open>Proof methods\<close>
 
 named_theorems intro \<comment> \<open>Logical introduction rules\<close>
 
@@ -270,6 +293,7 @@ subsection \<open>Reflexivity\<close>
 named_theorems refl
 method refl = (rule refl)
 
+
 subsection \<open>Trivial proofs (modulo automatic discharge of side conditions)\<close>
 
 method_setup this =
@@ -278,16 +302,9 @@ method_setup this =
       (CONTEXT_TACTIC' (fn ctxt => resolve_tac ctxt facts))
       facts))))\<close>
 
+
 subsection \<open>Rewriting\<close>
 
-\<comment> \<open>\<open>subst\<close> method\<close>
-ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
-ML_file \<open>~~/src/Tools/IsaPlanner/isand.ML\<close>
-ML_file \<open>~~/src/Tools/IsaPlanner/rw_inst.ML\<close>
-ML_file \<open>~~/src/Tools/IsaPlanner/zipper.ML\<close>
-ML_file \<open>eqsubst.ML\<close>
-
-\<comment> \<open>\<open>rewrite\<close> method\<close>
 consts rewrite_HOLE :: "'a::{}"  ("\<hole>")
 
 lemma eta_expand:
@@ -315,20 +332,18 @@ ML_file \<open>~~/src/HOL/Library/cconv.ML\<close>
 ML_file \<open>rewrite.ML\<close>
 
 \<comment> \<open>\<open>reduce\<close> computes terms via judgmental equalities\<close>
-setup \<open>map_theory_simpset (fn ctxt =>
-  ctxt addSolver (mk_solver "" (fn ctxt' =>
-    NO_CONTEXT_TACTIC ctxt' o Types.check_infer (Simplifier.prems_of ctxt'))))\<close>
-
 method reduce uses add =
-  changed \<open>repeat_new \<open>(simp add: comp add | sub comp); typechk?\<close>\<close>
+  changed \<open>repeat_new \<open>(simp add: comp add | subst comp); typechk?\<close>\<close>
 
-subsection \<open>Congruence automation\<close>
+
+subsection \<open>Congruence relations\<close>
 
 consts "rhs" :: \<open>'a\<close> ("..")
 
 ML_file \<open>congruence.ML\<close>
 
-subsection \<open>Implicits\<close>
+
+section \<open>Implicits\<close>
 
 text \<open>
   \<open>?\<close> is used to mark implicit arguments in definitions, while \<open>{}\<close> is expanded
@@ -364,7 +379,8 @@ translations
 
 translations "\<lambda>x. b" \<leftharpoondown> "\<lambda>x: A. b"
 
-subsection \<open>Lambda coercion\<close>
+
+section \<open>Lambda coercion\<close>
 
 \<comment> \<open>Coerce object lambdas to meta-lambdas\<close>
 abbreviation (input) lambda :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close>
@@ -389,7 +405,7 @@ Lemma refine_codomain:
     "f: \<Prod>x: A. B x"
     "\<And>x. x: A \<Longrightarrow> f `x: C x"
   shows "f: \<Prod>x: A. C x"
-  by (subst eta_exp)
+  by (rewrite eta_exp)
 
 Lemma lift_universe_codomain:
   assumes "A: U i" "f: A \<rightarrow> U j"
@@ -463,12 +479,12 @@ lemma
 Lemma id_left [comp]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "(id B) \<circ>\<^bsub>A\<^esub> f \<equiv> f"
-  by (subst eta_exp[of f]) (reduce, rule eta)
+  by (rewrite eta_exp[of f]) (reduce, rule eta)
 
 Lemma id_right [comp]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "f \<circ>\<^bsub>A\<^esub> (id A) \<equiv> f"
-  by (subst eta_exp[of f]) (reduce, rule eta)
+  by (rewrite eta_exp[of f]) (reduce, rule eta)
 
 lemma id_U [type]:
   "id (U i): U i \<rightarrow> U i"
@@ -494,7 +510,7 @@ Lemma fst_comp [comp]:
 Lemma snd_type [type]:
   assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
   shows "snd A B: \<Prod>p: \<Sum>x: A. B x. B (fst A B p)"
-  unfolding snd_def by typechk reduce
+  unfolding snd_def by typechk
 
 Lemma snd_comp [comp]:
   assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i" "a: A" "b: B a"
