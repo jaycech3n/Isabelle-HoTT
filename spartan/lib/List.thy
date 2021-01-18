@@ -64,10 +64,10 @@ Lemma list_cases [cases]:
 section \<open>Notation\<close>
 
 definition nil_i ("[]")
-  where [implicit]: "[] \<equiv> nil ?"
+  where [implicit]: "[] \<equiv> nil {}"
 
 definition cons_i (infixr "#" 120)
-  where [implicit]: "x # xs \<equiv> cons ? x xs"
+  where [implicit]: "x # xs \<equiv> cons {} x xs"
 
 translations
   "[]" \<leftharpoondown> "CONST List.nil A"
@@ -99,8 +99,8 @@ proof (cases xs)
   show "\<And>xs. xs: List A \<Longrightarrow> xs: List A" .
 qed
 
-definition head_i ("head") where [implicit]: "head xs \<equiv> List.head ? xs"
-definition tail_i ("tail") where [implicit]: "tail xs \<equiv> List.tail ? xs"
+definition head_i ("head") where [implicit]: "head xs \<equiv> List.head {} xs"
+definition tail_i ("tail") where [implicit]: "tail xs \<equiv> List.tail {} xs"
 
 translations
   "head" \<leftharpoondown> "CONST List.head A"
@@ -137,7 +137,7 @@ Definition app:
       proof - show "x # rec: List A" by typechk qed
   done
 
-definition app_i ("app") where [implicit]: "app xs ys \<equiv> List.app ? xs ys"
+definition app_i ("app") where [implicit]: "app xs ys \<equiv> List.app {} xs ys"
 
 translations "app" \<leftharpoondown> "CONST List.app A"
 
@@ -153,7 +153,7 @@ proof (elim xs)
   show "f x # ys: List B" by typechk
 qed
 
-definition map_i ("map") where [implicit]: "map \<equiv> List.map ? ?"
+definition map_i ("map") where [implicit]: "map \<equiv> List.map {} {}"
 
 translations "map" \<leftharpoondown> "CONST List.map A B"
 
@@ -173,7 +173,7 @@ Definition rev:
     \<^item> vars x _ rec proof - show "app rec [x]: List A" by typechk qed
   done
 
-definition rev_i ("rev") where [implicit]: "rev \<equiv> List.rev ?"
+definition rev_i ("rev") where [implicit]: "rev \<equiv> List.rev {}"
 
 translations "rev" \<leftharpoondown> "CONST List.rev A"
 

@@ -8,7 +8,7 @@ section \<open>Homotopy\<close>
 definition "homotopy A B f g \<equiv> \<Prod>x: A. f `x =\<^bsub>B x\<^esub> g `x"
 
 definition homotopy_i (infix "~" 100)
-  where [implicit]: "f ~ g \<equiv> homotopy ? ? f g"
+  where [implicit]: "f ~ g \<equiv> homotopy {} {} f g"
 
 translations "f ~ g" \<leftharpoondown> "CONST homotopy A B f g"
 
@@ -79,7 +79,7 @@ Lemma (def) htrans:
 
 section \<open>Rewriting homotopies\<close>
 
-congruence "f ~ g" rhs g
+calc "f ~ g" rhs g
 
 lemmas
   homotopy_sym [sym] = hsym[rotated 4] and
@@ -129,7 +129,6 @@ Lemma funcomp_right_htpy:
 method lhtpy = rule funcomp_left_htpy[rotated 6]
 method rhtpy = rule funcomp_right_htpy[rotated 6]
 
-
 Lemma (def) commute_homotopy:
   assumes
     "A: U i" "B: U i"
@@ -152,8 +151,16 @@ Corollary (def) commute_homotopy':
     "H: f ~ (id A)"
   shows "H (f x) = f [H x]"
   proof -
-    (*FIXME: Bug; if the following type declaration isn't made then bad things
-      happen on the next lines.*)
+    (* Rewrite the below proof
+    have *: "H (f x) \<bullet> (id A)[H x] = f[H x] \<bullet> H x"
+      using \<open>H:_\<close> unfolding homotopy_def by (rule commute_homotopy)
+
+    thus "H (f x) = f[H x]"
+      apply (pathcomp_cancelr)
+      ...
+    *)
+    (*FUTURE: Because we don't have very good normalization integrated into
+      things yet, we need to manually unfold the type of H.*)
     from \<open>H: f ~ id A\<close> have [type]: "H: \<Prod>x: A. f x = x"
       by (reduce add: homotopy_def)
 
@@ -161,7 +168,7 @@ Corollary (def) commute_homotopy':
       by (rule left_whisker, transport eq: ap_id, refl)
     also have [simplified id_comp]: "H (f x) \<bullet> (id A)[H x] = f[H x] \<bullet> H x"
       by (rule commute_homotopy)
-    finally have "{}" by this
+    finally have "?" by this
 
     thus "H (f x) = f [H x]" by pathcomp_cancelr (fact, typechk+)
   qed
@@ -181,7 +188,7 @@ Lemma is_qinv_type [type]:
   by typechk
 
 definition is_qinv_i ("is'_qinv")
-  where [implicit]: "is_qinv f \<equiv> Equivalence.is_qinv ? ? f"
+  where [implicit]: "is_qinv f \<equiv> Equivalence.is_qinv {} {} f"
 
 no_translations "is_qinv f" \<leftharpoondown> "CONST Equivalence.is_qinv A B f"
 
@@ -241,7 +248,7 @@ Lemma (def) funcomp_is_qinv:
           have "(finv \<circ> ginv) \<circ> g \<circ> f ~ finv \<circ> (ginv \<circ> g) \<circ> f" by reduce refl
           also have ".. ~ finv \<circ> id B \<circ> f" by (rhtpy, lhtpy) fact
           also have ".. ~ id A" by reduce fact
-          finally show "{}" by this
+          finally show "?" by this
         qed
 
         show "(g \<circ> f) \<circ> finv \<circ> ginv ~ id C"
@@ -249,7 +256,7 @@ Lemma (def) funcomp_is_qinv:
           have "(g \<circ> f) \<circ> finv \<circ> ginv ~ g \<circ> (f \<circ> finv) \<circ> ginv" by reduce refl
           also have ".. ~ g \<circ> id B \<circ> ginv" by (rhtpy, lhtpy) fact
           also have ".. ~ id C" by reduce fact
-          finally show "{}" by this
+          finally show "?" by this
         qed
       qed
     done
@@ -267,7 +274,7 @@ Lemma is_biinv_type [type]:
   unfolding is_biinv_def by typechk
 
 definition is_biinv_i ("is'_biinv")
-  where [implicit]: "is_biinv f \<equiv> Equivalence.is_biinv ? ? f"
+  where [implicit]: "is_biinv f \<equiv> Equivalence.is_biinv {} {} f"
 
 translations "is_biinv f" \<leftharpoondown> "CONST Equivalence.is_biinv A B f"
 
@@ -279,8 +286,8 @@ Lemma is_biinvI:
   shows "is_biinv f"
   unfolding is_biinv_def
   proof intro
-    show "<g, H1>: {}" by typechk
-    show "<h, H2>: {}" by typechk
+    show "<g, H1>: \<Sum>g: B \<rightarrow> A. g \<circ> f ~ id A" by typechk
+    show "<h, H2>: \<Sum>g: B \<rightarrow> A. f \<circ> g ~ id B" by typechk
   qed
 
 Lemma is_biinv_components [type]:
@@ -408,7 +415,7 @@ text \<open>
 Lemma (def) equiv_if_equal:
   assumes
     "A: U i" "B: U i" "p: A =\<^bsub>U i\<^esub> B"
-  shows "<trans (id (U i)) p, ?isequiv>: A \<simeq> B"
+  shows "<transp (id (U i)) p, ?isequiv>: A \<simeq> B"
   unfolding equivalence_def
   apply intro defer
     \<^item> apply (eq p)
@@ -422,7 +429,7 @@ Lemma (def) equiv_if_equal:
         using [[solve_side_conds=1]]
         apply (rewrite transport_comp)
           \<circ> by (rule Ui_in_USi)
-          \<circ> by reduce (rule in_USi_if_in_Ui)
+          \<circ> by reduce (rule U_lift)
           \<circ> by reduce (rule id_is_biinv)
         done
       done

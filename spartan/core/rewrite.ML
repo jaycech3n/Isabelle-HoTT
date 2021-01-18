@@ -72,13 +72,13 @@ fun mk_hole i T = Var ((holeN, i), T)
 fun is_hole (Var ((name, _), _)) = (name = holeN)
   | is_hole _ = false
 
-fun is_hole_const (Const (\<^const_name>\<open>rewrite_HOLE\<close>, _)) = true
+fun is_hole_const (Const (\<^const_name>\<open>rewrite_hole\<close>, _)) = true
   | is_hole_const _ = false
 
 val hole_syntax =
   let
     (* Modified variant of Term.replace_hole *)
-    fun replace_hole Ts (Const (\<^const_name>\<open>rewrite_HOLE\<close>, T)) i =
+    fun replace_hole Ts (Const (\<^const_name>\<open>rewrite_hole\<close>, T)) i =
           (list_comb (mk_hole i (Ts ---> T), map_range Bound (length Ts)), i + 1)
       | replace_hole Ts (Abs (x, T, t)) i =
           let val (t', i') = replace_hole (T :: Ts) t i

@@ -139,7 +139,7 @@ lemmas
 subsection \<open>Notation\<close>
 
 definition ifelse_i ("if _ then _ else _")
-  where [implicit]: "if x then a else b \<equiv> ifelse ? x a b"
+  where [implicit]: "if x then a else b \<equiv> ifelse {} x a b"
 
 translations "if x then a else b" \<leftharpoondown> "CONST ifelse C x a b"
 

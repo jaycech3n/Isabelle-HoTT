@@ -64,8 +64,8 @@ lemmas
 
 abbreviation "MaybeRec A C \<equiv> MaybeInd A (K C)"
 
-definition none_i ("none") where [implicit]: "none \<equiv> Maybe.none ?"
-definition some_i ("some") where [implicit]: "some a \<equiv> Maybe.some ? a"
+definition none_i ("none") where [implicit]: "none \<equiv> Maybe.none {}"
+definition some_i ("some") where [implicit]: "some a \<equiv> Maybe.some {} a"
 
 translations
   "none" \<leftharpoondown> "CONST Maybe.none A"

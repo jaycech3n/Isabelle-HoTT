@@ -9,23 +9,18 @@ keywords
   "Theorem" "Lemma" "Corollary" "Proposition" "Definition" :: thy_goal_stmt and
   "assuming" :: prf_asm % "proof" and
   "focus" "\<^item>" "\<^enum>" "\<circ>" "\<diamondop>" "~" :: prf_script_goal % "proof" and
-  "congruence" "print_coercions" :: thy_decl and
+  "calc" "print_coercions" :: thy_decl and
   "rhs" "def" "vars" :: quasi_command
 
 begin
 
-
-section \<open>Prelude\<close>
-
-paragraph \<open>Set up the meta-logic just so.\<close>
-
-paragraph \<open>Notation.\<close>
+section \<open>Notation\<close>
 
 declare [[eta_contract=false]]
 
 text \<open>
-  Rebind notation for meta-lambdas since we want to use `\<lambda>` for the object
-  lambdas. Meta-functions now use the binder `fn`.
+Rebind notation for meta-lambdas since we want to use \<open>\<lambda>\<close> for the object
+lambdas. Metafunctions now use the binder \<open>fn\<close>.
 \<close>
 setup \<open>
 let
@@ -41,34 +36,31 @@ in
 end
 \<close>
 
-syntax "_dollar" :: \<open>logic \<Rightarrow> logic \<Rightarrow> logic\<close> (infixr "$" 3)
+syntax "_app" :: \<open>logic \<Rightarrow> logic \<Rightarrow> logic\<close> (infixr "$" 3)
 translations "a $ b" \<rightharpoonup> "a (b)"
 
 abbreviation (input) K where "K x \<equiv> fn _. x"
 
-paragraph \<open>
-  Deeply embed dependent type theory: meta-type of expressions, and typing
-  judgment.
+
+section \<open>Metalogic\<close>
+
+text \<open>
+HOAS embedding of dependent type theory: metatype of expressions, and typing
+judgment.
 \<close>
 
 typedecl o
 
 consts has_type :: \<open>o \<Rightarrow> o \<Rightarrow> prop\<close> ("(2_:/ _)" 999)
 
-text \<open>Type annotations for type-checking and inference.\<close>
-
-definition anno :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close> ("'(_ : _')")
-  where "(a : A) \<equiv> a" if "a: A"
-
-lemma anno: "a: A \<Longrightarrow> (a : A): A"
-  by (unfold anno_def)
-
 
 section \<open>Axioms\<close>
 
 subsection \<open>Universes\<close>
 
-typedecl lvl \<comment> \<open>Universe levels\<close>
+text \<open>\<omega>-many cumulative Russell universes.\<close>
+
+typedecl lvl
 
 axiomatization
   O  :: \<open>lvl\<close> and
@@ -81,16 +73,15 @@ axiomatization
 
 axiomatization U :: \<open>lvl \<Rightarrow> o\<close> where
   Ui_in_Uj: "i < j \<Longrightarrow> U i: U j" and
-  in_Uj_if_in_Ui: "A: U i \<Longrightarrow> i < j \<Longrightarrow> A: U j"
+  U_cumul: "A: U i \<Longrightarrow> i < j \<Longrightarrow> A: U j"
 
 lemma Ui_in_USi:
   "U i: U (S i)"
   by (rule Ui_in_Uj, rule lt_S)
 
-lemma in_USi_if_in_Ui:
+lemma U_lift:
   "A: U i \<Longrightarrow> A: U (S i)"
-  by (erule in_Uj_if_in_Ui, rule lt_S)
-
+  by (erule U_cumul, rule lt_S)
 
 subsection \<open>\<Prod>-type\<close>
 
@@ -133,7 +124,6 @@ axiomatization where
     \<rbrakk> \<Longrightarrow> \<Prod>x: A. B x \<equiv> \<Prod>x: A. B' x" and
 
   lam_cong: "\<lbrakk>\<And>x. x: A \<Longrightarrow> b x \<equiv> c x; A: U i\<rbrakk> \<Longrightarrow> \<lambda>x: A. b x \<equiv> \<lambda>x: A. c x"
-
 
 subsection \<open>\<Sum>-type\<close>
 
@@ -207,7 +197,7 @@ lemma sub:
   shows "a: A'"
   using assms by simp
 
-\<comment> \<open>Basic substitution of definitional equalities\<close>
+\<comment> \<open>Basic rewriting of computational equality\<close>
 ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
 ML_file \<open>~~/src/Tools/IsaPlanner/isand.ML\<close>
 ML_file \<open>~~/src/Tools/IsaPlanner/rw_inst.ML\<close>
@@ -305,7 +295,7 @@ method_setup this =
 
 subsection \<open>Rewriting\<close>
 
-consts rewrite_HOLE :: "'a::{}"  ("\<hole>")
+consts rewrite_hole :: "'a::{}"  ("\<hole>")
 
 lemma eta_expand:
   fixes f :: "'a::{} \<Rightarrow> 'b::{}"
@@ -331,28 +321,28 @@ lemma imp_cong_eq:
 ML_file \<open>~~/src/HOL/Library/cconv.ML\<close>
 ML_file \<open>rewrite.ML\<close>
 
-\<comment> \<open>\<open>reduce\<close> computes terms via judgmental equalities\<close>
+\<comment> \<open>\<open>reduce\<close> simplifies terms via computational equalities\<close>
 method reduce uses add =
   changed \<open>repeat_new \<open>(simp add: comp add | subst comp); typechk?\<close>\<close>
 
 
-subsection \<open>Congruence relations\<close>
+subsection \<open>Calculational reasoning\<close>
 
 consts "rhs" :: \<open>'a\<close> ("..")
 
-ML_file \<open>congruence.ML\<close>
+ML_file \<open>calc.ML\<close>
 
 
 section \<open>Implicits\<close>
 
 text \<open>
-  \<open>?\<close> is used to mark implicit arguments in definitions, while \<open>{}\<close> is expanded
+  \<open>{}\<close> is used to mark implicit arguments in definitions, while \<open>?\<close> is expanded
   immediately for elaboration in statements.
 \<close>
 
 consts
-  iarg :: \<open>'a\<close> ("?")
-  hole :: \<open>'b\<close> ("{}")
+  iarg :: \<open>'a\<close> ("{}")
+  hole :: \<open>'b\<close> ("?")
 
 ML_file \<open>implicits.ML\<close>
 
@@ -363,11 +353,12 @@ ML \<open>val _ = Context.>> (Syntax_Phases.term_check 1 "" Implicits.make_holes
 text \<open>Automatically insert inhabitation judgments where needed:\<close>
 
 syntax inhabited :: \<open>o \<Rightarrow> prop\<close> ("(_)")
-translations "inhabited A" \<rightharpoonup> "CONST has_type {} A"
+translations "inhabited A" \<rightharpoonup> "CONST has_type ? A"
 
-text \<open>Implicit lambdas\<close>
 
-definition lam_i where [implicit]: "lam_i f \<equiv> lam ? f"
+subsection \<open>Implicit lambdas\<close>
+
+definition lam_i where [implicit]: "lam_i f \<equiv> lam {} f"
 
 syntax
   "_lam_i"  :: \<open>idts \<Rightarrow> o \<Rightarrow> o\<close> ("(2\<lambda>_./ _)" 30)
@@ -410,7 +401,7 @@ Lemma refine_codomain:
 Lemma lift_universe_codomain:
   assumes "A: U i" "f: A \<rightarrow> U j"
   shows "f: A \<rightarrow> U (S j)"
-  using in_USi_if_in_Ui[of "f {}"]
+  using U_lift
   by (rule refine_codomain)
 
 subsection \<open>Function composition\<close>
@@ -460,10 +451,10 @@ Lemma funcomp_apply_comp [comp]:
   shows "(g \<circ>\<^bsub>A\<^esub> f) x \<equiv> g (f x)"
   unfolding funcomp_def by reduce
 
-text \<open>Notation:\<close>
+subsection \<open>Notation\<close>
 
 definition funcomp_i (infixr "\<circ>" 120)
-  where [implicit]: "funcomp_i g f \<equiv> g \<circ>\<^bsub>?\<^esub> f"
+  where [implicit]: "funcomp_i g f \<equiv> g \<circ>\<^bsub>{}\<^esub> f"
 
 translations "g \<circ> f" \<leftharpoondown> "g \<circ>\<^bsub>A\<^esub> f"
 
@@ -520,10 +511,10 @@ Lemma snd_comp [comp]:
 subsection \<open>Notation\<close>
 
 definition fst_i ("fst")
-  where [implicit]: "fst \<equiv> Spartan.fst ? ?"
+  where [implicit]: "fst \<equiv> Spartan.fst {} {}"
 
 definition snd_i ("snd")
-  where [implicit]: "snd \<equiv> Spartan.snd ? ?"
+  where [implicit]: "snd \<equiv> Spartan.snd {} {}"
 
 translations
   "fst" \<leftharpoondown> "CONST Spartan.fst A B"
@@ -550,10 +541,10 @@ method snd for p::o = rule snd[where ?p=p]
 
 text \<open>Double projections:\<close>
 
-definition [implicit]: "p\<^sub>1\<^sub>1 p \<equiv> Spartan.fst ? ? (Spartan.fst ? ? p)"
-definition [implicit]: "p\<^sub>1\<^sub>2 p \<equiv> Spartan.snd ? ? (Spartan.fst ? ? p)"
-definition [implicit]: "p\<^sub>2\<^sub>1 p \<equiv> Spartan.fst ? ? (Spartan.snd ? ? p)"
-definition [implicit]: "p\<^sub>2\<^sub>2 p \<equiv> Spartan.snd ? ? (Spartan.snd ? ? p)"
+definition [implicit]: "p\<^sub>1\<^sub>1 p \<equiv> Spartan.fst {} {} (Spartan.fst {} {} p)"
+definition [implicit]: "p\<^sub>1\<^sub>2 p \<equiv> Spartan.snd {} {} (Spartan.fst {} {} p)"
+definition [implicit]: "p\<^sub>2\<^sub>1 p \<equiv> Spartan.fst {} {} (Spartan.snd {} {} p)"
+definition [implicit]: "p\<^sub>2\<^sub>2 p \<equiv> Spartan.snd {} {} (Spartan.snd {} {} p)"
 
 translations
   "CONST p\<^sub>1\<^sub>1 p" \<leftharpoondown> "fst (fst p)"

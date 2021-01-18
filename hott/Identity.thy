@@ -20,7 +20,7 @@ syntax "_Id" :: \<open>o \<Rightarrow> o \<Rightarrow> o \<Rightarrow> o\<close>
 translations "a =\<^bsub>A\<^esub> b" \<rightleftharpoons> "CONST Id A a b"
 
 axiomatization where
-  \<comment> \<open>Here `A: U i` comes last because A is often implicit\<close>
+  \<comment> \<open>Here \<open>A: U i\<close> comes last because A is often implicit\<close>
   IdF: "\<lbrakk>a: A; b: A; A: U i\<rbrakk> \<Longrightarrow> a =\<^bsub>A\<^esub> b: U i" and
 
   IdI: "a: A \<Longrightarrow> refl a: a =\<^bsub>A\<^esub> a" and
@@ -49,8 +49,8 @@ lemmas
 
 section \<open>Path induction\<close>
 
-\<comment> \<open>With `p: x = y` in the context the invokation `eq p` is essentially
-  `elim p x y`, with some extra bits before and after.\<close>
+\<comment> \<open>With \<open>p: x = y\<close> in the context the invokation \<open>eq p\<close> is essentially
+  \<open>elim p x y\<close>, with some extra bits before and after.\<close>
 
 method_setup eq =
   \<open>Args.term >> (fn tm => K (CONTEXT_METHOD (
@@ -109,13 +109,13 @@ method pathcomp for p q :: o = rule pathcomp[where ?p=p and ?q=q]
 section \<open>Notation\<close>
 
 definition Id_i (infix "=" 110)
-  where [implicit]: "Id_i x y \<equiv> x =\<^bsub>?\<^esub> y"
+  where [implicit]: "Id_i x y \<equiv> x =\<^bsub>{}\<^esub> y"
 
 definition pathinv_i ("_\<inverse>" [1000])
-  where [implicit]: "pathinv_i p \<equiv> pathinv ? ? ? p"
+  where [implicit]: "pathinv_i p \<equiv> pathinv {} {} {} p"
 
 definition pathcomp_i (infixl "\<bullet>" 121)
-  where [implicit]: "pathcomp_i p q \<equiv> pathcomp ? ? ? ? p q"
+  where [implicit]: "pathcomp_i p q \<equiv> pathcomp {} {} {} {} p q"
 
 translations
   "x = y" \<leftharpoondown> "x =\<^bsub>A\<^esub> y"
@@ -125,7 +125,7 @@ translations
 
 section \<open>Calculational reasoning\<close>
 
-congruence "x = y" rhs y
+calc "x = y" rhs y
 
 lemmas
   [sym] = pathinv[rotated 3] and
@@ -144,8 +144,8 @@ Lemma (def) pathcomp_refl:
   shows "p \<bullet> (refl y) = p"
   by (eq p) (reduce, refl)
 
-definition [implicit]: "lu p \<equiv> refl_pathcomp ? ? ? p"
-definition [implicit]: "ru p \<equiv> pathcomp_refl ? ? ? p"
+definition [implicit]: "lu p \<equiv> refl_pathcomp {} {} {} p"
+definition [implicit]: "ru p \<equiv> pathcomp_refl {} {} {} p"
 
 translations
   "CONST lu p" \<leftharpoondown> "CONST refl_pathcomp A x y p"
@@ -204,7 +204,7 @@ Lemma (def) ap:
   by (eq p) intro
 
 definition ap_i ("_[_]" [1000, 0])
-  where [implicit]: "ap_i f p \<equiv> ap ? ? ? ? f p"
+  where [implicit]: "ap_i f p \<equiv> ap {} {} {} {} f p"
 
 translations "f[p]" \<leftharpoondown> "CONST ap A B x y f p"
 
@@ -265,17 +265,17 @@ Lemma (def) transport:
   shows "P x \<rightarrow> P y"
   by (eq p) intro
 
-definition transport_i ("trans")
-  where [implicit]: "trans P p \<equiv> transport ? P ? ? p"
+definition transport_i ("transp")
+  where [implicit]: "transp P p \<equiv> transport {} P {} {} p"
 
-translations "trans P p" \<leftharpoondown> "CONST transport A P x y p"
+translations "transp P p" \<leftharpoondown> "CONST transport A P x y p"
 
 Lemma transport_comp [comp]:
   assumes
     "a: A"
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> P x: U i"
-  shows "trans P (refl a) \<equiv> id (P a)"
+  shows "transp P (refl a) \<equiv> id (P a)"
   unfolding transport_def by reduce
 
 Lemma apply_transport:
@@ -284,7 +284,7 @@ Lemma apply_transport:
     "x: A" "y: A"
     "p: y =\<^bsub>A\<^esub> x"
     "u: P x"
-  shows "trans P p\<inverse> u: P y"
+  shows "transp P p\<inverse> u: P y"
   by typechk
 
 method transport uses eq = (rule apply_transport[OF _ _ _ _ eq])
@@ -304,7 +304,7 @@ Lemma (def) pathcomp_cancel_left:
       by (transport eq: pathcomp_assoc,
           transport eq: inv_pathcomp,
           transport eq: refl_pathcomp) refl
-    finally show "{}" by this
+    finally show "?" by this
   qed
 
 Lemma (def) pathcomp_cancel_right:
@@ -323,7 +323,7 @@ Lemma (def) pathcomp_cancel_right:
           transport eq: pathcomp_assoc[symmetric],
           transport eq: pathcomp_inv,
           transport eq: pathcomp_refl) refl
-    finally show "{}" by this
+    finally show "?" by this
   qed
 
 method pathcomp_cancell = rule pathcomp_cancel_left[rotated 7]
@@ -335,7 +335,7 @@ Lemma (def) transport_left_inv:
     "\<And>x. x: A \<Longrightarrow> P x: U i"
     "x: A" "y: A"
     "p: x = y"
-  shows "(trans P p\<inverse>) \<circ> (trans P p) = id (P x)"
+  shows "(transp P p\<inverse>) \<circ> (transp P p) = id (P x)"
   by (eq p) (reduce, refl)
 
 Lemma (def) transport_right_inv:
@@ -344,7 +344,7 @@ Lemma (def) transport_right_inv:
     "\<And>x. x: A \<Longrightarrow> P x: U i"
     "x: A" "y: A"
     "p: x = y"
-  shows "(trans P p) \<circ> (trans P p\<inverse>) = id (P y)"
+  shows "(transp P p) \<circ> (transp P p\<inverse>) = id (P y)"
   by (eq p) (reduce, refl)
 
 Lemma (def) transport_pathcomp:
@@ -354,11 +354,11 @@ Lemma (def) transport_pathcomp:
     "x: A" "y: A" "z: A"
     "u: P x"
     "p: x = y" "q: y = z"
-  shows "trans P q (trans P p u) = trans P (p \<bullet> q) u"
+  shows "transp P q (transp P p u) = transp P (p \<bullet> q) u"
 proof (eq p)
   fix x q u
   assuming "x: A" "q: x = z" "u: P x"
-  show "trans P q (trans P (refl x) u) = trans P ((refl x) \<bullet> q) u"
+  show "transp P q (transp P (refl x) u) = transp P ((refl x) \<bullet> q) u"
     by (eq q) (reduce, refl)
 qed
 
@@ -370,7 +370,7 @@ Lemma (def) transport_compose_typefam:
     "x: A" "y: A"
     "p: x = y"
     "u: P (f x)"
-  shows "trans (fn x. P (f x)) p u = trans P f[p] u"
+  shows "transp (fn x. P (f x)) p u = transp P f[p] u"
   by (eq p) (reduce, refl)
 
 Lemma (def) transport_function_family:
@@ -382,7 +382,7 @@ Lemma (def) transport_function_family:
     "x: A" "y: A"
     "u: P x"
     "p: x = y"
-  shows "trans Q p ((f x) u) = (f y) (trans P p u)"
+  shows "transp Q p ((f x) u) = (f y) (transp P p u)"
   by (eq p) (reduce, refl)
 
 Lemma (def) transport_const:
@@ -390,19 +390,19 @@ Lemma (def) transport_const:
     "A: U i" "B: U i"
     "x: A" "y: A"
     "p: x = y"
-  shows "\<Prod>b: B. trans (fn _. B) p b = b"
+  shows "\<Prod>b: B. transp (fn _. B) p b = b"
   by intro (eq p, reduce, refl)
 
-definition transport_const_i ("trans'_const")
-  where [implicit]: "trans_const B p \<equiv> transport_const ? B ? ? p"
+definition transport_const_i ("transp'_c")
+  where [implicit]: "transp_c B p \<equiv> transport_const {} B {} {} p"
 
-translations "trans_const B p" \<leftharpoondown> "CONST transport_const A B x y p"
+translations "transp_c B p" \<leftharpoondown> "CONST transport_const A B x y p"
 
 Lemma transport_const_comp [comp]:
   assumes
     "x: A" "b: B"
     "A: U i" "B: U i"
-  shows "trans_const B (refl x) b \<equiv> refl b"
+  shows "transp_c B (refl x) b \<equiv> refl b"
   unfolding transport_const_def by reduce
 
 Lemma (def) pathlift:
@@ -412,11 +412,11 @@ Lemma (def) pathlift:
     "x: A" "y: A"
     "p: x = y"
     "u: P x"
-  shows "<x, u> = <y, trans P p u>"
+  shows "<x, u> = <y, transp P p u>"
   by (eq p) (reduce, refl)
 
 definition pathlift_i ("lift")
-  where [implicit]: "lift P p u \<equiv> pathlift ? P ? ? p u"
+  where [implicit]: "lift P p u \<equiv> pathlift {} P {} {} p u"
 
 translations "lift P p u" \<leftharpoondown> "CONST pathlift A P x y p u"
 
@@ -449,11 +449,11 @@ Lemma (def) apd:
     "f: \<Prod>x: A. P x"
     "x: A" "y: A"
     "p: x = y"
-  shows "trans P p (f x) = f y"
+  shows "transp P p (f x) = f y"
   by (eq p) (reduce, refl)
 
 definition apd_i ("apd")
-  where [implicit]: "apd f p \<equiv> Identity.apd ? ? f ? ? p"
+  where [implicit]: "apd f p \<equiv> Identity.apd {} {} f {} {} p"
 
 translations "apd f p" \<leftharpoondown> "CONST Identity.apd A P f x y p"
 
@@ -472,7 +472,7 @@ Lemma (def) apd_ap:
     "f: A \<rightarrow> B"
     "x: A" "y: A"
     "p: x = y"
-  shows "apd f p = trans_const B p (f x) \<bullet> f[p]"
+  shows "apd f p = transp_c B p (f x) \<bullet> f[p]"
   by (eq p) (reduce, refl)
 
 
@@ -488,7 +488,7 @@ Lemma (def) right_whisker:
       have "s \<bullet> refl x = s" by (rule pathcomp_refl)
       also have ".. = t" by fact
       also have ".. = t \<bullet> refl x" by (rule pathcomp_refl[symmetric])
-      finally show "{}" by this
+      finally show "?" by this
     qed
   done
 
@@ -502,15 +502,15 @@ Lemma (def) left_whisker:
       have "refl x \<bullet> s = s" by (rule refl_pathcomp)
       also have ".. = t" by fact
       also have ".. = refl x \<bullet> t" by (rule refl_pathcomp[symmetric])
-      finally show "{}" by this
+      finally show "?" by this
     qed
   done
 
 definition right_whisker_i (infix "\<bullet>\<^sub>r" 121)
-  where [implicit]: "\<alpha> \<bullet>\<^sub>r r \<equiv> right_whisker ? ? ? ? ? ? r \<alpha>"
+  where [implicit]: "\<alpha> \<bullet>\<^sub>r r \<equiv> right_whisker {} {} {} {} {} {} r \<alpha>"
 
 definition left_whisker_i (infix "\<bullet>\<^sub>l" 121)
-  where [implicit]: "r \<bullet>\<^sub>l \<alpha> \<equiv> left_whisker ? ? ? ? ? ? r \<alpha>"
+  where [implicit]: "r \<bullet>\<^sub>l \<alpha> \<equiv> left_whisker {} {} {} {} {} {} r \<alpha>"
 
 translations
   "\<alpha> \<bullet>\<^sub>r r" \<leftharpoondown> "CONST right_whisker A a b c p q r \<alpha>"
@@ -532,8 +532,8 @@ method right_whisker = (rule right_whisker)
 
 section \<open>Horizontal path-composition\<close>
 
-text \<open>Conditions under which horizontal path-composition is defined.\<close>
 locale horiz_pathcomposable =
+\<comment> \<open>Conditions under which horizontal path-composition is defined.\<close>
 fixes
   i A a b c p q r s
 assumes [type]:
@@ -615,17 +615,17 @@ Lemma (def) pathcomp_eq_horiz_pathcomp:
     have "refl (refl a) \<bullet> \<alpha> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<alpha>"
       by (rule pathcomp_refl)
     also have ".. = \<alpha>" by (rule refl_pathcomp)
-    finally have eq\<alpha>: "{} = \<alpha>" by this
+    finally have eq\<alpha>: "? = \<alpha>" by this
 
     have "refl (refl a) \<bullet> \<beta> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<beta>"
       by (rule pathcomp_refl)
     also have ".. = \<beta>" by (rule refl_pathcomp)
-    finally have eq\<beta>: "{} = \<beta>" by this
+    finally have eq\<beta>: "? = \<beta>" by this
 
     have "refl (refl a) \<bullet> \<alpha> \<bullet> refl (refl a) \<bullet> (refl (refl a) \<bullet> \<beta> \<bullet> refl (refl a))
-      = \<alpha> \<bullet> {}" by right_whisker (fact eq\<alpha>)
+      = \<alpha> \<bullet> ?" by right_whisker (fact eq\<alpha>)
     also have ".. = \<alpha> \<bullet> \<beta>" by left_whisker (fact eq\<beta>)
-    finally show "{} = \<alpha> \<bullet> \<beta>" by this
+    finally show "? = \<alpha> \<bullet> \<beta>" by this
   qed
 
 Lemma (def) pathcomp_eq_horiz_pathcomp':
@@ -637,17 +637,17 @@ Lemma (def) pathcomp_eq_horiz_pathcomp':
     have "refl (refl a) \<bullet> \<beta> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<beta>"
       by (rule pathcomp_refl)
     also have ".. = \<beta>" by (rule refl_pathcomp)
-    finally have eq\<beta>: "{} = \<beta>" by this
+    finally have eq\<beta>: "? = \<beta>" by this
 
     have "refl (refl a) \<bullet> \<alpha> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<alpha>"
       by (rule pathcomp_refl)
     also have ".. = \<alpha>" by (rule refl_pathcomp)
-    finally have eq\<alpha>: "{} = \<alpha>" by this
+    finally have eq\<alpha>: "? = \<alpha>" by this
 
     have "refl (refl a) \<bullet> \<beta> \<bullet> refl (refl a) \<bullet> (refl (refl a) \<bullet> \<alpha> \<bullet> refl (refl a))
-      = \<beta> \<bullet> {}" by right_whisker (fact eq\<beta>)
+      = \<beta> \<bullet> ?" by right_whisker (fact eq\<beta>)
     also have ".. = \<beta> \<bullet> \<alpha>" by left_whisker (fact eq\<alpha>)
-    finally show "{} = \<beta> \<bullet> \<alpha>" by this
+    finally show "? = \<beta> \<bullet> \<alpha>" by this
   qed
 
 Lemma (def) eckmann_hilton:

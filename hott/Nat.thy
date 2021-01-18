@@ -115,7 +115,7 @@ Lemma (def) add_comm:
       proof reduce
         have "suc (m + n) = suc (n + m)" by (eq ih) refl
         also have ".. = suc n + m" by (transport eq: suc_add) refl
-        finally show "{}" by this
+        finally show "?" by this
       qed
   done
 
@@ -152,7 +152,7 @@ Lemma (def) zero_mul:
     proof reduce
       have "0 + 0 * n = 0 + 0 " by (eq ih) refl
       also have ".. = 0" by reduce refl
-      finally show "{}" by this
+      finally show "?" by this
     qed
   done
 
@@ -163,9 +163,9 @@ Lemma (def) suc_mul:
   \<^item> by reduce refl
   \<^item> vars n ih
     proof (reduce, transport eq: \<open>ih:_\<close>)
-      have "suc m + (m * n + n) = suc (m + {})" by (rule suc_add)
+      have "suc m + (m * n + n) = suc (m + ?)" by (rule suc_add)
       also have ".. = suc (m + m * n + n)" by (transport eq: add_assoc) refl
-      finally show "{}" by this
+      finally show "?" by this
     qed
   done
 
@@ -180,7 +180,7 @@ Lemma (def) mul_dist_add:
       also have ".. = l + l * m + l * n" by (rule add_assoc)
       also have ".. = l * m + l + l * n" by (transport eq: add_comm) refl
       also have ".. = l * m + (l + l * n)" by (transport eq: add_assoc) refl
-      finally show "{}" by this
+      finally show "?" by this
     qed
   done
 
@@ -193,7 +193,7 @@ Lemma (def) mul_assoc:
     proof reduce
       have "l * (m + m * n) = l * m + l * (m * n)" by (rule mul_dist_add)
       also have ".. = l * m + l * m * n" by (transport eq: \<open>ih:_\<close>) refl
-      finally show "{}" by this
+      finally show "?" by this
     qed
   done
 
@@ -207,7 +207,7 @@ Lemma (def) mul_comm:
       have "suc n * m = n * m + m" by (rule suc_mul)
       also have ".. = m + m * n"
         by (transport eq: \<open>ih:_\<close>, transport eq: add_comm) refl
-      finally show "{}" by this
+      finally show "?" by this
     qed
   done
 
