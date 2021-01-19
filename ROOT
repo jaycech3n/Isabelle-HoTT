@@ -29,4 +29,4 @@ session HoTT in hott = Spartan +
     Identity
     Equivalence
     Nat
-    "List+"
+    List_HoTT
