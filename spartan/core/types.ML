@@ -99,7 +99,9 @@ and check_infer facts i (cst as (_, st)) =
 and compute_tac ctxt facts =
   let
     val comps = Named_Theorems.get ctxt \<^named_theorems>\<open>comp\<close>
-    val ctxt' = ctxt addsimps comps
+    val ss = simpset_of ctxt
+    val ss' = simpset_of (empty_simpset ctxt addsimps comps)
+    val ctxt' = put_simpset (merge_ss (ss, ss')) ctxt
   in
     SUBGOAL (fn (_, i) =>
       ((CHANGED o asm_simp_tac ctxt' ORELSE' EqSubst.eqsubst_tac ctxt [0] comps)
