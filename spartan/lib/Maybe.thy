@@ -40,7 +40,7 @@ Lemma Maybe_comp_none:
   shows "MaybeInd A C c\<^sub>0 f (none A) \<equiv> c\<^sub>0"
   using assms
   unfolding Maybe_def MaybeInd_def none_def some_def
-  by reduce
+  by compute
 
 Lemma Maybe_comp_some:
   assumes
@@ -52,7 +52,7 @@ Lemma Maybe_comp_some:
   shows "MaybeInd A C c\<^sub>0 f (some A a) \<equiv> f a"
   using assms
   unfolding Maybe_def MaybeInd_def none_def some_def
-  by reduce
+  by compute
 
 lemmas
   [form] = MaybeF and

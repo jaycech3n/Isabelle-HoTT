@@ -295,7 +295,7 @@ method_setup this =
 
 subsection \<open>Rewriting\<close>
 
-consts rewrite_hole :: "'a::{}"  ("\<hole>")
+consts compute_hole :: "'a::{}"  ("\<hole>")
 
 lemma eta_expand:
   fixes f :: "'a::{} \<Rightarrow> 'b::{}"
@@ -319,10 +319,10 @@ lemma imp_cong_eq:
   done
 
 ML_file \<open>~~/src/HOL/Library/cconv.ML\<close>
-ML_file \<open>rewrite.ML\<close>
+ML_file \<open>comp.ML\<close>
 
-\<comment> \<open>\<open>reduce\<close> simplifies terms via computational equalities\<close>
-method reduce uses add =
+\<comment> \<open>\<open>compute\<close> simplifies terms via computational equalities\<close>
+method compute uses add =
   changed \<open>repeat_new \<open>(simp add: comp add | subst comp); typechk?\<close>\<close>
 
 
@@ -396,7 +396,7 @@ Lemma refine_codomain:
     "f: \<Prod>x: A. B x"
     "\<And>x. x: A \<Longrightarrow> f `x: C x"
   shows "f: \<Prod>x: A. C x"
-  by (rewrite eta_exp)
+  by (comp eta_exp)
 
 Lemma lift_universe_codomain:
   assumes "A: U i" "f: A \<rightarrow> U j"
@@ -432,7 +432,7 @@ Lemma funcomp_assoc [comp]:
     "h: \<Prod>x: C. D x"
   shows
     "(h \<circ>\<^bsub>B\<^esub> g) \<circ>\<^bsub>A\<^esub> f \<equiv> h \<circ>\<^bsub>A\<^esub> g \<circ>\<^bsub>A\<^esub> f"
-  unfolding funcomp_def by reduce
+  unfolding funcomp_def by compute
 
 Lemma funcomp_lambda_comp [comp]:
   assumes
@@ -441,7 +441,7 @@ Lemma funcomp_lambda_comp [comp]:
     "\<And>x. x: B \<Longrightarrow> c x: C x"
   shows
     "(\<lambda>x: B. c x) \<circ>\<^bsub>A\<^esub> (\<lambda>x: A. b x) \<equiv> \<lambda>x: A. c (b x)"
-  unfolding funcomp_def by reduce
+  unfolding funcomp_def by compute
 
 Lemma funcomp_apply_comp [comp]:
   assumes
@@ -449,7 +449,7 @@ Lemma funcomp_apply_comp [comp]:
     "f: A \<rightarrow> B" "g: \<Prod>x: B. C x"
     "x: A"
   shows "(g \<circ>\<^bsub>A\<^esub> f) x \<equiv> g (f x)"
-  unfolding funcomp_def by reduce
+  unfolding funcomp_def by compute
 
 subsection \<open>Notation\<close>
 
@@ -465,17 +465,17 @@ abbreviation id where "id A \<equiv> \<lambda>x: A. x"
 lemma
   id_type [type]: "A: U i \<Longrightarrow> id A: A \<rightarrow> A" and
   id_comp [comp]: "x: A \<Longrightarrow> (id A) x \<equiv> x" \<comment> \<open>for the occasional manual rewrite\<close>
-  by reduce+
+  by compute+
 
 Lemma id_left [comp]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "(id B) \<circ>\<^bsub>A\<^esub> f \<equiv> f"
-  by (rewrite eta_exp[of f]) (reduce, rule eta)
+  by (comp eta_exp[of f]) (compute, rule eta)
 
 Lemma id_right [comp]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "f \<circ>\<^bsub>A\<^esub> (id A) \<equiv> f"
-  by (rewrite eta_exp[of f]) (reduce, rule eta)
+  by (comp eta_exp[of f]) (compute, rule eta)
 
 lemma id_U [type]:
   "id (U i): U i \<rightarrow> U i"
@@ -496,7 +496,7 @@ Lemma fst_comp [comp]:
   assumes
     "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i" "a: A" "b: B a"
   shows "fst A B <a, b> \<equiv> a"
-  unfolding fst_def by reduce
+  unfolding fst_def by compute
 
 Lemma snd_type [type]:
   assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i"
@@ -506,7 +506,7 @@ Lemma snd_type [type]:
 Lemma snd_comp [comp]:
   assumes "A: U i" "\<And>x. x: A \<Longrightarrow> B x: U i" "a: A" "b: B a"
   shows "snd A B <a, b> \<equiv> b"
-  unfolding snd_def by reduce
+  unfolding snd_def by compute
 
 subsection \<open>Notation\<close>
 

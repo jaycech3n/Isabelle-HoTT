@@ -116,7 +116,7 @@ Lemma if_true:
   shows "ifelse C true a b \<equiv> a"
   unfolding ifelse_def true_def
   using assms unfolding Bool_def true_def false_def
-  by reduce
+  by compute
 
 Lemma if_false:
   assumes
@@ -126,7 +126,7 @@ Lemma if_false:
   shows "ifelse C false a b \<equiv> b"
   unfolding ifelse_def false_def
   using assms unfolding Bool_def true_def false_def
-  by reduce
+  by compute
 
 lemmas
   [form] = BoolF and
@@ -145,7 +145,7 @@ translations "if x then a else b" \<leftharpoondown> "CONST ifelse C x a b"
 
 subsection \<open>Logical connectives\<close>
 
-definition not ("!_") where "not x \<equiv> ifelse (K Bool) x false true"
+definition not ("!_") where "!x \<equiv> ifelse (K Bool) x false true"
 
 
 end

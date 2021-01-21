@@ -88,12 +88,12 @@ lemmas
 Lemma id_funcomp_htpy:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "homotopy_refl A f: (id B) \<circ> f ~ f"
-  by reduce
+  by compute
 
 Lemma funcomp_id_htpy:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B"
   shows "homotopy_refl A f: f \<circ> (id A) ~ f"
-  by reduce
+  by compute
 
 Lemma funcomp_left_htpy:
   assumes
@@ -105,7 +105,7 @@ Lemma funcomp_left_htpy:
     "H: g ~ g'"
   shows "(g \<circ> f) ~ (g' \<circ> f)"
   unfolding homotopy_def
-  apply (intro, reduce)
+  apply (intro, compute)
   apply (htpy H)
   done
 
@@ -118,12 +118,12 @@ Lemma funcomp_right_htpy:
     "H: f ~ f'"
   shows "(g \<circ> f) ~ (g \<circ> f')"
   unfolding homotopy_def
-  proof (intro, reduce)
+  proof (intro, compute)
     fix x assuming "x: A"
     have *: "f x = f' x"
       by (htpy H)
     show "g (f x) = g (f' x)"
-      by (transport eq: *) refl
+      by (rewr eq: *) refl
   qed
 
 method lhtpy = rule funcomp_left_htpy[rotated 6]
@@ -139,8 +139,8 @@ Lemma (def) commute_homotopy:
   shows "(H x) \<bullet> g[p] = f[p] \<bullet> (H y)"
   using \<open>H:_\<close>
   unfolding homotopy_def
-  apply (eq p, reduce)
-  apply (transport eq: pathcomp_refl, transport eq: refl_pathcomp)
+  apply (eq p, compute)
+  apply (rewr eq: pathcomp_refl, rewr eq: refl_pathcomp)
   by refl
 
 Corollary (def) commute_homotopy':
@@ -151,21 +151,13 @@ Corollary (def) commute_homotopy':
     "H: f ~ (id A)"
   shows "H (f x) = f [H x]"
   proof -
-    (* Rewrite the below proof
-    have *: "H (f x) \<bullet> (id A)[H x] = f[H x] \<bullet> H x"
-      using \<open>H:_\<close> unfolding homotopy_def by (rule commute_homotopy)
-
-    thus "H (f x) = f[H x]"
-      apply (pathcomp_cancelr)
-      ...
-    *)
-    (*FUTURE: Because we don't have very good normalization integrated into
+   (*FUTURE: Because we don't have very good normalization integrated into
       things yet, we need to manually unfold the type of H.*)
     from \<open>H: f ~ id A\<close> have [type]: "H: \<Prod>x: A. f x = x"
-      by (reduce add: homotopy_def)
+      by (compute add: homotopy_def)
 
     have "H (f x) \<bullet> H x = H (f x) \<bullet> (id A)[H x]"
-      by (rule left_whisker, transport eq: ap_id, refl)
+      by (rule left_whisker, rewr eq: ap_id, refl)
     also have [simplified id_comp]: "H (f x) \<bullet> (id A)[H x] = f[H x] \<bullet> H x"
       by (rule commute_homotopy)
     finally have "?" by this
@@ -198,7 +190,7 @@ Lemma (def) id_is_qinv:
   unfolding is_qinv_def
   proof intro
     show "id A: A \<rightarrow> A" by typechk
-  qed (reduce, intro; refl)
+  qed (compute, intro; refl)
 
 Lemma is_qinvI:
   assumes
@@ -245,17 +237,17 @@ Lemma (def) funcomp_is_qinv:
     \<^item> proof intro
         show "(finv \<circ> ginv) \<circ> g \<circ> f ~ id A"
         proof -
-          have "(finv \<circ> ginv) \<circ> g \<circ> f ~ finv \<circ> (ginv \<circ> g) \<circ> f" by reduce refl
+          have "(finv \<circ> ginv) \<circ> g \<circ> f ~ finv \<circ> (ginv \<circ> g) \<circ> f" by compute refl
           also have ".. ~ finv \<circ> id B \<circ> f" by (rhtpy, lhtpy) fact
-          also have ".. ~ id A" by reduce fact
+          also have ".. ~ id A" by compute fact
           finally show "?" by this
         qed
 
         show "(g \<circ> f) \<circ> finv \<circ> ginv ~ id C"
         proof -
-          have "(g \<circ> f) \<circ> finv \<circ> ginv ~ g \<circ> (f \<circ> finv) \<circ> ginv" by reduce refl
+          have "(g \<circ> f) \<circ> finv \<circ> ginv ~ g \<circ> (f \<circ> finv) \<circ> ginv" by compute refl
           also have ".. ~ g \<circ> id B \<circ> ginv" by (rhtpy, lhtpy) fact
-          also have ".. ~ id C" by reduce fact
+          also have ".. ~ id C" by compute fact
           finally show "?" by this
         qed
       qed
@@ -317,10 +309,10 @@ Lemma (def) is_qinv_if_is_biinv:
       \<^item> by (fact \<open>g: _\<close>)
       \<^item> by (fact \<open>H1: _\<close>)
       \<^item> proof -
-          have "g ~ g \<circ> (id B)" by reduce refl
+          have "g ~ g \<circ> (id B)" by compute refl
           also have ".. ~ g \<circ> f \<circ> h" by rhtpy (rule \<open>H2:_\<close>[symmetric])
-          also have ".. ~ (id A) \<circ> h" by (rewrite funcomp_assoc[symmetric]) (lhtpy, fact)
-          also have ".. ~ h" by reduce refl
+          also have ".. ~ (id A) \<circ> h" by (comp funcomp_assoc[symmetric]) (lhtpy, fact)
+          also have ".. ~ h" by compute refl
           finally have "g ~ h" by this
           then have "f \<circ> g ~ f \<circ> h" by (rhtpy, this)
           also note \<open>H2:_\<close>
@@ -420,24 +412,24 @@ Lemma (def) equiv_if_equal:
   apply intro defer
     \<^item> apply (eq p)
       \<^enum> vars A B
-        apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
+        apply (comp at A in "A \<rightarrow> B" id_comp[symmetric])
         using [[solve_side_conds=1]]
-        apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
+        apply (comp at B in "_ \<rightarrow> B" id_comp[symmetric])
         apply (rule transport, rule Ui_in_USi)
         by (rule lift_universe_codomain, rule Ui_in_USi)
       \<^enum> vars A
         using [[solve_side_conds=1]]
-        apply (rewrite transport_comp)
+        apply (comp transport_comp)
           \<circ> by (rule Ui_in_USi)
-          \<circ> by reduce (rule U_lift)
-          \<circ> by reduce (rule id_is_biinv)
+          \<circ> by compute (rule U_lift)
+          \<circ> by compute (rule id_is_biinv)
         done
       done
 
     \<^item> \<comment> \<open>Similar proof as in the first subgoal above\<close>
-      apply (rewrite at A in "A \<rightarrow> B" id_comp[symmetric])
+      apply (comp at A in "A \<rightarrow> B" id_comp[symmetric])
       using [[solve_side_conds=1]]
-      apply (rewrite at B in "_ \<rightarrow> B" id_comp[symmetric])
+      apply (comp at B in "_ \<rightarrow> B" id_comp[symmetric])
       apply (rule transport, rule Ui_in_USi)
       by (rule lift_universe_codomain, rule Ui_in_USi)
   done

@@ -114,7 +114,7 @@ Lemma head_type [type]:
 Lemma head_of_cons [comp]:
   assumes "A: U i" "x: A" "xs: List A"
   shows "head (x # xs) \<equiv> some x"
-  unfolding head_def by reduce
+  unfolding head_def by compute
 
 Lemma tail_type [type]:
   assumes "A: U i" "xs: List A"
@@ -124,7 +124,7 @@ Lemma tail_type [type]:
 Lemma tail_of_cons [comp]:
   assumes "A: U i" "x: A" "xs: List A"
   shows "tail (x # xs) \<equiv> xs"
-  unfolding tail_def by reduce
+  unfolding tail_def by compute
 
 subsection \<open>Append\<close>
 
@@ -185,7 +185,7 @@ Lemma rev_type [type]:
 Lemma rev_nil [comp]:
   assumes "A: U i"
   shows "rev (nil A) \<equiv> nil A"
-  unfolding rev_def by reduce
+  unfolding rev_def by compute
 
 
 end

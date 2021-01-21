@@ -17,6 +17,7 @@ val eq: Proof.context -> thm list
 val eq_of: Proof.context -> term -> thm list
 val register_eq: thm -> Context.generic -> Context.generic
 val register_eqs: thm list -> Context.generic -> Context.generic
+
 val register_facts: thm list -> Proof.context -> Proof.context
 
 end = struct

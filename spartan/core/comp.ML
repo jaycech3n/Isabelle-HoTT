@@ -1,10 +1,16 @@
-(*  Title:      rewrite.ML
+(*  Title:      compute.ML
     Author:     Christoph Traut, Lars Noschinski, TU Muenchen
     Modified:   Joshua Chen, University of Innsbruck
 
-This is a rewrite method that supports subterm-selection based on patterns.
+This is a method for rewriting computational equalities that supports subterm
+selection based on patterns.
 
-The patterns accepted by rewrite are of the following form:
+This code has been slightly modified from the original at HOL/Library/compute.ML
+to incorporate automatic discharge of type-theoretic side conditions.
+
+Comment from the original code follows:
+
+The patterns accepted by compute are of the following form:
   <atom>    ::= <term> | "concl" | "asm" | "for" "(" <names> ")"
   <pattern> ::= (in <atom> | at <atom>) [<pattern>]
   <args>    ::= [<pattern>] ("to" <term>) <thms>
@@ -14,15 +20,12 @@ patterns but has diverged significantly during its development.
 
 We also allow introduction of identifiers for bound variables,
 which can then be used to match arbitrary subterms inside abstractions.
-
-This code has been slightly modified from the original at HOL/Library/rewrite.ML
-to incorporate automatic discharge of type-theoretic side conditions.
 *)
 
 infix 1 then_pconv;
 infix 0 else_pconv;
 
-signature REWRITE =
+signature COMPUTE =
 sig
   type patconv = Proof.context -> Type.tyenv * (string * term) list -> cconv
   val then_pconv: patconv * patconv -> patconv
@@ -41,19 +44,19 @@ sig
   val judgment_pconv: patconv -> patconv
   val in_pconv: patconv -> patconv
   val match_pconv: patconv -> term * (string option * typ) list -> patconv
-  val rewrs_pconv: term option -> thm list -> patconv
+  val comps_pconv: term option -> thm list -> patconv
 
   datatype ('a, 'b) pattern = At | In | Term of 'a | Concl | Asm | For of 'b list
 
   val mk_hole: int -> typ -> term
 
-  val rewrite_conv: Proof.context
+  val compute_conv: Proof.context
     -> (term * (string * typ) list, string * typ option) pattern list * term option
     -> thm list
     -> conv
 end
 
-structure Rewrite : REWRITE =
+structure Compute : COMPUTE =
 struct
 
 datatype ('a, 'b) pattern = At | In | Term of 'a | Concl | Asm | For of 'b list
@@ -72,13 +75,13 @@ fun mk_hole i T = Var ((holeN, i), T)
 fun is_hole (Var ((name, _), _)) = (name = holeN)
   | is_hole _ = false
 
-fun is_hole_const (Const (\<^const_name>\<open>rewrite_hole\<close>, _)) = true
+fun is_hole_const (Const (\<^const_name>\<open>compute_hole\<close>, _)) = true
   | is_hole_const _ = false
 
 val hole_syntax =
   let
     (* Modified variant of Term.replace_hole *)
-    fun replace_hole Ts (Const (\<^const_name>\<open>rewrite_hole\<close>, T)) i =
+    fun replace_hole Ts (Const (\<^const_name>\<open>compute_hole\<close>, T)) i =
           (list_comb (mk_hole i (Ts ---> T), map_range Bound (length Ts)), i + 1)
       | replace_hole Ts (Abs (x, T, t)) i =
           let val (t', i') = replace_hole (T :: Ts) t i
@@ -265,7 +268,7 @@ fun match_pconv cv (t,fixes) ctxt (tyenv, env_ts) ct =
     | SOME (tyenv', _) => to_hole t ctxt (tyenv', env_ts) ct
   end
 
-fun rewrs_pconv to thms ctxt (tyenv, env_ts) =
+fun comps_pconv to thms ctxt (tyenv, env_ts) =
   let
     fun instantiate_normalize_env ctxt env thm =
       let
@@ -301,7 +304,7 @@ fun rewrs_pconv to thms ctxt (tyenv, env_ts) =
     
   in CConv.rewrs_cconv (map_filter (inst_thm ctxt env_ts (to, tyenv)) thms) end
 
-fun rewrite_conv ctxt (pattern, to) thms ct =
+fun compute_conv ctxt (pattern, to) thms ct =
   let
     fun apply_pat At = judgment_pconv
       | apply_pat In = in_pconv
@@ -317,15 +320,15 @@ fun rewrite_conv ctxt (pattern, to) thms ct =
         NONE => th
       | SOME (th', _) => th'
 
-    val rewrite = rewrs_pconv to (maps (prep_meta_eq ctxt) thms)
-  in cv rewrite ctxt (Vartab.empty, []) ct |> distinct_prems end
+    val compute = comps_pconv to (maps (prep_meta_eq ctxt) thms)
+  in cv compute ctxt (Vartab.empty, []) ct |> distinct_prems end
 
-fun rewrite_export_tac ctxt (pat, pat_ctxt) thms =
+fun compute_export_tac ctxt (pat, pat_ctxt) thms =
   let
     val export = case pat_ctxt of
         NONE => I
       | SOME inner => singleton (Proof_Context.export inner ctxt)
-  in CCONVERSION (export o rewrite_conv ctxt pat thms) end
+  in CCONVERSION (export o compute_conv ctxt pat thms) end
 
 val _ =
   Theory.setup
@@ -449,17 +452,17 @@ val _ =
       let val scan = raw_pattern -- to_parser -- Parse.thms1
       in context_lift scan prep_args end
 
-    fun rewrite_export_ctac inputs inthms =
-      CONTEXT_TACTIC' (fn ctxt => rewrite_export_tac ctxt inputs inthms)
+    fun compute_export_ctac inputs inthms =
+      CONTEXT_TACTIC' (fn ctxt => compute_export_tac ctxt inputs inthms)
   in
-    Method.setup \<^binding>\<open>rewr\<close> (subst_parser >>
+    Method.setup \<^binding>\<open>cmp\<close> (subst_parser >>
       (fn (pattern, inthms, (to, pat_ctxt)) => fn orig_ctxt => SIMPLE_METHOD'
-        (rewrite_export_tac orig_ctxt ((pattern, to), SOME pat_ctxt) inthms)))
+        (compute_export_tac orig_ctxt ((pattern, to), SOME pat_ctxt) inthms)))
       "single-step rewriting, allowing subterm selection via patterns" #>
-    Method.setup \<^binding>\<open>rewrite\<close> (subst_parser >>
+    Method.setup \<^binding>\<open>comp\<close> (subst_parser >>
       (fn (pattern, inthms, (to, pat_ctxt)) => K (CONTEXT_METHOD (
         CHEADGOAL o SIDE_CONDS 0
-          (rewrite_export_ctac ((pattern, to), SOME pat_ctxt) inthms)))))
+          (compute_export_ctac ((pattern, to), SOME pat_ctxt) inthms)))))
       "single-step rewriting with auto-typechecking"
   end
 end

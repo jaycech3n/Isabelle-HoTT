@@ -85,7 +85,7 @@ Lemma (def) pathinv:
 Lemma pathinv_comp [comp]:
   assumes "A: U i" "x: A"
   shows "pathinv A x x (refl x) \<equiv> refl x"
-  unfolding pathinv_def by reduce
+  unfolding pathinv_def by compute
 
 Lemma (def) pathcomp:
   assumes
@@ -101,7 +101,7 @@ Lemma (def) pathcomp:
 Lemma pathcomp_comp [comp]:
   assumes "A: U i" "a: A"
   shows "pathcomp A a a a (refl a) (refl a) \<equiv> refl a"
-  unfolding pathcomp_def by reduce
+  unfolding pathcomp_def by compute
 
 method pathcomp for p q :: o = rule pathcomp[where ?p=p and ?q=q]
 
@@ -137,12 +137,12 @@ section \<open>Basic propositional equalities\<close>
 Lemma (def) refl_pathcomp:
   assumes "A: U i" "x: A" "y: A" "p: x = y"
   shows "(refl x) \<bullet> p = p"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 Lemma (def) pathcomp_refl:
   assumes "A: U i" "x: A" "y: A" "p: x = y"
   shows "p \<bullet> (refl y) = p"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 definition [implicit]: "lu p \<equiv> refl_pathcomp {} {} {} p"
 definition [implicit]: "ru p \<equiv> pathcomp_refl {} {} {} p"
@@ -154,27 +154,27 @@ translations
 Lemma lu_refl [comp]:
   assumes "A: U i" "x: A"
   shows "lu (refl x) \<equiv> refl (refl x)"
-  unfolding refl_pathcomp_def by reduce
+  unfolding refl_pathcomp_def by compute
 
 Lemma ru_refl [comp]:
   assumes "A: U i" "x: A"
   shows "ru (refl x) \<equiv> refl (refl x)"
-  unfolding pathcomp_refl_def by reduce
+  unfolding pathcomp_refl_def by compute
 
 Lemma (def) inv_pathcomp:
   assumes "A: U i" "x: A" "y: A" "p: x = y"
   shows "p\<inverse> \<bullet> p = refl y"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 Lemma (def) pathcomp_inv:
   assumes "A: U i" "x: A" "y: A" "p: x = y"
   shows "p \<bullet> p\<inverse> = refl x"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 Lemma (def) pathinv_pathinv:
   assumes "A: U i" "x: A" "y: A" "p: x = y"
   shows "p\<inverse>\<inverse> = p"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 Lemma (def) pathcomp_assoc:
   assumes
@@ -187,7 +187,7 @@ Lemma (def) pathcomp_assoc:
     proof (eq q)
       fix x r assuming "x: A" "r: x = w"
       show "refl x \<bullet> (refl x \<bullet> r) = refl x \<bullet> refl x \<bullet> r"
-        by (eq r) (reduce, refl)
+        by (eq r) (compute, refl)
     qed
   qed
 
@@ -211,7 +211,7 @@ translations "f[p]" \<leftharpoondown> "CONST ap A B x y f p"
 Lemma ap_refl [comp]:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "x: A"
   shows "f[refl x] \<equiv> refl (f x)"
-  unfolding ap_def by reduce
+  unfolding ap_def by compute
 
 Lemma (def) ap_pathcomp:
   assumes
@@ -224,7 +224,7 @@ Lemma (def) ap_pathcomp:
   proof (eq p)
     fix x q assuming "x: A" "q: x = z"
     show "f[refl x \<bullet> q] = f[refl x] \<bullet> f[q]"
-      by (eq q) (reduce, refl)
+      by (eq q) (compute, refl)
   qed
 
 Lemma (def) ap_pathinv:
@@ -234,7 +234,7 @@ Lemma (def) ap_pathinv:
     "f: A \<rightarrow> B"
     "p: x = y"
   shows "f[p\<inverse>] = f[p]\<inverse>"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 Lemma (def) ap_funcomp:
   assumes
@@ -244,14 +244,14 @@ Lemma (def) ap_funcomp:
     "p: x = y"
   shows "(g \<circ> f)[p] = g[f[p]]"
   apply (eq p)
-  \<^item> by reduce
-  \<^item> by reduce refl
+  \<^item> by compute
+  \<^item> by compute refl
   done
 
 Lemma (def) ap_id:
   assumes "A: U i" "x: A" "y: A" "p: x = y"
   shows "(id A)[p] = p"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 
 section \<open>Transport\<close>
@@ -276,7 +276,7 @@ Lemma transport_comp [comp]:
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> P x: U i"
   shows "transp P (refl a) \<equiv> id (P a)"
-  unfolding transport_def by reduce
+  unfolding transport_def by compute
 
 Lemma apply_transport:
   assumes
@@ -287,7 +287,7 @@ Lemma apply_transport:
   shows "transp P p\<inverse> u: P y"
   by typechk
 
-method transport uses eq = (rule apply_transport[OF _ _ _ _ eq])
+method rewr uses eq = (rule apply_transport[OF _ _ _ _ eq])
 
 Lemma (def) pathcomp_cancel_left:
   assumes
@@ -297,13 +297,13 @@ Lemma (def) pathcomp_cancel_left:
   shows "q = r"
   proof -
     have "q = (p\<inverse> \<bullet> p) \<bullet> q"
-      by (transport eq: inv_pathcomp, transport eq: refl_pathcomp) refl
+      by (rewr eq: inv_pathcomp, rewr eq: refl_pathcomp) refl
     also have ".. = p\<inverse> \<bullet> (p \<bullet> r)"
-      by (transport eq: pathcomp_assoc[symmetric], transport eq: \<open>\<alpha>:_\<close>) refl
+      by (rewr eq: pathcomp_assoc[symmetric], rewr eq: \<open>\<alpha>:_\<close>) refl
     also have ".. = r"
-      by (transport eq: pathcomp_assoc,
-          transport eq: inv_pathcomp,
-          transport eq: refl_pathcomp) refl
+      by (rewr eq: pathcomp_assoc,
+          rewr eq: inv_pathcomp,
+          rewr eq: refl_pathcomp) refl
     finally show "?" by this
   qed
 
@@ -315,14 +315,14 @@ Lemma (def) pathcomp_cancel_right:
   shows "p = q"
   proof -
     have "p = p \<bullet> r \<bullet> r\<inverse>"
-      by (transport eq: pathcomp_assoc[symmetric],
-          transport eq: pathcomp_inv,
-          transport eq: pathcomp_refl) refl
+      by (rewr eq: pathcomp_assoc[symmetric],
+          rewr eq: pathcomp_inv,
+          rewr eq: pathcomp_refl) refl
     also have ".. = q"
-      by (transport eq: \<open>\<alpha>:_\<close>,
-          transport eq: pathcomp_assoc[symmetric],
-          transport eq: pathcomp_inv,
-          transport eq: pathcomp_refl) refl
+      by (rewr eq: \<open>\<alpha>:_\<close>,
+          rewr eq: pathcomp_assoc[symmetric],
+          rewr eq: pathcomp_inv,
+          rewr eq: pathcomp_refl) refl
     finally show "?" by this
   qed
 
@@ -336,7 +336,7 @@ Lemma (def) transport_left_inv:
     "x: A" "y: A"
     "p: x = y"
   shows "(transp P p\<inverse>) \<circ> (transp P p) = id (P x)"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 Lemma (def) transport_right_inv:
   assumes
@@ -345,7 +345,7 @@ Lemma (def) transport_right_inv:
     "x: A" "y: A"
     "p: x = y"
   shows "(transp P p) \<circ> (transp P p\<inverse>) = id (P y)"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 Lemma (def) transport_pathcomp:
   assumes
@@ -359,7 +359,7 @@ proof (eq p)
   fix x q u
   assuming "x: A" "q: x = z" "u: P x"
   show "transp P q (transp P (refl x) u) = transp P ((refl x) \<bullet> q) u"
-    by (eq q) (reduce, refl)
+    by (eq q) (compute, refl)
 qed
 
 Lemma (def) transport_compose_typefam:
@@ -371,7 +371,7 @@ Lemma (def) transport_compose_typefam:
     "p: x = y"
     "u: P (f x)"
   shows "transp (fn x. P (f x)) p u = transp P f[p] u"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 Lemma (def) transport_function_family:
   assumes
@@ -383,7 +383,7 @@ Lemma (def) transport_function_family:
     "u: P x"
     "p: x = y"
   shows "transp Q p ((f x) u) = (f y) (transp P p u)"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 Lemma (def) transport_const:
   assumes
@@ -391,7 +391,7 @@ Lemma (def) transport_const:
     "x: A" "y: A"
     "p: x = y"
   shows "\<Prod>b: B. transp (fn _. B) p b = b"
-  by intro (eq p, reduce, refl)
+  by intro (eq p, compute, refl)
 
 definition transport_const_i ("transp'_c")
   where [implicit]: "transp_c B p \<equiv> transport_const {} B {} {} p"
@@ -403,7 +403,7 @@ Lemma transport_const_comp [comp]:
     "x: A" "b: B"
     "A: U i" "B: U i"
   shows "transp_c B (refl x) b \<equiv> refl b"
-  unfolding transport_const_def by reduce
+  unfolding transport_const_def by compute
 
 Lemma (def) pathlift:
   assumes
@@ -413,7 +413,7 @@ Lemma (def) pathlift:
     "p: x = y"
     "u: P x"
   shows "<x, u> = <y, transp P p u>"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 definition pathlift_i ("lift")
   where [implicit]: "lift P p u \<equiv> pathlift {} P {} {} p u"
@@ -427,7 +427,7 @@ Lemma pathlift_comp [comp]:
     "\<And>x. x: A \<Longrightarrow> P x: U i"
     "A: U i"
   shows "lift P (refl x) u \<equiv> refl <x, u>"
-  unfolding pathlift_def by reduce
+  unfolding pathlift_def by compute
 
 Lemma (def) pathlift_fst:
   assumes
@@ -437,7 +437,7 @@ Lemma (def) pathlift_fst:
     "u: P x"
     "p: x = y"
   shows "fst[lift P p u] = p"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 
 section \<open>Dependent paths\<close>
@@ -450,7 +450,7 @@ Lemma (def) apd:
     "x: A" "y: A"
     "p: x = y"
   shows "transp P p (f x) = f y"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 definition apd_i ("apd")
   where [implicit]: "apd f p \<equiv> Identity.apd {} {} f {} {} p"
@@ -464,7 +464,7 @@ Lemma dependent_map_comp [comp]:
     "A: U i"
     "\<And>x. x: A \<Longrightarrow> P x: U i"
   shows "apd f (refl x) \<equiv> refl (f x)"
-  unfolding apd_def by reduce
+  unfolding apd_def by compute
 
 Lemma (def) apd_ap:
   assumes
@@ -473,7 +473,7 @@ Lemma (def) apd_ap:
     "x: A" "y: A"
     "p: x = y"
   shows "apd f p = transp_c B p (f x) \<bullet> f[p]"
-  by (eq p) (reduce, refl)
+  by (eq p) (compute, refl)
 
 
 section \<open>Whiskering\<close>
@@ -519,12 +519,12 @@ translations
 Lemma whisker_refl [comp]:
   assumes "A: U i" "a: A" "b: A" "p: a = b" "q: a = b" "\<alpha>: p = q"
   shows "\<alpha> \<bullet>\<^sub>r (refl b) \<equiv> ru p \<bullet> \<alpha> \<bullet> (ru q)\<inverse>"
-  unfolding right_whisker_def by reduce
+  unfolding right_whisker_def by compute
 
 Lemma refl_whisker [comp]:
   assumes "A: U i" "a: A" "b: A" "p: a = b" "q: a = b" "\<alpha>: p = q"
   shows "(refl a) \<bullet>\<^sub>l \<alpha> \<equiv> (lu p) \<bullet> \<alpha> \<bullet> (lu q)\<inverse>"
-  unfolding left_whisker_def by reduce
+  unfolding left_whisker_def by compute
 
 method left_whisker = (rule left_whisker)
 method right_whisker = (rule right_whisker)
@@ -569,7 +569,7 @@ Lemma (def) horiz_pathcomp_eq_horiz_pathcomp':
   unfolding horiz_pathcomp_def horiz_pathcomp'_def
   apply (eq \<alpha>, eq \<beta>)
     focus vars p apply (eq p)
-      focus vars a _ _ _ r by (eq r) (reduce, refl)
+      focus vars a _ _ _ r by (eq r) (compute, refl)
     done
   done
 
@@ -604,14 +604,14 @@ Lemma
     and horiz_pathcomp'_type [type]: "\<alpha> \<star>' \<beta>: \<Omega>2 A a"
   using assms
   unfolding \<Omega>2.horiz_pathcomp_def \<Omega>2.horiz_pathcomp'_def \<Omega>2_def
-  by reduce+
+  by compute+
 
 Lemma (def) pathcomp_eq_horiz_pathcomp:
   assumes "\<alpha>: \<Omega>2 A a" "\<beta>: \<Omega>2 A a"
   shows "\<alpha> \<bullet> \<beta> = \<alpha> \<star> \<beta>"
   unfolding \<Omega>2.horiz_pathcomp_def
   using assms[unfolded \<Omega>2_def, type] (*TODO: A `noting` keyword that puts the noted theorem into [type]*)
-  proof (reduce, rule pathinv)
+  proof (compute, rule pathinv)
     have "refl (refl a) \<bullet> \<alpha> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<alpha>"
       by (rule pathcomp_refl)
     also have ".. = \<alpha>" by (rule refl_pathcomp)
@@ -633,7 +633,7 @@ Lemma (def) pathcomp_eq_horiz_pathcomp':
   shows "\<alpha> \<star>' \<beta> = \<beta> \<bullet> \<alpha>"
   unfolding \<Omega>2.horiz_pathcomp'_def
   using assms[unfolded \<Omega>2_def, type]
-  proof reduce
+  proof compute
     have "refl (refl a) \<bullet> \<beta> \<bullet> refl (refl a) = refl (refl a) \<bullet> \<beta>"
       by (rule pathcomp_refl)
     also have ".. = \<beta>" by (rule refl_pathcomp)
@@ -660,7 +660,7 @@ Lemma (def) eckmann_hilton:
     also have [simplified comp]: ".. = \<alpha> \<star>' \<beta>"
       \<comment> \<open>Danger! Inferred implicit has an equivalent form but needs to be
           manually simplified.\<close>
-      by (transport eq: \<Omega>2.horiz_pathcomp_eq_horiz_pathcomp') refl
+      by (rewr eq: \<Omega>2.horiz_pathcomp_eq_horiz_pathcomp') refl
     also have ".. = \<beta> \<bullet> \<alpha>"
       by (rule pathcomp_eq_horiz_pathcomp')
     finally show "\<alpha> \<bullet> \<beta> = \<beta> \<bullet> \<alpha>"

@@ -70,27 +70,27 @@ Lemma add_type [type]:
 Lemma add_zero [comp]:
   assumes "m: Nat"
   shows "m + 0 \<equiv> m"
-  unfolding add_def by reduce
+  unfolding add_def by compute
 
 Lemma add_suc [comp]:
   assumes "m: Nat" "n: Nat"
   shows "m + suc n \<equiv> suc (m + n)"
-  unfolding add_def by reduce
+  unfolding add_def by compute
 
 Lemma (def) zero_add:
   assumes "n: Nat"
   shows "0 + n = n"
   apply (elim n)
-    \<^item> by (reduce; intro)
-    \<^item> vars _ ih by reduce (eq ih; refl)
+    \<^item> by (compute; intro)
+    \<^item> vars _ ih by compute (eq ih; refl)
   done
 
 Lemma (def) suc_add:
   assumes "m: Nat" "n: Nat"
   shows "suc m + n = suc (m + n)"
   apply (elim n)
-    \<^item> by reduce refl
-    \<^item> vars _ ih by reduce (eq ih; refl)
+    \<^item> by compute refl
+    \<^item> vars _ ih by compute (eq ih; refl)
   done
 
 Lemma (def) suc_eq:
@@ -102,19 +102,19 @@ Lemma (def) add_assoc:
   assumes "l: Nat" "m: Nat" "n: Nat"
   shows "l + (m + n) = l + m+ n"
   apply (elim n)
-    \<^item> by reduce intro
-    \<^item> vars _ ih by reduce (eq ih; refl)
+    \<^item> by compute intro
+    \<^item> vars _ ih by compute (eq ih; refl)
   done
 
 Lemma (def) add_comm:
   assumes "m: Nat" "n: Nat"
   shows "m + n = n + m"
   apply (elim n)
-    \<^item> by (reduce; rule zero_add[symmetric])
+    \<^item> by (compute; rule zero_add[symmetric])
     \<^item> vars n ih
-      proof reduce
+      proof compute
         have "suc (m + n) = suc (n + m)" by (eq ih) refl
-        also have ".. = suc n + m" by (transport eq: suc_add) refl
+        also have ".. = suc n + m" by (rewr eq: suc_add) refl
         finally show "?" by this
       qed
   done
@@ -131,27 +131,27 @@ Lemma mul_type [type]:
 Lemma mul_zero [comp]:
   assumes "n: Nat"
   shows "n * 0 \<equiv> 0"
-  unfolding mul_def by reduce
+  unfolding mul_def by compute
 
 Lemma mul_one [comp]:
   assumes "n: Nat"
   shows "n * 1 \<equiv> n"
-  unfolding mul_def by reduce
+  unfolding mul_def by compute
 
 Lemma mul_suc [comp]:
   assumes "m: Nat" "n: Nat"
   shows "m * suc n \<equiv> m + m * n"
-  unfolding mul_def by reduce
+  unfolding mul_def by compute
 
 Lemma (def) zero_mul:
   assumes "n: Nat"
   shows "0 * n = 0"
   apply (elim n)
-  \<^item> by reduce refl
+  \<^item> by compute refl
   \<^item> vars n ih
-    proof reduce
+    proof compute
       have "0 + 0 * n = 0 + 0 " by (eq ih) refl
-      also have ".. = 0" by reduce refl
+      also have ".. = 0" by compute refl
       finally show "?" by this
     qed
   done
@@ -160,11 +160,11 @@ Lemma (def) suc_mul:
   assumes "m: Nat" "n: Nat"
   shows "suc m * n = m * n + n"
   apply (elim n)
-  \<^item> by reduce refl
+  \<^item> by compute refl
   \<^item> vars n ih
-    proof (reduce, transport eq: \<open>ih:_\<close>)
+    proof (compute, rewr eq: \<open>ih:_\<close>)
       have "suc m + (m * n + n) = suc (m + ?)" by (rule suc_add)
-      also have ".. = suc (m + m * n + n)" by (transport eq: add_assoc) refl
+      also have ".. = suc (m + m * n + n)" by (rewr eq: add_assoc) refl
       finally show "?" by this
     qed
   done
@@ -173,13 +173,13 @@ Lemma (def) mul_dist_add:
   assumes "l: Nat" "m: Nat" "n: Nat"
   shows "l * (m + n) = l * m + l * n"
   apply (elim n)
-  \<^item> by reduce refl
+  \<^item> by compute refl
   \<^item> vars n ih
-    proof reduce
+    proof compute
       have "l + l * (m + n) = l + (l * m + l * n)" by (eq ih) refl
       also have ".. = l + l * m + l * n" by (rule add_assoc)
-      also have ".. = l * m + l + l * n" by (transport eq: add_comm) refl
-      also have ".. = l * m + (l + l * n)" by (transport eq: add_assoc) refl
+      also have ".. = l * m + l + l * n" by (rewr eq: add_comm) refl
+      also have ".. = l * m + (l + l * n)" by (rewr eq: add_assoc) refl
       finally show "?" by this
     qed
   done
@@ -188,11 +188,11 @@ Lemma (def) mul_assoc:
   assumes "l: Nat" "m: Nat" "n: Nat"
   shows "l * (m * n) = l * m * n"
   apply (elim n)
-  \<^item> by reduce refl
+  \<^item> by compute refl
   \<^item> vars n ih
-    proof reduce
+    proof compute
       have "l * (m + m * n) = l * m + l * (m * n)" by (rule mul_dist_add)
-      also have ".. = l * m + l * m * n" by (transport eq: \<open>ih:_\<close>) refl
+      also have ".. = l * m + l * m * n" by (rewr eq: \<open>ih:_\<close>) refl
       finally show "?" by this
     qed
   done
@@ -201,12 +201,12 @@ Lemma (def) mul_comm:
   assumes "m: Nat" "n: Nat"
   shows "m * n = n * m"
   apply (elim n)
-  \<^item> by reduce (transport eq: zero_mul, refl)
+  \<^item> by compute (rewr eq: zero_mul, refl)
   \<^item> vars n ih
-    proof (reduce, rule pathinv)
+    proof (compute, rule pathinv)
       have "suc n * m = n * m + m" by (rule suc_mul)
       also have ".. = m + m * n"
-        by (transport eq: \<open>ih:_\<close>, transport eq: add_comm) refl
+        by (rewr eq: \<open>ih:_\<close>, rewr eq: add_comm) refl
       finally show "?" by this
     qed
   done
