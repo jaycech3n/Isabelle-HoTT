@@ -1,16 +1,16 @@
-session Spartan_Core in "spartan/core" = Pure +
+session MLTT_Core in "mltt/core" = Pure +
   description
-    "Spartan type theory: a minimal dependent type theory based on intensional
-    Martin-Löf type theory with cumulative Russell-style universes, Pi types and
-    Sigma types."
+    "Core MLTT: minimal dependent type theory based on intensional Martin-Löf
+    type theory with cumulative Russell-style universes, Pi types and Sigma
+    types."
   sessions
     "HOL-Eisbach"
   theories
-    Spartan (global)
+    MLTT (global)
 
-session Spartan in spartan = Spartan_Core +
+session MLTT in mltt = MLTT_Core +
   description
-    "Dependent type theory based on Spartan."
+    "Dependent type theory based on MLTT_Core."
   directories
     lib
   theories
@@ -18,7 +18,7 @@ session Spartan in spartan = Spartan_Core +
     Maybe
     List
 
-session HoTT in hott = Spartan +
+session HoTT in hott = MLTT +
   description
     "Homotopy type theory, following the development in
       The Univalent Foundations Program,

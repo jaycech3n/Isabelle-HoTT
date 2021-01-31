@@ -6,7 +6,7 @@ text \<open>
 \<close>
 
 theory Identity
-imports Spartan
+imports MLTT
 
 begin
 
@@ -109,7 +109,7 @@ method pathcomp for p q :: o = rule pathcomp[where ?p=p and ?q=q]
 section \<open>Notation\<close>
 
 definition Id_i (infix "=" 110)
-  where [implicit]: "Id_i x y \<equiv> x =\<^bsub>{}\<^esub> y"
+  where [implicit]: "x = y \<equiv> x =\<^bsub>{}\<^esub> y"
 
 definition pathinv_i ("_\<inverse>" [1000])
   where [implicit]: "pathinv_i p \<equiv> pathinv {} {} {} p"
@@ -532,47 +532,40 @@ method right_whisker = (rule right_whisker)
 
 section \<open>Horizontal path-composition\<close>
 
-locale horiz_pathcomposable =
-\<comment> \<open>Conditions under which horizontal path-composition is defined.\<close>
-fixes
-  i A a b c p q r s
-assumes [type]:
-  "A: U i" "a: A" "b: A" "c: A"
-  "p: a =\<^bsub>A\<^esub> b" "q: a =\<^bsub>A\<^esub> b"
-  "r: b =\<^bsub>A\<^esub> c" "s: b =\<^bsub>A\<^esub> c"
+locale horiz_pathcomposable = \<comment> \<open>Conditions under which horizontal path-composition is defined.\<close>
+fixes i A a b c p q r s
+assumes [type]: "A: U i" "a: A" "b: A" "c: A"
+                "p: a =\<^bsub>A\<^esub> b" "q: a =\<^bsub>A\<^esub> b" "r: b =\<^bsub>A\<^esub> c" "s: b =\<^bsub>A\<^esub> c"
 begin
+  Lemma (def) horiz_pathcomp:
+    assumes "\<alpha>: p = q" "\<beta>: r = s" shows "p \<bullet> r = q \<bullet> s"
+  proof (rule pathcomp)
+    show "p \<bullet> r = q \<bullet> r" by right_whisker fact
+    show ".. = q \<bullet> s" by left_whisker fact
+  qed typechk
 
-Lemma (def) horiz_pathcomp:
-  assumes "\<alpha>: p = q" "\<beta>: r = s"
-  shows "p \<bullet> r = q \<bullet> s"
-proof (rule pathcomp)
-  show "p \<bullet> r = q \<bullet> r" by right_whisker fact
-  show ".. = q \<bullet> s" by left_whisker fact
-qed typechk
+  Lemma (def) horiz_pathcomp':
+    assumes "\<alpha>: p = q" "\<beta>: r = s" shows "p \<bullet> r = q \<bullet> s"
+  proof (rule pathcomp)
+    show "p \<bullet> r = p \<bullet> s" by left_whisker fact
+    show ".. = q \<bullet> s" by right_whisker fact
+  qed typechk
 
-text \<open>A second horizontal composition:\<close>
+  notation horiz_pathcomp (infix "\<star>" 121)
+  notation horiz_pathcomp' (infix "\<star>''" 121)
 
-Lemma (def) horiz_pathcomp':
-  assumes "\<alpha>: p = q" "\<beta>: r = s"
-  shows "p \<bullet> r = q \<bullet> s"
-proof (rule pathcomp)
-  show "p \<bullet> r = p \<bullet> s" by left_whisker fact
-  show ".. = q \<bullet> s" by right_whisker fact
-qed typechk
-
-notation horiz_pathcomp (infix "\<star>" 121)
-notation horiz_pathcomp' (infix "\<star>''" 121)
-
-Lemma (def) horiz_pathcomp_eq_horiz_pathcomp':
-  assumes "\<alpha>: p = q" "\<beta>: r = s"
-  shows "\<alpha> \<star> \<beta> = \<alpha> \<star>' \<beta>"
-  unfolding horiz_pathcomp_def horiz_pathcomp'_def
-  apply (eq \<alpha>, eq \<beta>)
-    focus vars p apply (eq p)
-      focus vars a _ _ _ r by (eq r) (compute, refl)
-    done
-  done
-
+  Lemma (def) horiz_pathcomp_eq_horiz_pathcomp':
+    assumes "\<alpha>: p = q" "\<beta>: r = s" shows "\<alpha> \<star> \<beta> = \<alpha> \<star>' \<beta>"
+    unfolding horiz_pathcomp_def horiz_pathcomp'_def
+    proof (eq \<alpha>, eq \<beta>)
+      fix p q assuming "p: a = b" "q: b = c"
+      show "refl p \<bullet>\<^sub>r q \<bullet> (p \<bullet>\<^sub>l refl q) = p \<bullet>\<^sub>l refl q \<bullet> (refl p \<bullet>\<^sub>r q)"
+      proof (eq p)
+        fix a r assuming "a: A" "r: a = c"
+        show "refl (refl a) \<bullet>\<^sub>r r \<bullet> (refl a \<bullet>\<^sub>l refl r) = refl a \<bullet>\<^sub>l refl r \<bullet> (refl (refl a) \<bullet>\<^sub>r r)"
+          by (eq r) (compute, refl)
+      qed
+    qed
 end
 
 

@@ -1,6 +1,4 @@
-text \<open>Spartan type theory\<close>
-
-theory Spartan
+theory MLTT
 imports
   Pure
   "HOL-Eisbach.Eisbach"
@@ -511,14 +509,14 @@ Lemma snd_comp [comp]:
 subsection \<open>Notation\<close>
 
 definition fst_i ("fst")
-  where [implicit]: "fst \<equiv> Spartan.fst {} {}"
+  where [implicit]: "fst \<equiv> MLTT.fst {} {}"
 
 definition snd_i ("snd")
-  where [implicit]: "snd \<equiv> Spartan.snd {} {}"
+  where [implicit]: "snd \<equiv> MLTT.snd {} {}"
 
 translations
-  "fst" \<leftharpoondown> "CONST Spartan.fst A B"
-  "snd" \<leftharpoondown> "CONST Spartan.snd A B"
+  "fst" \<leftharpoondown> "CONST MLTT.fst A B"
+  "snd" \<leftharpoondown> "CONST MLTT.snd A B"
 
 subsection \<open>Projections\<close>
 
@@ -541,10 +539,10 @@ method snd for p::o = rule snd[where ?p=p]
 
 text \<open>Double projections:\<close>
 
-definition [implicit]: "p\<^sub>1\<^sub>1 p \<equiv> Spartan.fst {} {} (Spartan.fst {} {} p)"
-definition [implicit]: "p\<^sub>1\<^sub>2 p \<equiv> Spartan.snd {} {} (Spartan.fst {} {} p)"
-definition [implicit]: "p\<^sub>2\<^sub>1 p \<equiv> Spartan.fst {} {} (Spartan.snd {} {} p)"
-definition [implicit]: "p\<^sub>2\<^sub>2 p \<equiv> Spartan.snd {} {} (Spartan.snd {} {} p)"
+definition [implicit]: "p\<^sub>1\<^sub>1 p \<equiv> MLTT.fst {} {} (MLTT.fst {} {} p)"
+definition [implicit]: "p\<^sub>1\<^sub>2 p \<equiv> MLTT.snd {} {} (MLTT.fst {} {} p)"
+definition [implicit]: "p\<^sub>2\<^sub>1 p \<equiv> MLTT.fst {} {} (MLTT.snd {} {} p)"
+definition [implicit]: "p\<^sub>2\<^sub>2 p \<equiv> MLTT.snd {} {} (MLTT.snd {} {} p)"
 
 translations
   "CONST p\<^sub>1\<^sub>1 p" \<leftharpoondown> "fst (fst p)"

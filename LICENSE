@@ -1,15 +1,15 @@
 Isabelle/HoTT
-Copyright (c) 2018–2020 Joshua Chen
+Copyright (c) 2018–2021 Joshua Chen
 
 All files are licensed under the terms of the
 GNU Lesser General Public License v3.0 reproduced below,
 WITH THE EXCEPTION OF the following files:
-  spartan/core/context_tactical.ML
-  spartan/core/elaborated_statement.ML
-  spartan/core/eqsubst.ML
-  spartan/core/focus.ML
-  spartan/core/goals.ML
-  spartan/core/rewrite.ML
+  mltt/core/comp.ML
+  mltt/core/context_tactical.ML
+  mltt/core/elaborated_statement.ML
+  mltt/core/eqsubst.ML
+  mltt/core/focus.ML
+  mltt/core/goals.ML
 
 These have been modified from source code which is part of the official
 Isabelle distribution (https://isabelle.in.tum.de/) and licensed under the

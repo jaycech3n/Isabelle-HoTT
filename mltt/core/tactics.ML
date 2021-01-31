@@ -129,7 +129,7 @@ fun elim_ctac tms =
                 |> filter (fn (_, i) => i > 0)
                 (*`t1: T1` comes before `t2: T2` if T1 contains t2 as subterm.
                   If they are incomparable, then order by decreasing
-                  `subterm_count [p, x, y] T`*)
+                  `subterm_count_distinct tms T`*)
                 |> sort (fn (((t1, _), i), ((_, T2), j)) =>
                     Lib.cond_order (Lib.subterm_order T2 t1) (int_ord (j, i)))
                 |> map (#1 o #1)

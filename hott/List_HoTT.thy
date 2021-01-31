@@ -1,6 +1,6 @@
 theory List_HoTT
 imports
-  Spartan.List
+  MLTT.List
   Nat
 
 begin

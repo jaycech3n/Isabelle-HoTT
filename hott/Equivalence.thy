@@ -400,8 +400,8 @@ Lemma
   by (eq p) (rule equivalence_refl)
 
 text \<open>
-  The following proof is wordy because (1) the typechecker doesn't normalize,
-  and (2) we don't yet have universe level inference.
+  The following proof is wordy because (1) typechecker normalization is still
+  rudimentary, and (2) we don't yet have universe level inference.
 \<close>
 
 Lemma (def) equiv_if_equal:

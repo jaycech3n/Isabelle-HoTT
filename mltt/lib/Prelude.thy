@@ -1,5 +1,5 @@
 theory Prelude
-imports Spartan
+imports MLTT
 
 begin
 
@@ -83,6 +83,8 @@ lemmas
   [elim ?a] = TopE and
   [elim ?x] = BotE and
   [comp] = Top_comp
+
+abbreviation (input) Not ("\<not>_" [1000] 1000) where "\<not>A \<equiv> A \<rightarrow> \<bottom>"
 
 
 section \<open>Booleans\<close>
