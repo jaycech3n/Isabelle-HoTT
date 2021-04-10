@@ -372,11 +372,11 @@ translations "\<lambda>x. b" \<leftharpoondown> "\<lambda>x: A. b"
 section \<open>Lambda coercion\<close>
 
 \<comment> \<open>Coerce object lambdas to meta-lambdas\<close>
-abbreviation (input) lambda :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close>
-  where "lambda f \<equiv> fn x. f `x"
+abbreviation (input) to_meta :: \<open>o \<Rightarrow> o \<Rightarrow> o\<close>
+  where "to_meta f \<equiv> fn x. f `x"
 
 ML_file \<open>~~/src/Tools/subtyping.ML\<close>
-declare [[coercion_enabled, coercion lambda]]
+declare [[coercion_enabled, coercion to_meta]]
 
 translations "f x" \<leftharpoondown> "f `x"
 
