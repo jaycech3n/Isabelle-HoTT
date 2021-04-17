@@ -10,9 +10,9 @@ RUN apt-get -y update &&\
   apt-get clean
 
 # Set up Isabelle
-ADD https://isabelle.in.tum.de/website-Isabelle2020/dist/Isabelle2020_linux.tar.gz Isabelle.tar.gz
+ADD https://isabelle.in.tum.de/dist/Isabelle2021_linux.tar.gz Isabelle.tar.gz
 RUN tar xzf Isabelle.tar.gz &&\
-  mv Isabelle2020 Isabelle &&\
+  mv Isabelle2021 Isabelle &&\
   perl -pi -e 's,ISABELLE_HOME_USER=.*,ISABELLE_HOME_USER="\$HOME/.isabelle",g;' Isabelle/etc/settings &&\
   perl -pi -e 's,ISABELLE_LOGIC=.*,ISABELLE_LOGIC=Pure,g;' Isabelle/etc/settings &&\
   Isabelle/bin/isabelle build -o system_heaps -b Pure &&\
