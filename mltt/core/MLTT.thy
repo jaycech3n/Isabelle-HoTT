@@ -443,7 +443,7 @@ Lemma funcomp_lambda_comp [comp]:
 
 Lemma funcomp_apply_comp [comp]:
   assumes
-    "A: U i" "B: U i" "\<And>x y. x: B \<Longrightarrow> C x: U i"
+    "A: U i" "B: U i" "\<And>x. x: B \<Longrightarrow> C x: U i"
     "f: A \<rightarrow> B" "g: \<Prod>x: B. C x"
     "x: A"
   shows "(g \<circ>\<^bsub>A\<^esub> f) x \<equiv> g (f x)"
