@@ -11,11 +11,11 @@ Thus this project is also an experiment in creating a viable framework, based on
 
 ### Usage
 
-Isabelle/HoTT is compatible with Isabelle2020.
-To use, add the Isabelle/HoTT folder path to `.isabelle/Isabelle2020/ROOTS` (on Mac/Linux/cygwin installations):
+Isabelle/HoTT is compatible with Isabelle2021.
+To use, add the Isabelle/HoTT folder path to `.isabelle/Isabelle2021/ROOTS` (on Mac/Linux/cygwin installations):
 
 ```
-$ echo path/to/Isabelle/HoTT >> ~/.isabelle/Isabelle2020/ROOTS
+$ echo path/to/Isabelle/HoTT >> ~/.isabelle/Isabelle2021/ROOTS
 ```
 
 ### To-do list
@@ -28,4 +28,3 @@ In no particular order.
 - [ ] Recursive function definitions
 - [ ] Inductive type definitions
 - [ ] Higher inductive type definitions
-
