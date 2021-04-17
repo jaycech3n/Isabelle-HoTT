@@ -244,7 +244,7 @@ Lemma (def) ap_funcomp:
     "p: x = y"
   shows "(g \<circ> f)[p] = g[f[p]]"
   apply (eq p)
-  \<^item> by compute
+  \<^item> by (subst comp; typechk?)+
   \<^item> by compute refl
   done
 
