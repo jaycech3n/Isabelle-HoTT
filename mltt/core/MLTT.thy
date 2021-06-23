@@ -137,9 +137,6 @@ translations "\<Sum>x: A. B" \<rightleftharpoons> "CONST Sig A (fn x. B)"
 abbreviation Prod (infixl "\<times>" 60)
   where "A \<times> B \<equiv> \<Sum>_: A. B"
 
-abbreviation "and" (infixl "\<and>" 60)
-  where "A \<and> B \<equiv> A \<times> B"
-
 axiomatization where
   SigF: "\<lbrakk>A: U i; \<And>x. x: A \<Longrightarrow> B x: U i\<rbrakk> \<Longrightarrow> \<Sum>x: A. B x: U i" and
 

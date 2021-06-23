@@ -83,9 +83,9 @@ fun check_infer_step facts i (ctxt, st) =
     val ctxt' = ctxt (*TODO: Use this to store already-derived typing judgments*)
   in
     TACTIC_CONTEXT ctxt' (
-      (NO_CONTEXT_TACTIC ctxt' o known_ctac facts
-      ORELSE' refine_tac
-      ORELSE' sub_tac) i st)
+      ((NO_CONTEXT_TACTIC ctxt' o known_ctac facts THEN' K (debug_tac ctxt' "after `known`"))
+      ORELSE' (refine_tac THEN' K (debug_tac ctxt' "after `refine`"))
+      ORELSE' (sub_tac THEN' K (debug_tac ctxt' "after `sub`"))) i st)
   end
 
 and check_infer facts i (cst as (_, st)) =

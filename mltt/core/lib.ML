@@ -39,6 +39,7 @@ val collect_subterms: (term -> bool) -> term -> term list
 
 (*Orderings*)
 val subterm_order: term -> term -> order
+val lvl_order: term -> term -> order
 val cond_order: order -> order -> order
 
 end = struct
@@ -186,6 +187,19 @@ fun subterm_order t1 t2 =
   if has_subterm [t1] t2 then LESS
   else if has_subterm [t2] t1 then GREATER
   else EQUAL
+
+fun lvl_order t1 t2 =
+  let val _ = @{print} (fastype_of t1) in
+  case fastype_of t1 of
+    Type (\<^type_name>\<open>lvl\<close>, _) => (case fastype_of t2 of
+                          Type (\<^type_name>\<open>lvl\<close>, _) => EQUAL
+                        | Type (_, _) => LESS
+                        | _ => EQUAL)
+  | Type (_, _)     => (case fastype_of t2 of
+                          Type (\<^type_name>\<open>lvl\<close>, _) => GREATER
+                        | _ => EQUAL)
+  | _ => EQUAL
+  end
 
 fun cond_order o1 o2 = case o1 of EQUAL => o2 | _ => o1
 

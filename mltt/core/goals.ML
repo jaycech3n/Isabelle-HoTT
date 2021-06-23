@@ -82,7 +82,7 @@ fun define_proof_term name (local_name, [th]) lthy =
           val concl_vars = Lib.collect_subterms is_Var
             (Lib.term_of_typing concl)
 
-          val params = inter Term.aconv concl_vars prems_vars
+          val params = sort (uncurry Lib.lvl_order) (inter Term.aconv concl_vars prems_vars)
 
           val prf_tm = fold_rev lambda params (Lib.term_of_typing concl)
 
@@ -197,10 +197,11 @@ fun theorem spec descr =
             long descr NONE (K I) binding includes elems concl))
 
 fun definition spec descr =
-  Outer_Syntax.local_theory_to_proof' spec "definition via proof"
+  Outer_Syntax.local_theory_to_proof' spec "definition with explicit type checking obligation"
     ((long_statement || short_statement) >>
-      (fn (long, binding, includes, elems, concl) => schematic_theorem_cmd
-        true long descr NONE (K I) binding includes elems concl))
+      (fn (long, binding, includes, elems, concl) =>
+        schematic_theorem_cmd
+          true long descr NONE (K I) binding includes elems concl))
 
 in
 
