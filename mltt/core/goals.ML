@@ -28,6 +28,15 @@ val short_statement =
       [Element.Fixes fixes, Element.Assumes assumes], Element.Shows shows)
     )
 
+val where_statement = Scan.optional (Parse.$$$ "where" |-- Parse.!!! Parse_Spec.statement) []
+
+val def_statement =
+  Parse_Spec.statement -- where_statement >>
+    (fn (shows, assumes) =>
+      (false, Binding.empty_atts, [],
+      [Element.Fixes [], Element.Assumes assumes], Element.Shows shows)
+    )
+
 fun prep_statement prep_att prep_stmt raw_elems raw_stmt ctxt =
   let
     val (stmt, elems_ctxt) = prep_stmt raw_elems raw_stmt ctxt
@@ -58,56 +67,60 @@ fun prep_statement prep_att prep_stmt raw_elems raw_stmt ctxt =
         end
   end
 
+fun make_name_binding name suffix local_name =
+  let val base_local_name = Long_Name.base_name local_name
+  in Binding.qualified_name
+    ((case base_local_name of "" => name | _ => base_local_name) ^
+     (case suffix
+      of SOME s => "_" ^ s
+      | NONE => ""))
+  end
+
 fun define_proof_term name (local_name, [th]) lthy =
       let
-        fun make_name_binding suffix local_name =
-          let val base_local_name = Long_Name.base_name local_name
-          in Binding.qualified_name
-            ((case base_local_name of "" => name | _ => base_local_name) ^
-             (case suffix
-              of SOME "prf" => "_prf"
-              | SOME "def" => "_def"
-              | _ => ""))
-          end
-
         val (prems, concl) =
           (Logic.strip_assums_hyp (Thm.prop_of th),
            Logic.strip_assums_concl (Thm.prop_of th))
       in
         if not (Lib.is_typing concl) then ([], lthy)
         else let
-          val prems_vars = distinct Term.aconv (flat
-            (map (Lib.collect_subterms is_Var) prems))
+          val prems_vars = distinct Term.aconv (
+            flat (map (Lib.collect_subterms is_Var) prems))
 
-          val concl_vars = Lib.collect_subterms is_Var
-            (Lib.term_of_typing concl)
+          val concl_vars = distinct Term.aconv (
+            Lib.collect_subterms is_Var (Lib.term_of_typing concl))
 
           val params = sort (uncurry Lib.lvl_order) (inter Term.aconv concl_vars prems_vars)
 
           val prf_tm = fold_rev lambda params (Lib.term_of_typing concl)
 
+          val levels = filter Lib.is_lvl (distinct Term.aconv (
+            Lib.collect_subterms is_Var prf_tm))
+
+          val prf_tm' = fold_rev lambda levels prf_tm
+
           val ((_, (_, raw_def)), lthy') = Local_Theory.define
-            ((make_name_binding NONE local_name, Mixfix.NoSyn),
-            ((make_name_binding (SOME "prf") local_name, []), prf_tm)) lthy
+            ((make_name_binding name NONE local_name, Mixfix.NoSyn),
+            ((make_name_binding name (SOME "prf") local_name, []), prf_tm')) lthy
 
           val def = fold
             (fn th1 => fn th2 => Thm.combination th2 th1)
-            (map (Thm.reflexive o Thm.cterm_of lthy) params)
+            (map (Thm.reflexive o Thm.cterm_of lthy) (params @ levels))
             raw_def
 
           val ((_, def'), lthy'') = Local_Theory.note
-            ((make_name_binding (SOME "def") local_name, []), [def])
+            ((make_name_binding name (SOME "def") local_name, []), [def])
             lthy'
         in
           (def', lthy'')
         end
       end
   | define_proof_term _ _ _ = error
-      ("Unimplemented: proof terms for multiple facts in one statement")
+      ("Can't generate proof terms for multiple facts in one statement")
 
 fun gen_schematic_theorem
   bundle_includes prep_att prep_stmt
-  gen_prf_tm long kind
+  gen_prf_tm long kind defn
   before_qed after_qed
   (name, raw_atts) raw_includes raw_elems raw_concl
   do_print lthy
@@ -137,7 +150,7 @@ fun gen_schematic_theorem
               lthy,
             true)
 
-        val (res', lthy'') =
+        val ((name_def, defs), (res', lthy'')) =
           if gen_prf_tm
           then
             let
@@ -147,28 +160,46 @@ fun gen_schematic_theorem
                     (define_proof_term (Binding.name_of name) result lthy))
                 res
                 ([], lthy')
+
               val res_folded =
                 map (apsnd (map (Local_Defs.fold new_lthy prf_tm_defs))) res
+
+              val name_def =
+                make_name_binding (Binding.name_of name) (SOME "def") (#1 (hd res_folded))
+
+              val name_type =
+                if defn then
+                  make_name_binding (Binding.name_of name) (SOME "type") (#1 (hd res_folded))
+                else name
             in
+              ((name_def, prf_tm_defs),
               Local_Theory.notes_kind kind
-                [((name, @{attributes [type]} @ atts),
+                [((name_type, @{attributes [type]} @ atts),
                   [(maps #2 res_folded, [])])]
-                new_lthy
+                new_lthy)
             end
           else
+            ((Binding.empty, []),
             Local_Theory.notes_kind kind
               [((name, atts), [(maps #2 res, [])])]
-              lthy'
+              lthy')
 
-        val _ = Proof_Display.print_results do_print pos lthy''
-            ((kind, Binding.name_of name), map (fn (_, ths) => ("", ths)) res')
-
+        (*Display theorems*)
         val _ =
-          if substmts then map
-            (fn (name, ths) => Proof_Display.print_results do_print pos lthy''
-              (("and", name), [("", ths)]))
-            res
-          else []
+          if defn then
+            single (Proof_Display.print_results do_print pos lthy''
+              ((kind, Binding.name_of name_def), [("", defs)]))
+          else
+            (if long then
+              Proof_Display.print_results do_print pos lthy''
+                ((kind, Binding.name_of name), map (fn (_, ths) => ("", ths)) res')
+            else ();
+            if substmts then
+              map (fn (name, ths) =>
+                    Proof_Display.print_results do_print pos lthy''
+                      ((kind, name), [("", ths)]))
+                  res
+            else [])
       in
         after_qed results' lthy''
       end
@@ -194,14 +225,14 @@ fun theorem spec descr =
         (fn (opt_derive, (long, binding, includes, elems, concl)) =>
           schematic_theorem_cmd
             (case opt_derive of SOME "def" => true | _ => false)
-            long descr NONE (K I) binding includes elems concl))
+            long descr false NONE (K I) binding includes elems concl))
 
 fun definition spec descr =
   Outer_Syntax.local_theory_to_proof' spec "definition with explicit type checking obligation"
-    ((long_statement || short_statement) >>
+    (def_statement >>
       (fn (long, binding, includes, elems, concl) =>
         schematic_theorem_cmd
-          true long descr NONE (K I) binding includes elems concl))
+          true long descr true NONE (K I) binding includes elems concl))
 
 in
 

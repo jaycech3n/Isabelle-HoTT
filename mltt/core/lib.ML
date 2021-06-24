@@ -14,6 +14,7 @@ val dest_eq: term -> term * term
 val mk_Var: string -> int -> typ -> term
 val lambda_var: term -> term -> term
 
+val is_lvl: term -> bool
 val is_typing: term -> bool
 val mk_typing: term -> term -> term
 val dest_typing: term -> term * term
@@ -82,6 +83,8 @@ fun lambda_var x tm =
   end
 
 (* Object *)
+
+fun is_lvl t = case fastype_of t of Type (\<^type_name>\<open>lvl\<close>, _) => true | _ => false
 
 fun is_typing (Const (\<^const_name>\<open>has_type\<close>, _) $ _ $ _) = true
   | is_typing _ = false
@@ -189,7 +192,6 @@ fun subterm_order t1 t2 =
   else EQUAL
 
 fun lvl_order t1 t2 =
-  let val _ = @{print} (fastype_of t1) in
   case fastype_of t1 of
     Type (\<^type_name>\<open>lvl\<close>, _) => (case fastype_of t2 of
                           Type (\<^type_name>\<open>lvl\<close>, _) => EQUAL
@@ -199,7 +201,6 @@ fun lvl_order t1 t2 =
                           Type (\<^type_name>\<open>lvl\<close>, _) => GREATER
                         | _ => EQUAL)
   | _ => EQUAL
-  end
 
 fun cond_order o1 o2 = case o1 of EQUAL => o2 | _ => o1
 

@@ -100,7 +100,7 @@ Lemma
   unfolding Bool_def true_def false_def by typechk+
 
 \<comment> \<open>Definitions like these should be handled by a future function package\<close>
-Definition ifelse [rotated 1]:
+Lemma (def) ifelse [rotated 1]:
   assumes *[unfolded Bool_def true_def false_def]:
     "\<And>x. x: Bool \<Longrightarrow> C x: U i"
     "x: Bool"

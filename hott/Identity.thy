@@ -259,16 +259,16 @@ section \<open>Transport\<close>
 Lemma (def) transport:
   assumes
     "A: U i"
-    "\<And>x. x: A \<Longrightarrow> P x: U i"
     "x: A" "y: A"
     "p: x = y"
+    "\<And>x. x: A \<Longrightarrow> P x: U i"
   shows "P x \<rightarrow> P y"
   by (eq p) intro
 
 definition transport_i ("transp")
-  where [implicit]: "transp P p \<equiv> transport {} P {} {} p"
+  where [implicit]: "transp P p \<equiv> transport {} {} {} p P"
 
-translations "transp P p" \<leftharpoondown> "CONST transport A P x y p"
+translations "transp P p" \<leftharpoondown> "CONST transport A x y p P"
 
 Lemma transport_comp [comp]:
   assumes

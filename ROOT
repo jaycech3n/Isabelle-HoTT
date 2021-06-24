@@ -29,4 +29,7 @@ session HoTT in hott = MLTT +
     Identity
     Equivalence
     Nat
+    Propositions
+    Univalence
+    Bool_HoTT
     List_HoTT

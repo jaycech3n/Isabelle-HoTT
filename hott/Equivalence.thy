@@ -202,7 +202,7 @@ Lemma is_qinvI:
   unfolding is_qinv_def
   proof intro
     show "g: B \<rightarrow> A" by fact
-    show "g \<circ> f ~ id A \<and> f \<circ> g ~ id B" by (intro; fact)
+    show "g \<circ> f ~ id A \<times> f \<circ> g ~ id B" by (intro; fact)
   qed
 
 Lemma is_qinv_components [type]:
@@ -405,8 +405,9 @@ text \<open>
 \<close>
 
 Lemma (def) equiv_if_equal:
+  notes Ui_in_USi [form]
   assumes
-    "A: U i" "B: U i" "p: A =\<^bsub>U i\<^esub> B"
+    "A: U i" "B: U i" "p: A = B"
   shows "<transp (id (U i)) p, ?isequiv>: A \<simeq> B"
   unfolding equivalence_def
   apply intro defer
@@ -415,13 +416,10 @@ Lemma (def) equiv_if_equal:
         apply (comp at A in "A \<rightarrow> B" id_comp[symmetric])
         using [[solve_side_conds=1]]
         apply (comp at B in "_ \<rightarrow> B" id_comp[symmetric])
-        apply (rule transport, rule Ui_in_USi)
-        by (rule lift_universe_codomain, rule Ui_in_USi)
+        using Ui_in_USi by (rule transport, rule lift_universe_codomain)
       \<^enum> vars A
-        using [[solve_side_conds=1]]
         apply (comp transport_comp)
-          \<circ> by (rule Ui_in_USi)
-          \<circ> by compute (rule U_lift)
+          \<circ> by (rule U_lift)
           \<circ> by compute (rule id_is_biinv)
         done
       done
@@ -430,9 +428,16 @@ Lemma (def) equiv_if_equal:
       apply (comp at A in "A \<rightarrow> B" id_comp[symmetric])
       using [[solve_side_conds=1]]
       apply (comp at B in "_ \<rightarrow> B" id_comp[symmetric])
-      apply (rule transport, rule Ui_in_USi)
-      by (rule lift_universe_codomain, rule Ui_in_USi)
+      using Ui_in_USi by (rule transport, rule lift_universe_codomain)
   done
+
+Definition idtoeqv: ":= MLTT.fst (A \<rightarrow> B) is_biinv (equiv_if_equal i A B p)"
+  where "A: U i" "B: U i" "p: A =\<^bsub>U i\<^esub> B"
+  using equiv_if_equal unfolding equivalence_def
+  by typechk
+
+definition idtoeqv_i ("idtoeqv")
+  where [implicit]: "idtoeqv p \<equiv> Equivalence.idtoeqv {} {} {} p"
 
 
 end

@@ -220,6 +220,27 @@ in
 end
 \<close>
 
+section \<open>Implicits\<close>
+
+text \<open>
+  \<open>{}\<close> is used to mark implicit arguments in definitions, while \<open>?\<close> is expanded
+  immediately for elaboration in statements.
+\<close>
+
+consts
+  iarg :: \<open>'a\<close> ("{}")
+  hole :: \<open>'b\<close> ("?")
+
+ML_file \<open>implicits.ML\<close>
+
+attribute_setup implicit = \<open>Scan.succeed Implicits.implicit_defs_attr\<close>
+
+ML \<open>val _ = Context.>> (Syntax_Phases.term_check 1 "" Implicits.make_holes)\<close>
+
+text \<open>Automatically insert inhabitation judgments where needed:\<close>
+syntax inhabited :: \<open>o \<Rightarrow> prop\<close> ("(_)")
+translations "inhabited A" \<rightharpoonup> "CONST has_type ? A"
+
 
 section \<open>Statements and goals\<close>
 
@@ -227,6 +248,10 @@ ML_file \<open>focus.ML\<close>
 ML_file \<open>elaboration.ML\<close>
 ML_file \<open>elaborated_statement.ML\<close>
 ML_file \<open>goals.ML\<close>
+
+text \<open>Syntax for definition bodies.\<close>
+syntax defn :: \<open>o \<Rightarrow> prop\<close> ("(:=_)")
+translations "defn t" \<rightharpoonup> "CONST has_type t ?"
 
 
 section \<open>Proof methods\<close>
@@ -326,29 +351,6 @@ subsection \<open>Calculational reasoning\<close>
 consts "rhs" :: \<open>'a\<close> ("..")
 
 ML_file \<open>calc.ML\<close>
-
-
-section \<open>Implicits\<close>
-
-text \<open>
-  \<open>{}\<close> is used to mark implicit arguments in definitions, while \<open>?\<close> is expanded
-  immediately for elaboration in statements.
-\<close>
-
-consts
-  iarg :: \<open>'a\<close> ("{}")
-  hole :: \<open>'b\<close> ("?")
-
-ML_file \<open>implicits.ML\<close>
-
-attribute_setup implicit = \<open>Scan.succeed Implicits.implicit_defs_attr\<close>
-
-ML \<open>val _ = Context.>> (Syntax_Phases.term_check 1 "" Implicits.make_holes)\<close>
-
-text \<open>Automatically insert inhabitation judgments where needed:\<close>
-
-syntax inhabited :: \<open>o \<Rightarrow> prop\<close> ("(_)")
-translations "inhabited A" \<rightharpoonup> "CONST has_type ? A"
 
 
 subsection \<open>Implicit lambdas\<close>

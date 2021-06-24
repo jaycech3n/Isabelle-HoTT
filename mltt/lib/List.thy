@@ -83,7 +83,7 @@ section \<open>Standard functions\<close>
 
 subsection \<open>Head and tail\<close>
 
-Definition head:
+Lemma (def) head:
   assumes "A: U i" "xs: List A"
   shows "Maybe A"
 proof (cases xs)
@@ -91,7 +91,7 @@ proof (cases xs)
   show "\<And>x. x: A \<Longrightarrow> some x: Maybe A" by intro
 qed
 
-Definition tail:
+Lemma (def) tail:
   assumes "A: U i" "xs: List A"
   shows "List A"
 proof (cases xs)
@@ -128,7 +128,7 @@ Lemma tail_of_cons [comp]:
 
 subsection \<open>Append\<close>
 
-Definition app:
+Lemma (def) app:
   assumes "A: U i" "xs: List A" "ys: List A"
   shows "List A"
   apply (elim xs)
@@ -143,7 +143,7 @@ translations "app" \<leftharpoondown> "CONST List.app A"
 
 subsection \<open>Map\<close>
 
-Definition map:
+Lemma (def) map:
   assumes "A: U i" "B: U i" "f: A \<rightarrow> B" "xs: List A"
   shows "List B"
 proof (elim xs)
@@ -165,7 +165,7 @@ Lemma map_type [type]:
 
 subsection \<open>Reverse\<close>
 
-Definition rev:
+Lemma (def) rev:
   assumes "A: U i" "xs: List A"
   shows "List A"
   apply (elim xs)

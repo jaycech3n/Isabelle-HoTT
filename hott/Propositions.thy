@@ -5,8 +5,11 @@ imports
 
 begin
 
-definition isProp where "isProp A \<equiv> \<Prod>x y: A. x =\<^bsub>A\<^esub> y"
-definition isSet where "isSet A \<equiv> \<Prod>x y: A. \<Prod>p q: x =\<^bsub>A\<^esub> y. p =\<^bsub>x =\<^bsub>A\<^esub> y\<^esub> q"
+Definition isProp: ":= \<Prod>x y: A. x = y"
+  where "A: U i" by typechk
+
+Definition isSet: ":=\<Prod>x y: A. \<Prod>p q: x = y. p = q"
+  where "A: U i" by typechk
 
 Theorem isProp_Top: "isProp \<top>"
   unfolding isProp_def
@@ -15,5 +18,6 @@ Theorem isProp_Top: "isProp \<top>"
 Theorem isProp_Bot: "isProp \<bottom>"
   unfolding isProp_def
   by (intros, elim)
+
 
 end

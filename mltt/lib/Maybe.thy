@@ -17,7 +17,7 @@ lemma
   Maybe_some: "a: A \<Longrightarrow> some A a: Maybe A"
   unfolding Maybe_def none_def some_def by typechk+
 
-Definition MaybeInd:
+Lemma (def) MaybeInd:
   assumes
     "A: U i"
     "\<And>m. m: Maybe A \<Longrightarrow> C m: U i"
