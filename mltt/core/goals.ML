@@ -189,6 +189,9 @@ fun gen_schematic_theorem
           if defn then
             single (Proof_Display.print_results do_print pos lthy''
               ((kind, Binding.name_of name_def), [("", defs)]))
+          else if not long andalso not substmts then
+            single (Proof_Display.print_results do_print pos lthy''
+              ((kind, Binding.name_of name), map (fn (_, ths) => ("", ths)) res'))
           else
             (if long then
               Proof_Display.print_results do_print pos lthy''

@@ -63,15 +63,15 @@ typedecl lvl
 axiomatization
   O  :: \<open>lvl\<close> and
   S  :: \<open>lvl \<Rightarrow> lvl\<close> and
-  lt :: \<open>lvl \<Rightarrow> lvl \<Rightarrow> prop\<close> (infix "<" 900)
+  lt :: \<open>lvl \<Rightarrow> lvl \<Rightarrow> prop\<close> (infix "<\<^sub>U" 900)
   where
-  O_min: "O < S i" and
-  lt_S: "i < S i" and
-  lt_trans: "i < j \<Longrightarrow> j < k \<Longrightarrow> i < k"
+  O_min: "O <\<^sub>U S i" and
+  lt_S: "i <\<^sub>U S i" and
+  lt_trans: "i <\<^sub>U j \<Longrightarrow> j <\<^sub>U k \<Longrightarrow> i <\<^sub>U k"
 
 axiomatization U :: \<open>lvl \<Rightarrow> o\<close> where
-  Ui_in_Uj: "i < j \<Longrightarrow> U i: U j" and
-  U_cumul: "A: U i \<Longrightarrow> i < j \<Longrightarrow> A: U j"
+  Ui_in_Uj: "i <\<^sub>U j \<Longrightarrow> U i: U j" and
+  U_cumul: "A: U i \<Longrightarrow> i <\<^sub>U j \<Longrightarrow> A: U j"
 
 lemma Ui_in_USi:
   "U i: U (S i)"
