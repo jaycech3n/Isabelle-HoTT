@@ -9,6 +9,11 @@ Thus this project is also an experiment in creating a viable framework, based on
 
 **Caveat prover**: *This project is under active experimentation and is not yet guaranteed fit for any particular purpose.*
 
+### References
+
+- *Homotopy Type Theory in Isabelle*. ITP 2021. DOI: [10.4230/LIPIcs.ITP.2021.12](https://drops.dagstuhl.de/opus/frontdoor.php?source_opus=13907)
+- *An Implementation of Homotopy Type Theory in Isabelle/Pure*. [arXiv:1911.00399 [cs.LO]](https://arxiv.org/abs/1911.00399)
+
 ### Usage
 
 Isabelle/HoTT is compatible with Isabelle2021.
